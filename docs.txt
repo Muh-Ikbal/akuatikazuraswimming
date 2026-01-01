@@ -1,0 +1,7 @@
+awal install (optional)
+
+CREATE DATABASE azura_course;
+CREATE USER 'user'@'%' IDENTIFIED BY 'password';
+GRANT ALL PRIVILEGES ON azura_course.* TO 'user'@'%';
+FLUSH PRIVILEGES;
+
