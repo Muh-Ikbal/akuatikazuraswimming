@@ -75,4 +75,13 @@ class CourseController extends Controller
             'course' => $course
         ]);
     }
+
+    public function destroy($id){
+        $course = Course::findOrFail($id);
+        if($course->image){
+            Storage::disk('public')->delete($course->image);
+        }
+        $course->delete();
+        return redirect('/management-course')->with('success', 'Course berhasil dihapus');
+    }
 }

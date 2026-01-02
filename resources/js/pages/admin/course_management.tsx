@@ -1,7 +1,7 @@
 import { useState } from "react";
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -37,9 +37,11 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from "@/components/ui/pagination"
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import AlertDelete from "@/components/alert-delete";
 
 interface Course {
-    id: string;
+    id: number;
     title: string;
     description: string;
     image?: string;
@@ -80,6 +82,10 @@ export default function CourseManagement(props: { courses: any }) {
             minimumFractionDigits: 0,
         }).format(value);
     };
+
+    const handleDelete = (id: number) => {
+        router.delete(`/management-course/delete/${id}`)
+    }
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -259,9 +265,11 @@ export default function CourseManagement(props: { courses: any }) {
                                                 Edit
                                             </Button>
                                         </Link>
-                                        <Button variant="outline" size="icon" className="text-destructive hover:bg-destructive/10">
-                                            <Trash2 className="w-4 h-4" />
-                                        </Button>
+                                        <AlertDelete
+                                            title="Hapus Course?"
+                                            description={`Apakah Anda yakin ingin menghapus course "${course.title}"? Tindakan ini tidak dapat dibatalkan.`}
+                                            action={() => handleDelete(course.id)}
+                                        />
                                     </div>
                                 </CardContent>
                             </Card>
@@ -348,9 +356,11 @@ export default function CourseManagement(props: { courses: any }) {
                                                                 <Edit className="w-4 h-4" />
                                                             </Button>
                                                         </Link>
-                                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive">
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </Button>
+                                                        <AlertDelete
+                                                            title="Hapus Course?"
+                                                            description={`Apakah Anda yakin ingin menghapus course "${course.title}"? Tindakan ini tidak dapat dibatalkan.`}
+                                                            action={() => handleDelete(course.id)}
+                                                        />
                                                     </div>
                                                 </TableCell>
                                             </TableRow>
