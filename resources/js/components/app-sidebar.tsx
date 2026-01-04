@@ -13,7 +13,7 @@ import {
 import { dashboard } from '@/routes';
 import { type NavGroup } from '@/types';
 import { Link } from '@inertiajs/react';
-import { LayoutGrid,UserCheck,UserCog, Users, BookOpen, Calendar, School, Banknote, Contact, HandCoins, PiggyBank, Landmark } from 'lucide-react';
+import { LayoutGrid, UserCheck, UserCog, Users, BookOpen, Calendar, School, Banknote, Contact, HandCoins, PiggyBank, Landmark } from 'lucide-react';
 import AppLogo from './app-logo';
 
 
@@ -21,7 +21,7 @@ const mainNavItems: NavGroup[] = [
     {
         title: '',
         items: [
-                    {
+            {
                 title: 'Dashboard',
                 href: dashboard(),
                 icon: LayoutGrid,
@@ -30,22 +30,22 @@ const mainNavItems: NavGroup[] = [
         ]
     },
     {
-        title:'PESERTA',
-        items:[
+        title: 'PESERTA',
+        items: [
             {
-                title: 'Peserta',
-                href: '/management-peserta',
+                title: 'Member',
+                href: '/management-member',
                 icon: Users,
+            },
+            {
+                title: 'Enrolment',
+                href: '/management-enrolment',
+                icon: UserCheck,
             },
             {
                 title: 'Coach',
                 href: '/management-coach',
                 icon: UserCog,
-            },
-            {
-                title: 'Member',
-                href: '/management-member',
-                icon: UserCheck,
             },
             {
                 title: 'Jadwal',
@@ -55,8 +55,8 @@ const mainNavItems: NavGroup[] = [
         ]
     },
     {
-        title:'MASTER DATA',
-        items :[
+        title: 'MASTER DATA',
+        items: [
             {
                 title: 'Course',
                 href: '/management-course',
@@ -72,15 +72,15 @@ const mainNavItems: NavGroup[] = [
                 href: '/kategori-pengeluaran',
                 icon: HandCoins,
             },
-             {
+            {
                 title: 'User',
-                href: 'management-user',
+                href: '/management-user',
                 icon: Contact,
             },
         ]
-    },{
-        title:'KEUANGAN',
-        items:[
+    }, {
+        title: 'KEUANGAN',
+        items: [
             {
                 title: 'Pengeluaran',
                 href: 'management-pengeluaran',

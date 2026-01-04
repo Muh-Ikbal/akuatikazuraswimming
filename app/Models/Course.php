@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\ClassSession;
 
 class Course extends Model
 {
@@ -18,4 +19,7 @@ class Course extends Model
         'updated_at',
     ];
 
+    public function class_sessions(){
+        return $this->hasMany(ClassSession::class);
+    }
 }
