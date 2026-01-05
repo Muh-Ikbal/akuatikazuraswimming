@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Course;
 use App\Models\Coach;
+use App\Models\EnrolmentCourse;
 
 class ClassSession extends Model
 {
@@ -22,5 +23,9 @@ class ClassSession extends Model
 
     public function coach(){
         return $this->belongsTo(Coach::class);
+    }
+
+    public function enrolment(){
+        return $this->hasMany(EnrolmentCourse::class);
     }
 }

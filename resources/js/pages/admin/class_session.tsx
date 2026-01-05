@@ -100,7 +100,7 @@ export default function CoachManagement(props: { class_session: any }) {
                         </p>
                     </div>
                     <div className="flex gap-3">
-                        <Link href="/management-class/create">
+                        <Link href="/management-kelas/create">
                             <Button>
                                 <Plus className="w-4 h-4 mr-2" />
                                 Tambah Kelas
@@ -220,11 +220,7 @@ export default function CoachManagement(props: { class_session: any }) {
                                             </TableCell>
                                             <TableCell className="text-right">
                                                 <div className="flex justify-end gap-1">
-                                                    <Link href={`/management-kelas/${class_session.id}`}>
-                                                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                            <Eye className="w-4 h-4" />
-                                                        </Button>
-                                                    </Link>
+
                                                     <Link href={`/management-kelas/edit/${class_session.id}`}>
                                                         <Button variant="ghost" size="icon" className="h-8 w-8">
                                                             <Edit className="w-4 h-4" />

@@ -6,6 +6,10 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\Member;
 use App\Models\User;
+use App\Models\EnrolmentCourse;
+use App\Models\Payment;
+use App\Models\Course;
+use App\Models\ClassSession;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rules\Password;
@@ -23,7 +27,12 @@ class MemberController extends Controller
 
     public function create()
     {
-        return Inertia::render('admin/member/create');
+        $courses = Course::get(['id','title']);
+        $classSessions = ClassSession::get(['id','title','course_id']);
+        return Inertia::render('admin/member/create', [
+            'courses' => $courses,
+            'classSessions' => $classSessions,
+        ]);
     }
 
     public function store(Request $request)
@@ -39,6 +48,9 @@ class MemberController extends Controller
             'parent_phone_number' => 'required|string|max:20',
             'email' => 'required|nullable|email|unique:users,email',
             'password' => ['required', 'nullable', 'confirmed', Password::defaults()],
+            'course_id' => 'required|exists:courses,id',
+            'class_session_id' => 'required|exists:class_sessions,id',
+
         ]);
 
         DB::transaction(function () use ($validated) {
@@ -54,7 +66,7 @@ class MemberController extends Controller
             $userId = $user->id;
 
             // Create member
-            Member::create([
+            $member = Member::create([
                 'name' => $validated['name'],
                 'birth_date' => $validated['birth_date'],
                 'gender' => $validated['gender'],
@@ -63,6 +75,21 @@ class MemberController extends Controller
                 'parent_name' => $validated['parent_name'],
                 'parent_phone_number' => $validated['parent_phone_number'],
                 'user_id' => $userId,
+            ]);
+            // create enrolment
+            $memberId = $member->id; 
+            $enrolmentCourse = EnrolmentCourse::create([
+                'member_id' => $memberId,
+                'course_id' => $validated['course_id'],
+                'class_session_id' => $validated['class_session_id'],
+            ]);
+
+            $course = Course::findOrFail($validated['course_id']);
+            $enrolmentCourseId = $enrolmentCourse->id;
+            Payment::create([
+                'enrolment_course_id' => $enrolmentCourseId,
+                'amount' => $course->price,
+                'state' => 'pending',
             ]);
         });
 

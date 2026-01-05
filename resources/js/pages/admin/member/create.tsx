@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ArrowLeft, Save, User, Users, Mail, Lock, Phone, MapPin, Calendar } from 'lucide-react';
+import { ArrowLeft, Save, User, Users, Mail, Lock, Phone, MapPin, Calendar, Book } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 
 interface Member {
@@ -32,14 +32,29 @@ interface UserOption {
     email: string;
 }
 
+interface CourseOption {
+    id: number;
+    title: string;
+}
+
+interface ClassSessionOption {
+    id: number;
+    title: string;
+    course_id: number;
+}
+
 interface Props {
     member?: Member;
     users?: UserOption[];
+    courses?: CourseOption[];
+    classSessions?: ClassSessionOption[];
 }
 
-export default function CreateMember({ member, users = [] }: Props) {
+export default function CreateMember({ member, users = [], courses = [], classSessions = [] }: Props) {
     const isEdit = !!member;
-    const [createUser, setCreateUser] = useState(false);
+    const [selectedCourse, setSelectedCourse] = useState("false");
+    const [selectedClassSession, setSelectedClassSession] = useState("false");
+
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -65,6 +80,8 @@ export default function CreateMember({ member, users = [] }: Props) {
         email: '',
         password: '',
         password_confirmation: '',
+        course_id: '',
+        class_session_id: ''
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -76,6 +93,7 @@ export default function CreateMember({ member, users = [] }: Props) {
         }
     };
 
+    const filteredClassSession = classSessions.filter((classSession) => classSession.course_id === Number(selectedCourse));
     // const handleCreateUserToggle = (checked: boolean) => {
     //     setCreateUser(checked);
     //     setData('create_user', checked);
@@ -249,84 +267,158 @@ export default function CreateMember({ member, users = [] }: Props) {
 
                         {/* Create User Account - Only on Create */}
                         {!isEdit && (
-                            <Card>
-                                <CardHeader className="p-4 sm:p-6">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-                                                <Lock className="w-5 h-5" />
-                                                Akun Login
-                                            </CardTitle>
-                                            <CardDescription className="mt-1">
-                                                Buat akun login untuk member ini
-                                            </CardDescription>
-                                        </div>
+                            <div>
+                                <Card>
+                                    <CardHeader className="p-4 sm:p-6">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                                                    <Lock className="w-5 h-5" />
+                                                    Akun Login
+                                                </CardTitle>
+                                                <CardDescription className="mt-1">
+                                                    Buat akun login untuk member ini
+                                                </CardDescription>
+                                            </div>
 
-                                    </div>
-                                </CardHeader>
-                                <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0 space-y-4">
-                                    {/* Email */}
-                                    <div className="space-y-2">
-                                        <Label htmlFor="email" className="text-sm">
-                                            Email <span className="text-destructive">*</span>
-                                        </Label>
-                                        <div className="relative">
-                                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                                            <Input
-                                                id="email"
-                                                type="email"
-                                                placeholder="contoh@email.com"
-                                                value={data.email}
-                                                onChange={(e) => setData('email', e.target.value)}
-                                                className={`h-10 sm:h-11 pl-10 ${errors.email ? 'border-destructive' : ''}`}
-                                            />
                                         </div>
-                                        {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
-                                    </div>
-
-                                    {/* Password */}
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    </CardHeader>
+                                    <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0 space-y-4">
+                                        {/* Email */}
                                         <div className="space-y-2">
-                                            <Label htmlFor="password" className="text-sm">
-                                                Password <span className="text-destructive">*</span>
+                                            <Label htmlFor="email" className="text-sm">
+                                                Email <span className="text-destructive">*</span>
                                             </Label>
                                             <div className="relative">
-                                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                                                 <Input
-                                                    id="password"
-                                                    type="password"
-                                                    placeholder="Minimal 8 karakter"
-                                                    value={data.password}
-                                                    onChange={(e) => setData('password', e.target.value)}
-                                                    className={`h-10 sm:h-11 pl-10 ${errors.password ? 'border-destructive' : ''}`}
+                                                    id="email"
+                                                    type="email"
+                                                    placeholder="contoh@email.com"
+                                                    value={data.email}
+                                                    onChange={(e) => setData('email', e.target.value)}
+                                                    className={`h-10 sm:h-11 pl-10 ${errors.email ? 'border-destructive' : ''}`}
                                                 />
                                             </div>
-                                            {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
+                                            {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
                                         </div>
 
-                                        <div className="space-y-2">
-                                            <Label htmlFor="password_confirmation" className="text-sm">
-                                                Konfirmasi Password <span className="text-destructive">*</span>
-                                            </Label>
-                                            <div className="relative">
-                                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                                                <Input
-                                                    id="password_confirmation"
-                                                    type="password"
-                                                    placeholder="Ulangi password"
-                                                    value={data.password_confirmation}
-                                                    onChange={(e) => setData('password_confirmation', e.target.value)}
-                                                    className="h-10 sm:h-11 pl-10"
-                                                />
+                                        {/* Password */}
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="password" className="text-sm">
+                                                    Password <span className="text-destructive">*</span>
+                                                </Label>
+                                                <div className="relative">
+                                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                                    <Input
+                                                        id="password"
+                                                        type="password"
+                                                        placeholder="Minimal 8 karakter"
+                                                        value={data.password}
+                                                        onChange={(e) => setData('password', e.target.value)}
+                                                        className={`h-10 sm:h-11 pl-10 ${errors.password ? 'border-destructive' : ''}`}
+                                                    />
+                                                </div>
+                                                {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <Label htmlFor="password_confirmation" className="text-sm">
+                                                    Konfirmasi Password <span className="text-destructive">*</span>
+                                                </Label>
+                                                <div className="relative">
+                                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                                    <Input
+                                                        id="password_confirmation"
+                                                        type="password"
+                                                        placeholder="Ulangi password"
+                                                        value={data.password_confirmation}
+                                                        onChange={(e) => setData('password_confirmation', e.target.value)}
+                                                        className="h-10 sm:h-11 pl-10"
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <p className="text-xs text-muted-foreground">
-                                        Akun akan dibuat dengan role <strong>member</strong>
-                                    </p>
-                                </CardContent>
-                            </Card>
+                                        <p className="text-xs text-muted-foreground">
+                                            Akun akan dibuat dengan role <strong>member</strong>
+                                        </p>
+                                    </CardContent>
+                                </Card>
+
+                                <Card>
+                                    <CardHeader className="p-4 sm:p-6">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                                                    <Book className="w-5 h-5" />
+                                                    Enroll Course
+                                                </CardTitle>
+                                                <CardDescription className="mt-1">
+                                                    Pilih course yang akan diikuti oleh member ini
+                                                </CardDescription>
+                                            </div>
+
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0 space-y-4">
+
+                                        {/* course and classsession */}
+                                        <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="course_id" className="text-sm">
+                                                    Course <span className="text-destructive">*</span>
+                                                </Label>
+                                                <select
+                                                    id="course_id"
+                                                    className="w-full h-10 sm:h-11 px-3 border border-input rounded-md bg-background text-sm"
+                                                    value={selectedCourse}
+                                                    onChange={(e) => {
+                                                        setSelectedCourse(e.target.value)
+                                                        setSelectedClassSession('')
+                                                    }}
+
+                                                >
+                                                    <option value="">-- Pilih Course --</option>
+                                                    {courses.map((course) => (
+                                                        <option key={course.id} value={course.id}>
+                                                            {course.title}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                {errors.course_id && <p className="text-sm text-destructive">{errors.course_id}</p>}
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="class_session_id" className="text-sm">
+                                                    Kelas <span className="text-destructive">*</span>
+                                                </Label>
+                                                <select
+                                                    id="class_session_id"
+                                                    className="w-full h-10 sm:h-11 px-3 border border-input rounded-md bg-background text-sm"
+                                                    value={selectedClassSession}
+                                                    disabled={!selectedCourse}
+                                                    onChange={(e) => setSelectedClassSession(e.target.value)}
+                                                >
+                                                    <option value="">-- Pilih Kelas --</option>
+                                                    {filteredClassSession.map((classSession) => (
+                                                        <option key={classSession.id} value={classSession.id}>
+                                                            {classSession.title}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                {errors.class_session_id && <p className="text-sm text-destructive">{errors.class_session_id}</p>}
+                                            </div>
+                                        </div>
+
+
+
+
+                                    </CardContent>
+                                </Card>
+
+                            </div>
+
                         )}
 
                         {/* User Selector - Only on Edit */}
@@ -382,7 +474,7 @@ export default function CreateMember({ member, users = [] }: Props) {
                         </div>
                     </div>
                 </form>
-            </div>
-        </AppLayout>
+            </div >
+        </AppLayout >
     );
 }

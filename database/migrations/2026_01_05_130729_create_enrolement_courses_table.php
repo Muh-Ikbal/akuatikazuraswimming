@@ -11,12 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('class_sessions', function (Blueprint $table) {
+        Schema::create('enrolment_courses', function (Blueprint $table) {
             $table->id();
-            $table->string('title');
+            $table->foreignId('member_id')->constrained('members')->cascadeOnDelete();
+            $table->foreignId('class_session_id')->constrained('class_sessions')->cascadeOnDelete();
             $table->foreignId('course_id')->constrained('courses')->cascadeOnDelete();
-            $table->foreignId('coach_id')->constrained('coaches')->cascadeOnDelete();
-            $table->integer('capacity');
+            $table->enum('state', ['on_progress', 'completed', 'cancelled'])->default('on_progress');
             $table->timestamps();
         });
     }
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('class_sessions');
+        Schema::dropIfExists('enrolment_courses');
     }
 };

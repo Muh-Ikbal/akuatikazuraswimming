@@ -55,7 +55,13 @@ Route::middleware(['auth', 'verified','role:admin'])->group(function () {
     Route::delete('management-coach/{id}', [CoachController::class,'destroy'])->name('management-coach.destroy');
 
     // management class session
-    Route::get('management-kelas', [ClassSessionController::class,'index'])->name('management-class-session');
+    Route::get('management-kelas', [ClassSessionController::class,'index'])->name('management-kelas');
+    Route::get('management-kelas/create', [ClassSessionController::class,'create'])->name('management-kelas.create');
+    Route::post('management-kelas', [ClassSessionController::class,'store'])->name('management-kelas.store');
+    Route::get('management-kelas/{id}', [ClassSessionController::class,'show'])->name('management-kelas.show');
+    Route::get('management-kelas/edit/{id}', [ClassSessionController::class,'edit'])->name('management-kelas.edit');
+    Route::put('management-kelas/update/{id}', [ClassSessionController::class,'update'])->name('management-kelas.update');
+    Route::delete('management-kelas/{id}', [ClassSessionController::class,'destroy'])->name('management-kelas.destroy');
 });
 
 
