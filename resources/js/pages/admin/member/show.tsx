@@ -244,7 +244,6 @@ export default function ShowMember({ member }: ShowMemberProps) {
                             </CardContent>
                         </Card>
 
-                        {/* Timestamps */}
                         {(member.created_at || member.updated_at) && (
                             <Card>
                                 <CardContent className="p-4 sm:p-6">

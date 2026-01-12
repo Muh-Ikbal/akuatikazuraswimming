@@ -8,17 +8,25 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\CoachController;
 use App\Http\Controllers\ClassSessionController;
+use App\Http\Controllers\EnrolmentCourseController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ExpenseCategoryController;
+use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\ScheduleController;
+use App\Http\Controllers\DashboardController;
 
 Route::get('/', function () {
+    
     return Inertia::render('welcome', [
         'canRegister' => Features::enabled(Features::registration()),
     ]);
 })->name('home');
 
+// dashboard
+Route::middleware(['auth', 'verified'])->get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
 Route::middleware(['auth', 'verified','role:admin'])->group(function () {
-    Route::get('dashboard', function () {
-        return Inertia::render('admin/dashboard');
-    })->name('dashboard');
+    
     // management course
      Route::get('management-course', [CourseController::class,'index'])->name('management-course');
      Route::get('management-course/create', [CourseController::class,'create'])->name('management-course.create');
@@ -62,6 +70,49 @@ Route::middleware(['auth', 'verified','role:admin'])->group(function () {
     Route::get('management-kelas/edit/{id}', [ClassSessionController::class,'edit'])->name('management-kelas.edit');
     Route::put('management-kelas/update/{id}', [ClassSessionController::class,'update'])->name('management-kelas.update');
     Route::delete('management-kelas/{id}', [ClassSessionController::class,'destroy'])->name('management-kelas.destroy');
+    
+    // management enrolment
+    Route::get('management-enrolment', [EnrolmentCourseController::class,'index'])->name('management-enrolment');
+    Route::get('management-enrolment/create', [EnrolmentCourseController::class,'create'])->name('management-enrolment.create');
+    Route::post('management-enrolment', [EnrolmentCourseController::class,'store'])->name('management-enrolment.store');
+    Route::get('management-enrolment/{id}', [EnrolmentCourseController::class,'show'])->name('management-enrolment.show');
+    Route::get('management-enrolment/edit/{id}', [EnrolmentCourseController::class,'edit'])->name('management-enrolment.edit');
+    Route::put('management-enrolment/update/{id}', [EnrolmentCourseController::class,'update'])->name('management-enrolment.update');
+    Route::delete('management-enrolment/{id}', [EnrolmentCourseController::class,'destroy'])->name('management-enrolment.destroy');
+    
+    // management payment (pemasukan)
+    Route::get('management-pemasukan', [PaymentController::class,'index'])->name('management-pemasukan');
+    Route::get('management-pemasukan/create', [PaymentController::class,'create'])->name('management-pemasukan.create');
+    Route::post('management-pemasukan', [PaymentController::class,'store'])->name('management-pemasukan.store');
+    Route::get('management-pemasukan/{id}', [PaymentController::class,'show'])->name('management-pemasukan.show');
+    Route::get('management-pemasukan/edit/{id}', [PaymentController::class,'edit'])->name('management-pemasukan.edit');
+    Route::put('management-pemasukan/update/{id}', [PaymentController::class,'update'])->name('management-pemasukan.update');
+    Route::delete('management-pemasukan/{id}', [PaymentController::class,'destroy'])->name('management-pemasukan.destroy');
+
+    // kategori pengeluaran
+    Route::get('kategori-pengeluaran', [ExpenseCategoryController::class,'index'])->name('kategori-pengeluaran');
+    Route::get('kategori-pengeluaran/create', [ExpenseCategoryController::class,'create'])->name('kategori-pengeluaran.create');
+    Route::post('kategori-pengeluaran', [ExpenseCategoryController::class,'store'])->name('kategori-pengeluaran.store');
+    Route::get('kategori-pengeluaran/edit/{id}', [ExpenseCategoryController::class,'edit'])->name('kategori-pengeluaran.edit');
+    Route::put('kategori-pengeluaran/update/{id}', [ExpenseCategoryController::class,'update'])->name('kategori-pengeluaran.update');
+    Route::delete('kategori-pengeluaran/delete/{id}', [ExpenseCategoryController::class,'destroy'])->name('kategori-pengeluaran.delete');
+
+    // Pengeluaran
+    Route::get('management-pengeluaran',[ExpenseController::class,'index'])->name('management-pengeluaran');
+    Route::get('management-pengeluaran/create',[ExpenseController::class,'create'])->name('management-pengeluaran.create');
+    Route::post('management-pengeluaran',[ExpenseController::class,'store'])->name('management-pengeluaran.store');
+    Route::get('management-pengeluaran/{id}',[ExpenseController::class,'edit'])->name('management-pengeluaran.edit');
+    Route::put('management-pengeluaran/{id}',[ExpenseController::class,'update'])->name('management-pengeluaran.update');
+    Route::delete('management-pengeluaran/{id}',[ExpenseController::class,'destroy'])->name('management-pengeluaran.destroy');
+
+    // management jadwal
+    Route::get('management-jadwal',[ScheduleController::class,'index'])->name('management-jadwal');
+    Route::get('management-jadwal/create',[ScheduleController::class,'create'])->name('management-jadwal.create');
+    Route::post('management-jadwal',[ScheduleController::class,'store'])->name('management-jadwal.store');
+    Route::get('management-jadwal/{id}',[ScheduleController::class,'edit'])->name('management-jadwal.edit');
+    Route::put('management-jadwal/{id}',[ScheduleController::class,'update'])->name('management-jadwal.update');
+    Route::delete('management-jadwal/{id}',[ScheduleController::class,'destroy'])->name('management-jadwal.destroy');
+
 });
 
 

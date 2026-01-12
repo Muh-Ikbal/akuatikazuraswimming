@@ -63,9 +63,7 @@ export default function CourseManagement(props: { courses: any }) {
     const [filterStatus, setFilterStatus] = useState<string>("all");
     const [viewMode, setViewMode] = useState<"card" | "table">("card");
 
-    console.log(props.courses);
     const courses: Course[] = props.courses.data;
-    console.log(courses);
     const filteredCourses = courses.filter((c) => {
         const matchesSearch =
             c.title.toLowerCase().includes(searchQuery.toLowerCase()) ||

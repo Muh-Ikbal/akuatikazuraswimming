@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\User;
+use App\Models\ClassSession;
 
 use Illuminate\Database\Eloquent\Model;
 
@@ -19,5 +20,9 @@ class Coach extends Model
 
     public function user(){
         return $this->belongsTo(User::class);
+    }
+
+    public function class_sessions(){
+        return $this->hasOne(ClassSession::class);
     }
 }

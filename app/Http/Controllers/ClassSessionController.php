@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\ClassSession;
 use App\Models\Course;
 use App\Models\Coach;
+use App\Models\EnrolmentCourse;
 use Inertia\Inertia;
 
 class ClassSessionController extends Controller
@@ -13,8 +14,10 @@ class ClassSessionController extends Controller
     public function index()
     {
         $class_session = ClassSession::with('course', 'coach')->paginate(10);
+        $total_student = EnrolmentCourse::all();
         return Inertia::render('admin/class_session', [
-            'class_session' => $class_session
+            'class_session' => $class_session,
+            'total_student' => $total_student
         ]);
     }
 
@@ -22,6 +25,7 @@ class ClassSessionController extends Controller
     {
         $courses = Course::where('state', 'active')->get(['id', 'title']);
         $coaches = Coach::all(['id', 'name']);
+
         
         return Inertia::render('admin/classsession/create', [
             'courses' => $courses,

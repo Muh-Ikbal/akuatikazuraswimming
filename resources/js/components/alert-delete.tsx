@@ -7,7 +7,7 @@ import { Button } from "./ui/button"
 const AlertDelete = ({ title, description, action }: { title: string, description: string, action: () => void }) => {
     return (
         <AlertDialog>
-            <AlertDialogTrigger>
+            <AlertDialogTrigger asChild>
                 <Button variant='outline' size='icon' className="text-destructive hover:bg-destructive/10">
                     <Trash2 className="w-4 h-4" />
                 </Button>

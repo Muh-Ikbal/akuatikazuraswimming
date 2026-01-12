@@ -16,66 +16,21 @@ import {
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Dashboard',
+        title: 'Dashboard User',
         href: dashboard().url,
     },
 ];
 
-interface payments {
-    id: number;
-    amount: number;
-    created_at: string;
-}
-
-interface classSession {
-    id: number;
-    title: string;
-    enrolment_count: number;
-    schedule: {
-        time: string;
-        date: string;
-        location: string;
-    };
-    // loca
-
-
-}
-
-export default function Dashboard(props: {
-    members: number,
-    coaches: number,
-    courses: number,
-    payments: payments[],
-    class_sessions: classSession[]
-}) {
-
-    const class_sessions = props.class_sessions;
-    console.log(class_sessions);
-    const now = new Date();
-    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    const firstDayOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const lastDayOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
-
-
-    // const totalPayments = props.payments.reduce((total, payment) => total + payment.amount, 0);
-    const totalPaymentsThisMonth = props.payments.filter((payment) => {
-        const paymentDate = new Date(payment.created_at);
-        return paymentDate >= firstDayOfMonth && paymentDate <= lastDayOfMonth;
-    }).reduce((total, payment) => total + payment.amount, 0);
-    const totalPaymentsLastMonth = props.payments.filter((payment) => {
-        const paymentDate = new Date(payment.created_at);
-        return paymentDate >= firstDayOfLastMonth && paymentDate <= lastDayOfLastMonth;
-    }).reduce((total, payment) => total + payment.amount, 0);
+export default function Dashboard() {
     // Data statistik (akan diganti dengan data asli dari backend)
     const stats = {
-        totalPeserta: props.members,
+        totalPeserta: 156,
         pesertaBaru: 12,
-        totalCoach: props.coaches,
-        totalCourse: props.courses,
+        totalCoach: 8,
+        totalCourse: 5,
         jadwalHariIni: 6,
-        pendapatanBulanIni: totalPaymentsThisMonth,
-        pendapatanBulanLalu: totalPaymentsLastMonth,
+        pendapatanBulanIni: 45600000,
+        pendapatanBulanLalu: 42000000,
     };
 
     const recentActivities = [
@@ -91,9 +46,7 @@ export default function Dashboard(props: {
         { kelas: 'Kelas Intermediate 2A', waktu: '14:00 - 15:00', lokasi: 'Kolam Utama', peserta: 5 },
     ];
 
-    // console.log(stats);
-
-    const pendapatanTrend = stats.pendapatanBulanLalu === 0 ? (stats.pendapatanBulanIni > 0 ? 100 : 0) : ((stats.pendapatanBulanIni - stats.pendapatanBulanLalu) / stats.pendapatanBulanLalu) * 100;
+    const pendapatanTrend = ((stats.pendapatanBulanIni - stats.pendapatanBulanLalu) / stats.pendapatanBulanLalu) * 100;
 
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('id-ID', {
@@ -201,20 +154,20 @@ export default function Dashboard(props: {
                             <span className="text-sm text-muted-foreground">{stats.jadwalHariIni} sesi</span>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            {class_sessions.map((record, index) => (
+                            {upcomingSchedules.map((schedule, index) => (
                                 <div
                                     key={index}
                                     className="flex items-center justify-between p-4 rounded-lg bg-primary/5 border border-primary/10"
                                 >
                                     <div>
-                                        <div className="font-medium text-foreground">{record.title}</div>
+                                        <div className="font-medium text-foreground">{schedule.kelas}</div>
                                         <div className="text-sm text-muted-foreground">
-                                            {record.schedule.time} • {record.schedule.location}
+                                            {schedule.waktu} • {schedule.lokasi}
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2 text-sm">
                                         <Users className="h-4 w-4 text-primary" />
-                                        <span className="font-medium">{record.enrolment_count}</span>
+                                        <span className="font-medium">{schedule.peserta}</span>
                                     </div>
                                 </div>
                             ))}

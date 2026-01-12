@@ -1,6 +1,8 @@
 // import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
+import { type SharedData } from '@/types';
+import { usePage } from '@inertiajs/react';
 import {
     Sidebar,
     SidebarContent,
@@ -17,7 +19,7 @@ import { LayoutGrid, UserCheck, UserCog, Users, BookOpen, Calendar, School, Bank
 import AppLogo from './app-logo';
 
 
-const mainNavItems: NavGroup[] = [
+const adminNavItems: NavGroup[] = [
     {
         title: '',
         items: [
@@ -83,17 +85,17 @@ const mainNavItems: NavGroup[] = [
         items: [
             {
                 title: 'Pengeluaran',
-                href: 'management-pengeluaran',
+                href: '/management-pengeluaran',
                 icon: Banknote,
             },
             {
                 title: 'Pemasukan',
-                href: 'management-pemasukan',
+                href: '/management-pemasukan',
                 icon: PiggyBank,
             },
             {
                 title: 'Laporan Keuangan',
-                href: 'laporan-keuangan',
+                href: '/laporan-keuangan',
                 icon: Landmark,
             },
         ]
@@ -101,7 +103,22 @@ const mainNavItems: NavGroup[] = [
 
 ];
 
+const userNavItems: NavGroup[] = [
+    {
+        title: '',
+        items: [
+            {
+                title: 'Dashboard',
+                href: dashboard(),
+                icon: LayoutGrid,
+            },
+        ]
+    },
+
+];
+
 export function AppSidebar() {
+    const { auth } = usePage<SharedData>().props;
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader className='px-6 py-5 border-b'>
@@ -117,7 +134,7 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain group={mainNavItems} />
+                <NavMain group={auth.user.role === 'admin' ? adminNavItems : userNavItems} />
             </SidebarContent>
 
             <SidebarFooter>

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Course;
 use App\Models\Coach;
 use App\Models\EnrolmentCourse;
+use App\Models\Schedule;
 
 class ClassSession extends Model
 {
@@ -27,5 +28,9 @@ class ClassSession extends Model
 
     public function enrolment(){
         return $this->hasMany(EnrolmentCourse::class);
+    }
+
+    public function schedule(){
+        return $this->hasMany(Schedule::class);
     }
 }

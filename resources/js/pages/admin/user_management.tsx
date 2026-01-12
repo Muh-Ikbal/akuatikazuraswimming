@@ -65,7 +65,7 @@ interface Role {
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'User Management',
+        title: 'Management User',
         href: '/management-user',
     },
 ];
@@ -283,27 +283,6 @@ export default function UserManagement(props: { users: any; roles: Role[] }) {
                                                 Edit
                                             </Button>
                                         </Link>
-                                        <AlertDialog>
-                                            <AlertDialogTrigger asChild>
-                                                <Button variant="outline" size="icon" className="text-destructive hover:bg-destructive/10">
-                                                    <Trash2 className="w-4 h-4" />
-                                                </Button>
-                                            </AlertDialogTrigger>
-                                            <AlertDialogContent>
-                                                <AlertDialogHeader>
-                                                    <AlertDialogTitle>Hapus User?</AlertDialogTitle>
-                                                    <AlertDialogDescription>
-                                                        Apakah Anda yakin ingin menghapus user "{user.name}"? Tindakan ini tidak dapat dibatalkan.
-                                                    </AlertDialogDescription>
-                                                </AlertDialogHeader>
-                                                <AlertDialogFooter>
-                                                    <AlertDialogCancel>Batal</AlertDialogCancel>
-                                                    <AlertDialogAction onClick={() => handleDelete(user.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                                                        Hapus
-                                                    </AlertDialogAction>
-                                                </AlertDialogFooter>
-                                            </AlertDialogContent>
-                                        </AlertDialog>
                                         <AlertDelete
                                             title="Hapus User?"
                                             description={`Apakah Anda yakin ingin menghapus user "${user.name}"? Tindakan ini tidak dapat dibatalkan.`}
@@ -370,27 +349,11 @@ export default function UserManagement(props: { users: any; roles: Role[] }) {
                                                                 <Edit className="w-4 h-4" />
                                                             </Button>
                                                         </Link>
-                                                        <AlertDialog>
-                                                            <AlertDialogTrigger asChild>
-                                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive">
-                                                                    <Trash2 className="w-4 h-4" />
-                                                                </Button>
-                                                            </AlertDialogTrigger>
-                                                            <AlertDialogContent>
-                                                                <AlertDialogHeader>
-                                                                    <AlertDialogTitle>Hapus User?</AlertDialogTitle>
-                                                                    <AlertDialogDescription>
-                                                                        Apakah Anda yakin ingin menghapus user "{user.name}"? Tindakan ini tidak dapat dibatalkan.
-                                                                    </AlertDialogDescription>
-                                                                </AlertDialogHeader>
-                                                                <AlertDialogFooter>
-                                                                    <AlertDialogCancel>Batal</AlertDialogCancel>
-                                                                    <AlertDialogAction onClick={() => handleDelete(user.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                                                                        Hapus
-                                                                    </AlertDialogAction>
-                                                                </AlertDialogFooter>
-                                                            </AlertDialogContent>
-                                                        </AlertDialog>
+                                                        <AlertDelete
+                                                            title="Hapus User?"
+                                                            description={`Apakah Anda yakin ingin menghapus user "${user.name}"? Tindakan ini tidak dapat dibatalkan.`}
+                                                            action={() => handleDelete(user.id)}
+                                                        />
                                                     </div>
                                                 </TableCell>
                                             </TableRow>

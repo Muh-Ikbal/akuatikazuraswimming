@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
     Plus,
-    Download,
     Users,
     Edit,
     Search,
@@ -50,8 +49,13 @@ interface ClassSession {
         name: string,
     };
     capacity: number;
-    total_student: number;
     created_at: string;
+}
+
+interface TotalStudent {
+    class_session_id: number;
+
+
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -61,10 +65,11 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function CoachManagement(props: { class_session: any }) {
+export default function CoachManagement(props: { class_session: any, total_student: any }) {
     const [searchQuery, setSearchQuery] = useState("");
 
     const class_sessions: ClassSession[] = props.class_session.data;
+    const total_student: TotalStudent[] = props.total_student;
 
     const filteredClassSessions = class_sessions.filter((c) => {
         const matchesSearch =
@@ -81,7 +86,8 @@ export default function CoachManagement(props: { class_session: any }) {
 
     // Stats
     const totalClass = class_sessions.length;
-    const totalStudents = class_sessions.reduce((total, session) => total + session.total_student, 0);
+    // const studentPerClass = 
+    const totalStudents = total_student.length;
     const totalCapacity = class_sessions.reduce((total, session) => total + session.capacity, 0);
     const availableCapacity = totalCapacity - totalStudents;
 
@@ -196,7 +202,7 @@ export default function CoachManagement(props: { class_session: any }) {
                                                     <div>
                                                         <p className="font-medium">{class_session.title}</p>
                                                         <p className="text-xs text-muted-foreground md:hidden">
-                                                            {class_session.total_student}/{class_session.capacity}
+                                                            {total_student.map((s) => s.class_session_id === class_session.id).length}/{class_session.capacity}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -215,7 +221,7 @@ export default function CoachManagement(props: { class_session: any }) {
                                             <TableCell className="hidden sm:table-cell">
                                                 <div className="flex items-center gap-1 text-sm text-muted-foreground">
                                                     <User className="w-4 h-4" />
-                                                    {class_session.total_student}/{class_session.capacity}
+                                                    {total_student.map((s) => s.class_session_id === class_session.id).length}/{class_session.capacity}
                                                 </div>
                                             </TableCell>
                                             <TableCell className="text-right">
