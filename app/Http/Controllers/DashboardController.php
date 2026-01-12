@@ -38,19 +38,9 @@ class DashboardController extends Controller
                 'class_sessions'=>$class_sessions
             ]);
         } else if($user->getRoleNames()->first() == 'member') {
-            $courses = Course::where('user_id', $user->id)->count();
-            $payments = Payment::where('user_id', $user->id)->where('state', 'paid')->get();
-            return Inertia::render('member/dashboard',[
-                'courses'=>$courses,
-                'payments'=>$payments,
-            ]);
+            return Inertia::render('member/dashboard');
         }else if($user->getRoleNames()->first() == 'coach') {
-            $courses = Course::where('user_id', $user->id)->count();
-            $payments = Payment::where('user_id', $user->id)->where('state', 'paid')->get();
-            return Inertia::render('coach/dashboard',[
-                'courses'=>$courses,
-                'payments'=>$payments,
-            ]);
+            return Inertia::render('coach/dashboard');
         }else{
             return Inertia::render('operator/dashboard');
         }
@@ -59,3 +49,5 @@ class DashboardController extends Controller
     }
     
 }
+
+       

@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Spatie\Permission\Traits\HasRoles;
+use App\Models\QrCodeGenerate;
 
 class User extends Authenticatable
 {
@@ -57,5 +58,8 @@ class User extends Authenticatable
 
     public function coach(){
         return $this->hasOne(Coach::class);
+    }
+    public function qrCode(){
+        return $this->hasOne(QrCodeGenerate::class);
     }
 }

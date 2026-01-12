@@ -107,10 +107,7 @@ export default function CoachManagement(props: { coaches: any }) {
                         </p>
                     </div>
                     <div className="flex gap-3">
-                        <Button variant="outline">
-                            <Download className="w-4 h-4 mr-2" />
-                            Export
-                        </Button>
+
                         <Link href="/management-coach/create">
                             <Button>
                                 <Plus className="w-4 h-4 mr-2" />
@@ -213,12 +210,12 @@ export default function CoachManagement(props: { coaches: any }) {
                                                         />
                                                     ) : (
                                                         <div className={`w-10 h-10 rounded-full flex items-center justify-center ${coach.gender === 'male'
-                                                                ? 'bg-blue-100 dark:bg-blue-900/30'
-                                                                : 'bg-pink-100 dark:bg-pink-900/30'
+                                                            ? 'bg-blue-100 dark:bg-blue-900/30'
+                                                            : 'bg-pink-100 dark:bg-pink-900/30'
                                                             }`}>
                                                             <User className={`w-5 h-5 ${coach.gender === 'male'
-                                                                    ? 'text-blue-600'
-                                                                    : 'text-pink-600'
+                                                                ? 'text-blue-600'
+                                                                : 'text-pink-600'
                                                                 }`} />
                                                         </div>
                                                     )}
@@ -238,8 +235,8 @@ export default function CoachManagement(props: { coaches: any }) {
                                             </TableCell>
                                             <TableCell>
                                                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${coach.gender === 'male'
-                                                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                                                        : 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400'
+                                                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                                                    : 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400'
                                                     }`}>
                                                     {coach.gender === 'male' ? 'L' : 'P'}
                                                 </span>

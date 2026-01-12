@@ -133,14 +133,10 @@ export default function MemberManagement(props: { members: any }) {
                         </p>
                     </div>
                     <div className="flex gap-3">
-                        <Button variant="outline">
-                            <Download className="w-4 h-4 mr-2" />
-                            Export
-                        </Button>
                         <Link href="/management-member/create">
                             <Button>
                                 <Plus className="w-4 h-4 mr-2" />
-                                Tambah Member
+                                Daftar Member
                             </Button>
                         </Link>
                     </div>

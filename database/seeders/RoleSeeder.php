@@ -18,8 +18,6 @@ class RoleSeeder extends Seeder
         Role::create(['name' => 'member']);
         Role::create(['name' => 'coach']);
         Role::create(['name' => 'operator']);
-        $user = User::find(1);
-        $user->assignRole('admin');
     }
 }
     

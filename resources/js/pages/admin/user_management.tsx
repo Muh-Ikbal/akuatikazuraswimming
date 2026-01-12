@@ -135,10 +135,7 @@ export default function UserManagement(props: { users: any; roles: Role[] }) {
                         </p>
                     </div>
                     <div className="flex gap-3">
-                        <Button variant="outline">
-                            <Download className="w-4 h-4 mr-2" />
-                            Export
-                        </Button>
+
                         <Link href="/management-user/create">
                             <Button>
                                 <Plus className="w-4 h-4 mr-2" />

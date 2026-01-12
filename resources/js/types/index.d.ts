@@ -1,8 +1,10 @@
 import { InertiaLinkProps } from '@inertiajs/react';
 import { LucideIcon } from 'lucide-react';
+import { Role } from 'spatie-permission';
 
 export interface Auth {
     user: User;
+
 }
 
 export interface BreadcrumbItem {
@@ -39,5 +41,6 @@ export interface User {
     two_factor_enabled?: boolean;
     created_at: string;
     updated_at: string;
+    roles: Role[];
     [key: string]: unknown; // This allows for additional properties...
 }

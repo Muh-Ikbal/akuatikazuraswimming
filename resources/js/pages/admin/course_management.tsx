@@ -100,10 +100,7 @@ export default function CourseManagement(props: { courses: any }) {
                         </p>
                     </div>
                     <div className="flex gap-3">
-                        <Button variant="outline">
-                            <Download className="w-4 h-4 mr-2" />
-                            Export
-                        </Button>
+
                         <Link href="/management-course/create">
                             <Button>
                                 <Plus className="w-4 h-4 mr-2" />

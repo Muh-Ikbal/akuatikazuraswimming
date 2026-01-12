@@ -14,6 +14,7 @@ use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\QRCodeGenerateController;
 
 Route::get('/', function () {
     
@@ -24,6 +25,8 @@ Route::get('/', function () {
 
 // dashboard
 Route::middleware(['auth', 'verified'])->get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+Route::middleware(['auth','verified'])->post('generate-qr-code', [QRCodeGenerateController::class, 'generateQRCode'])->name('generate-qr-code');
+Route::middleware(['auth','verified'])->get('qr-code', [QRCodeGenerateController::class,'index'])->name('qrcode');
 
 Route::middleware(['auth', 'verified','role:admin'])->group(function () {
     
@@ -113,6 +116,17 @@ Route::middleware(['auth', 'verified','role:admin'])->group(function () {
     Route::put('management-jadwal/{id}',[ScheduleController::class,'update'])->name('management-jadwal.update');
     Route::delete('management-jadwal/{id}',[ScheduleController::class,'destroy'])->name('management-jadwal.destroy');
 
+
+});
+
+Route::middleware(['auth', 'verified','role:member'])->group(function () {
+    
+    
+});
+
+Route::middleware(['auth', 'verified','role:operator'])->group(function () {
+    Route::get('scan-qr-member', [\App\Http\Controllers\ScanQRController::class,'index'])->name('scan-qr-member');
+    Route::post('scan-qr-member/verify', [\App\Http\Controllers\ScanQRController::class,'verify'])->name('scan-qr-member.verify');
 });
 
 
