@@ -8,6 +8,7 @@ use Inertia\Inertia;
 use App\Models\Member;
 use App\Models\EnrolmentCourse;
 use App\Models\Schedule;
+use App\Models\Attendance;
 use Carbon\Carbon;
 
 class MemberScheduleController extends Controller
@@ -27,6 +28,9 @@ class MemberScheduleController extends Controller
         $courseInfo = null;
         $upcomingSchedules = collect();
         
+        // Get all attendance records for this user
+        $userAttendances = Attendance::where('user_id', $user->id)->get();
+        
         if ($member) {
             $enrolments = EnrolmentCourse::where('member_id', $member->id)
                 ->with(['class_session.course', 'class_session.coach', 'class_session.schedule'])
@@ -44,11 +48,15 @@ class MemberScheduleController extends Controller
                             'location' => $schedule->location,
                             'status' => $schedule->status,
                             'class_session' => $enrolment->class_session,
+                            'class_session_id' => $enrolment->class_session->id,
                             'course' => $enrolment->class_session->course,
                             'coach' => $enrolment->class_session->coach,
-                            // Dummy attendance status for now
-                            // Will be replaced with actual attendance data later
-                            'attendance_status' => $this->getDummyAttendanceStatus($schedule),
+                            // Real attendance status from database
+                            'attendance_status' => $this->getAttendanceStatus(
+                                $schedule, 
+                                $enrolment->class_session->id,
+                                $userAttendances
+                            ),
                         ]);
                     }
                     
@@ -105,23 +113,42 @@ class MemberScheduleController extends Controller
     }
     
     /**
-     * Get dummy attendance status for a schedule
-     * This will be replaced with actual attendance data later
+     * Get real attendance status for a schedule
+     * Checks attendance table for user presence
      */
-    private function getDummyAttendanceStatus($schedule)
+    private function getAttendanceStatus($schedule, $classSessionId, $userAttendances)
     {
-        // Based on schedule status
-        if ($schedule->status === 'completed') {
-            // Randomly mark as present or absent for demo
-            return rand(0, 1) ? 'present' : 'absent';
+        // Check if user has attendance record for this class session on this date
+        $scheduleDate = Carbon::parse($schedule->date);
+        
+        $hasAttendance = $userAttendances->first(function ($attendance) use ($classSessionId, $scheduleDate) {
+            $scanDate = Carbon::parse($attendance->scan_time)->toDateString();
+            return $attendance->class_session_id == $classSessionId && $scanDate == $scheduleDate->toDateString();
+        });
+        
+        // If has attendance record → present (green)
+        if ($hasAttendance) {
+            return 'present';
         }
         
+        // If schedule is completed but no attendance → absent (red)
+        if ($schedule->status === 'completed') {
+            return 'absent';
+        }
+        
+        // If schedule is cancelled
         if ($schedule->status === 'cancelled') {
             return 'cancelled';
         }
         
-        if ($schedule->status === 'on_going') {
+        // If schedule is today or on_going
+        if ($schedule->status === 'on_going' || $scheduleDate->isToday()) {
             return 'on_going';
+        }
+        
+        // If schedule is in the past but not completed yet (might be missed data)
+        if ($scheduleDate->lt(today())) {
+            return 'absent';
         }
         
         // Future schedules
