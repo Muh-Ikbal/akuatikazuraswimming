@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
+import { Scanner } from '@yudiel/react-qr-scanner';
 import {
     QrCode,
     Camera,
@@ -82,6 +83,37 @@ export default function ScanQRMember() {
             setStream(null);
         }
         setIsScanning(false);
+    };
+
+    const handleSubminScan = async (qrCode: string) => {
+        setIsProcessing(true);
+
+        // Simulate API call - replace with actual endpoint
+        router.post('/scan-qr-member/verify', { qr_code: qrCode }, {
+            onSuccess: (page: any) => {
+                const result = page.props.flash?.scan_result;
+                console.log(page.props);
+                setScanResult(result);
+                if (result?.success) {
+                    addRecentScan(result.member?.name || 'Unknown', 'success');
+                } else {
+                    addRecentScan(qrCode, 'failed');
+                }
+            },
+            onError: () => {
+                setScanResult({
+                    success: false,
+                    message: 'Terjadi kesalahan saat memverifikasi QR Code'
+                });
+                addRecentScan(qrCode, 'failed');
+            },
+            onFinish: () => {
+                setIsProcessing(false);
+                setManualCode('');
+                stopCamera();
+            },
+            preserveState: true,
+        });
     };
 
     const handleManualSubmit = async (e: React.FormEvent) => {
@@ -175,23 +207,16 @@ export default function ScanQRMember() {
                                 {isScanning ? (
                                     <div className="relative mb-6">
                                         <div className="relative aspect-square max-w-md mx-auto rounded-2xl overflow-hidden bg-black">
-                                            <video
-                                                ref={videoRef}
-                                                autoPlay
-                                                playsInline
-                                                className="w-full h-full object-cover"
+                                            <Scanner
+                                                onScan={(result: any) => handleSubminScan(result[0].rawValue)}
+                                                constraints={{
+                                                    facingMode: 'environment', // Use rear camera
+                                                    aspectRatio: 1, // Square aspect ratio
+                                                    // Advanced constraints
+                                                    width: { ideal: 1920 },
+                                                    height: { ideal: 1080 },
+                                                }}
                                             />
-                                            {/* Scan overlay */}
-                                            <div className="absolute inset-0 flex items-center justify-center">
-                                                <div className="w-48 h-48 border-2 border-primary rounded-2xl animate-pulse">
-                                                    <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-primary rounded-tl-xl" />
-                                                    <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-primary rounded-tr-xl" />
-                                                    <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-primary rounded-bl-xl" />
-                                                    <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-primary rounded-br-xl" />
-                                                </div>
-                                            </div>
-                                            {/* Scanning line animation */}
-                                            <div className="absolute top-1/4 left-1/4 right-1/4 h-0.5 bg-gradient-to-r from-transparent via-primary to-transparent animate-bounce" />
                                         </div>
                                         <Button
                                             onClick={stopCamera}

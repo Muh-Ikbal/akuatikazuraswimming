@@ -52,8 +52,8 @@ interface Props {
 
 export default function CreateMember({ member, users = [], courses = [], classSessions = [] }: Props) {
     const isEdit = !!member;
-    const [selectedCourse, setSelectedCourse] = useState("false");
-    const [selectedClassSession, setSelectedClassSession] = useState("false");
+    const [selectedCourse, setSelectedCourse] = useState<number | ''>('');
+    const [selectedClassSession, setSelectedClassSession] = useState<number | ''>('');
 
 
     const breadcrumbs: BreadcrumbItem[] = [
@@ -375,8 +375,11 @@ export default function CreateMember({ member, users = [], courses = [], classSe
                                                     className="w-full h-10 sm:h-11 px-3 border border-input rounded-md bg-background text-sm"
                                                     value={selectedCourse}
                                                     onChange={(e) => {
-                                                        setSelectedCourse(e.target.value)
-                                                        setSelectedClassSession('')
+                                                        const value = e.target.value;
+                                                        setSelectedCourse(value ? Number(value) : '');
+                                                        setSelectedClassSession('');
+                                                        setData('course_id', value);
+                                                        setData('class_session_id', '');
                                                     }}
 
                                                 >
@@ -398,7 +401,11 @@ export default function CreateMember({ member, users = [], courses = [], classSe
                                                     className="w-full h-10 sm:h-11 px-3 border border-input rounded-md bg-background text-sm"
                                                     value={selectedClassSession}
                                                     disabled={!selectedCourse}
-                                                    onChange={(e) => setSelectedClassSession(e.target.value)}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value;
+                                                        setSelectedClassSession(value ? Number(value) : '');
+                                                        setData('class_session_id', value);
+                                                    }}
                                                 >
                                                     <option value="">-- Pilih Kelas --</option>
                                                     {filteredClassSession.map((classSession) => (
