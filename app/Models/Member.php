@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\EnrolmentCourse;
 
 class Member extends Model
 {
@@ -19,6 +20,10 @@ class Member extends Model
 
     public function user(){
         return $this->belongsTo(User::class);
+    }
+
+    public function enrolments(){
+        return $this->hasMany(EnrolmentCourse::class);
     }
 }
 

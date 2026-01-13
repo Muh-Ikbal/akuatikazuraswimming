@@ -120,8 +120,7 @@ Route::middleware(['auth', 'verified','role:admin'])->group(function () {
 });
 
 Route::middleware(['auth', 'verified','role:member'])->group(function () {
-    
-    
+    Route::get('jadwal-member', [\App\Http\Controllers\Member\MemberScheduleController::class, 'index'])->name('jadwal-member');
 });
 
 Route::middleware(['auth', 'verified','role:operator'])->group(function () {
