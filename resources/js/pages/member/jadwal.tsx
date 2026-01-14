@@ -116,25 +116,25 @@ export default function Jadwal({
             year === today.getFullYear();
     };
 
-    // Get dot color based on status
-    const getDotColor = (dateInfo: ReturnType<typeof getDateInfo>, day: number) => {
-        if (!dateInfo) return null;
+    // Get date text color based on status
+    const getDateColor = (dateInfo: ReturnType<typeof getDateInfo>, day: number) => {
+        if (!dateInfo) return 'text-foreground';
 
         // If it's today, show blue
         if (isToday(day)) {
-            return 'bg-blue-500';
+            return 'text-blue-600 font-bold';
         }
 
         switch (dateInfo.status) {
             case 'present':
-                return 'bg-green-500';
+                return 'text-green-600 font-semibold';
             case 'absent':
             case 'cancelled':
-                return 'bg-red-500';
+                return 'text-red-600 font-semibold';
             case 'on_going':
-                return 'bg-blue-500';
+                return 'text-blue-600 font-semibold';
             default:
-                return 'bg-green-500';
+                return 'text-green-600 font-semibold';
         }
     };
 
@@ -234,29 +234,21 @@ export default function Jadwal({
                             <div className="grid grid-cols-7 gap-1">
                                 {calendarDays.map((day, index) => {
                                     const dateInfo = day ? getDateInfo(day) : null;
-                                    const dotColor = day ? getDotColor(dateInfo, day) : null;
+                                    const dateColor = day ? getDateColor(dateInfo, day) : '';
 
                                     return (
                                         <div
                                             key={index}
                                             className={`
-                                                aspect-square p-2 text-center relative flex flex-col items-center justify-start
+                                                aspect-square p-2 text-center relative flex items-center justify-center
                                                 ${day ? 'hover:bg-muted/50 cursor-pointer rounded-lg' : ''}
                                                 ${isToday(day ?? 0) ? 'bg-primary/10 rounded-lg ring-2 ring-primary' : ''}
                                             `}
                                         >
                                             {day && (
-                                                <>
-                                                    <span className={`
-                                                        text-sm
-                                                        ${isToday(day) ? 'font-bold text-primary' : ''}
-                                                    `}>
-                                                        {day}
-                                                    </span>
-                                                    {dotColor && (
-                                                        <span className={`w-1.5 h-1.5 rounded-full ${dotColor} mt-1`} />
-                                                    )}
-                                                </>
+                                                <span className={`text-sm ${dateColor}`}>
+                                                    {day}
+                                                </span>
                                             )}
                                         </div>
                                     );
