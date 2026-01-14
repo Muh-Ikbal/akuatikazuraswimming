@@ -102,7 +102,7 @@ const memberNavItems: NavGroup[] = [
             },
             {
                 title: 'Riwayat Absensi',
-                href: '/riwayat-absensi-member',
+                href: '/riwayat-absensi',
                 icon: Calendar,
             },
             {
