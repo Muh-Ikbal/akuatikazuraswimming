@@ -26,13 +26,14 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: '/dashboard',
     },
     {
-        title: 'Scan QR Member',
-        href: '/scan-qr-member',
+        title: 'Scan QR',
+        href: '/scan-qr',
     },
 ];
 
 interface ScanResult {
     success: boolean;
+    attendanceToday?: number;
     member?: {
         id: number;
         name: string;
@@ -70,7 +71,7 @@ export default function ScanQRMember() {
                 videoRef.current.srcObject = mediaStream;
             }
             setIsScanning(true);
-            setScanResult(null);
+            // setScanResult(null);
         } catch (err) {
             console.error('Error accessing camera:', err);
             alert('Tidak dapat mengakses kamera. Pastikan izin kamera telah diberikan.');
@@ -85,7 +86,22 @@ export default function ScanQRMember() {
         setIsScanning(false);
     };
 
-    const handleSubminScan = async (qrCode: string) => {
+    const lastScanTimeRef = useRef(0);
+
+    const onScan = (result: any) => {
+        const value = result?.[0]?.rawValue;
+        if (!value) return;
+
+        const now = Date.now();
+
+        // throttle: 1 detik
+        if (now - lastScanTimeRef.current < 1000) return;
+
+        lastScanTimeRef.current = now;
+        handleSubmitScan(value);
+    };
+
+    const handleSubmitScan = async (qrCode: string) => {
         setIsProcessing(true);
 
         // Simulate API call - replace with actual endpoint
@@ -97,7 +113,7 @@ export default function ScanQRMember() {
                 if (result?.success) {
                     addRecentScan(result.member?.name || 'Unknown', 'success');
                 } else {
-                    addRecentScan(qrCode, 'failed');
+                    addRecentScan(result.member || 'Unknown', 'failed');
                 }
             },
             onError: () => {
@@ -110,7 +126,7 @@ export default function ScanQRMember() {
             onFinish: () => {
                 setIsProcessing(false);
                 setManualCode('');
-                stopCamera();
+
             },
             preserveState: true,
         });
@@ -126,6 +142,7 @@ export default function ScanQRMember() {
         router.post('/scan-qr-member/verify', { qr_code: manualCode }, {
             onSuccess: (page: any) => {
                 const result = page.props.scan_result;
+                console.log(result)
                 setScanResult(result);
                 if (result?.success) {
                     addRecentScan(result.member?.name || 'Unknown', 'success');
@@ -143,6 +160,7 @@ export default function ScanQRMember() {
             onFinish: () => {
                 setIsProcessing(false);
                 setManualCode('');
+
             },
             preserveState: true,
         });
@@ -155,7 +173,7 @@ export default function ScanQRMember() {
             time: new Date().toLocaleTimeString('id-ID'),
             status
         };
-        setRecentScans(prev => [newScan, ...prev.slice(0, 4)]);
+        setRecentScans(prev => [newScan, ...prev.slice(0, 0)]);
     };
 
     const resetScan = () => {
@@ -173,7 +191,7 @@ export default function ScanQRMember() {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Scan QR Member" />
+            <Head title="Scan QR" />
             <div className="flex h-full flex-1 flex-col gap-8 p-4 md:p-6">
                 {/* Header */}
                 <div className="space-y-1">
@@ -181,10 +199,10 @@ export default function ScanQRMember() {
                         <div className="p-2 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5">
                             <ScanLine className="h-6 w-6 md:h-7 md:w-7 text-primary" />
                         </div>
-                        Scan QR Member
+                        Scan QR
                     </h1>
                     <p className="text-muted-foreground text-sm md:text-base">
-                        Scan QR Code member untuk absensi dan verifikasi kehadiran
+                        Scan QR Code untuk absensi dan verifikasi kehadiran
                     </p>
                 </div>
 
@@ -208,7 +226,7 @@ export default function ScanQRMember() {
                                     <div className="relative mb-6">
                                         <div className="relative aspect-square max-w-md mx-auto rounded-2xl overflow-hidden bg-black">
                                             <Scanner
-                                                onScan={(result: any) => handleSubminScan(result[0].rawValue)}
+                                                onScan={onScan}
                                                 constraints={{
                                                     facingMode: 'environment', // Use rear camera
                                                     aspectRatio: 1, // Square aspect ratio
@@ -228,120 +246,53 @@ export default function ScanQRMember() {
                                         </Button>
                                     </div>
                                 ) : (
-                                    <>
-                                        {/* Scan Result Display */}
-                                        {scanResult ? (
-                                            <div className="mb-6">
-                                                <div className={`p-6 rounded-2xl border-2 ${scanResult.success
-                                                    ? 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800'
-                                                    : 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800'
-                                                    }`}>
-                                                    <div className="flex items-center gap-4 mb-4">
-                                                        {scanResult.success ? (
-                                                            <div className="p-3 rounded-full bg-green-100 dark:bg-green-900">
-                                                                <CheckCircle2 className="h-8 w-8 text-green-600 dark:text-green-400" />
-                                                            </div>
-                                                        ) : (
-                                                            <div className="p-3 rounded-full bg-red-100 dark:bg-red-900">
-                                                                <XCircle className="h-8 w-8 text-red-600 dark:text-red-400" />
-                                                            </div>
-                                                        )}
-                                                        <div>
-                                                            <h3 className={`text-lg font-semibold ${scanResult.success ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'
-                                                                }`}>
-                                                                {scanResult.success ? 'Verifikasi Berhasil!' : 'Verifikasi Gagal'}
-                                                            </h3>
-                                                            <p className="text-sm text-muted-foreground">
-                                                                {scanResult.message}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-
-                                                    {scanResult.success && scanResult.member && (
-                                                        <div className="grid gap-3 pt-4 border-t border-green-200 dark:border-green-800">
-                                                            <div className="flex items-center gap-3">
-                                                                <User className="h-4 w-4 text-muted-foreground" />
-                                                                <span className="text-sm">
-                                                                    <span className="text-muted-foreground">Nama:</span>{' '}
-                                                                    <span className="font-medium">{scanResult.member.name}</span>
-                                                                </span>
-                                                            </div>
-                                                            <div className="flex items-center gap-3">
-                                                                <QrCode className="h-4 w-4 text-muted-foreground" />
-                                                                <span className="text-sm">
-                                                                    <span className="text-muted-foreground">ID:</span>{' '}
-                                                                    <span className="font-mono font-medium">{scanResult.member.qr_code.slice(0, 8).toUpperCase()}</span>
-                                                                </span>
-                                                            </div>
-                                                            <div className="flex items-center gap-3">
-                                                                <Clock className="h-4 w-4 text-muted-foreground" />
-                                                                <span className="text-sm">
-                                                                    <span className="text-muted-foreground">Waktu:</span>{' '}
-                                                                    <span className="font-medium">{scanResult.timestamp || new Date().toLocaleTimeString('id-ID')}</span>
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <Button
-                                                    onClick={resetScan}
-                                                    variant="outline"
-                                                    className="mt-4 w-full"
-                                                >
-                                                    <RefreshCw className="h-4 w-4 mr-2" />
-                                                    Scan Lagi
-                                                </Button>
+                                    /* Empty Scanner State */
+                                    <div className="flex flex-col items-center py-8 text-center mb-6">
+                                        <div className="relative mb-6">
+                                            <div className="w-40 h-40 md:w-48 md:h-48 rounded-2xl border-2 border-dashed border-muted-foreground/30 flex items-center justify-center bg-muted/20">
+                                                <QrCode className="h-16 w-16 text-muted-foreground/40" />
                                             </div>
-                                        ) : (
-                                            /* Empty Scanner State */
-                                            <div className="flex flex-col items-center py-8 text-center mb-6">
-                                                <div className="relative mb-6">
-                                                    <div className="w-40 h-40 md:w-48 md:h-48 rounded-2xl border-2 border-dashed border-muted-foreground/30 flex items-center justify-center bg-muted/20">
-                                                        <QrCode className="h-16 w-16 text-muted-foreground/40" />
-                                                    </div>
-                                                </div>
-                                                <p className="text-muted-foreground text-sm mb-6">
-                                                    Klik tombol di bawah untuk memulai scan
-                                                </p>
-                                                <Button
-                                                    onClick={startCamera}
-                                                    size="lg"
-                                                    className="gap-2 px-8 bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 shadow-lg hover:shadow-xl transition-all duration-300"
-                                                >
-                                                    <Camera className="h-5 w-5" />
-                                                    Buka Kamera
-                                                </Button>
-                                            </div>
-                                        )}
-
-                                        {/* Manual Input */}
-                                        <div className="pt-6 border-t">
-                                            <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
-                                                <QrCode className="h-4 w-4 text-muted-foreground" />
-                                                Input Manual
-                                            </h4>
-                                            <form onSubmit={handleManualSubmit} className="flex gap-3">
-                                                <input
-                                                    type="text"
-                                                    value={manualCode}
-                                                    onChange={(e) => setManualCode(e.target.value)}
-                                                    placeholder="Masukkan kode QR..."
-                                                    className="flex-1 px-4 py-2 rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
-                                                />
-                                                <Button
-                                                    type="submit"
-                                                    disabled={isProcessing || !manualCode.trim()}
-                                                >
-                                                    {isProcessing ? (
-                                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                                    ) : (
-                                                        'Verifikasi'
-                                                    )}
-                                                </Button>
-                                            </form>
                                         </div>
-                                    </>
+                                        <p className="text-muted-foreground text-sm mb-6">
+                                            Klik tombol di bawah untuk memulai scan
+                                        </p>
+                                        <Button
+                                            onClick={startCamera}
+                                            size="lg"
+                                            className="gap-2 px-8 bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 shadow-lg hover:shadow-xl transition-all duration-300"
+                                        >
+                                            <Camera className="h-5 w-5" />
+                                            Buka Kamera
+                                        </Button>
+                                    </div>
                                 )}
+
+                                {/* Manual Input */}
+                                <div className="pt-6 border-t">
+                                    <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
+                                        <QrCode className="h-4 w-4 text-muted-foreground" />
+                                        Input Manual
+                                    </h4>
+                                    <form onSubmit={handleManualSubmit} className="flex gap-3">
+                                        <input
+                                            type="text"
+                                            value={manualCode}
+                                            onChange={(e) => setManualCode(e.target.value)}
+                                            placeholder="Masukkan kode QR..."
+                                            className="flex-1 px-4 py-2 rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
+                                        />
+                                        <Button
+                                            type="submit"
+                                            disabled={isProcessing || !manualCode.trim()}
+                                        >
+                                            {isProcessing ? (
+                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                            ) : (
+                                                'Verifikasi'
+                                            )}
+                                        </Button>
+                                    </form>
+                                </div>
                             </CardContent>
                         </Card>
                     </div>
@@ -355,24 +306,16 @@ export default function ScanQRMember() {
                                     Statistik Hari Ini
                                 </h3>
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div className="p-4 rounded-xl bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800">
+                                    <div className="p-4 rounded-xl  border border-green-200 dark:border-green-800">
                                         <div className="flex items-center gap-2 mb-2">
                                             <UserCheck className="h-4 w-4 text-green-600" />
                                             <span className="text-xs text-green-600 font-medium">Hadir</span>
                                         </div>
-                                        <p className="text-2xl font-bold text-green-700 dark:text-green-300">
-                                            {recentScans.filter(s => s.status === 'success').length}
+                                        <p className="text-2xl font-bold text-black">
+                                            {scanResult?.attendanceToday || 0}
                                         </p>
                                     </div>
-                                    <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <XCircle className="h-4 w-4 text-red-600" />
-                                            <span className="text-xs text-red-600 font-medium">Gagal</span>
-                                        </div>
-                                        <p className="text-2xl font-bold text-red-700 dark:text-red-300">
-                                            {recentScans.filter(s => s.status === 'failed').length}
-                                        </p>
-                                    </div>
+
                                 </div>
                             </CardContent>
                         </Card>
@@ -382,7 +325,7 @@ export default function ScanQRMember() {
                             <CardContent className="p-4">
                                 <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
                                     <History className="h-4 w-4" />
-                                    Scan Terakhir
+                                    Scan Message
                                 </h3>
                                 {recentScans.length > 0 ? (
                                     <div className="space-y-3">
@@ -400,9 +343,14 @@ export default function ScanQRMember() {
                                                     ) : (
                                                         <XCircle className="h-4 w-4 text-red-600" />
                                                     )}
-                                                    <span className="text-sm font-medium truncate max-w-[120px]">
-                                                        {scan.member_name}
-                                                    </span>
+                                                    <div>
+                                                        <span className="text-sm font-medium truncate max-w-[120px]">
+                                                            {scan.member_name}
+                                                        </span>
+                                                        <div className="text-xs text-muted-foreground">{scanResult?.message ? scanResult?.message : 'Unknown'}</div>
+                                                    </div>
+
+
                                                 </div>
                                                 <span className="text-xs text-muted-foreground">
                                                     {scan.time}

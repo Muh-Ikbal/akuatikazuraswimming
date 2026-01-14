@@ -124,7 +124,7 @@ Route::middleware(['auth', 'verified','role:member'])->group(function () {
 });
 
 Route::middleware(['auth', 'verified','role:operator'])->group(function () {
-    Route::get('scan-qr-member', [\App\Http\Controllers\ScanQRController::class,'index'])->name('scan-qr-member');
+    Route::get('scan-qr', [\App\Http\Controllers\ScanQRController::class,'index'])->name('scan-qr-member');
     Route::post('scan-qr-member/verify', [\App\Http\Controllers\ScanQRController::class,'verify'])->name('scan-qr-member.verify');
 });
 

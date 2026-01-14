@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->timestamp('scan_time')->useCurrent();
-            $table->foreignId('class_session_id')->constrained('class_sessions')->onDelete('cascade');
+            $table->foreignId('class_session_id')->nullable()->constrained('class_sessions')->onDelete('cascade');
             $table->timestamps();
         });
     }

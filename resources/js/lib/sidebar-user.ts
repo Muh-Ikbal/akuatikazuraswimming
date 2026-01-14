@@ -155,8 +155,8 @@ const operatorNavItems: NavGroup[] = [
                 icon: LayoutGrid,
             },
             {
-                title: 'Scan QR Member',
-                href: '/scan-qr-member',
+                title: 'Scan QR',
+                href: '/scan-qr',
                 icon: QrCode,
             },
         ]

@@ -21,7 +21,7 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: '/dashboard',
     },
     {
-        title: 'QR Code Member',
+        title: 'QR Code',
         href: '/qr-code',
     },
 ];
@@ -71,7 +71,7 @@ export default function QRCodeMember({ qr_code }: { qr_code: QrCodeData }) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="QR Code Member" />
+            <Head title="QR Code" />
             <div className="flex h-full flex-1 flex-col gap-8 p-4 md:p-6">
                 {/* Header */}
                 <div className="space-y-1">
@@ -92,7 +92,7 @@ export default function QRCodeMember({ qr_code }: { qr_code: QrCodeData }) {
                         <CardHeader className="relative pb-4 border-b bg-gradient-to-r from-primary/10 via-primary/5 to-transparent">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
                             <CardTitle className="text-center text-xl font-semibold">
-                                Kartu Member Digital
+                                Kartu Absen Digital
                             </CardTitle>
                             <CardDescription className="text-center flex items-center justify-center gap-2">
                                 <Sparkles className="h-4 w-4 text-primary" />
@@ -121,9 +121,9 @@ export default function QRCodeMember({ qr_code }: { qr_code: QrCodeData }) {
                                             {auth.user.name}
                                         </p>
                                         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
-                                            <span className="text-xs text-muted-foreground uppercase tracking-wider">Member ID</span>
+                                            <span className="text-xs text-muted-foreground uppercase tracking-wider">ID</span>
                                             <span className="text-sm font-mono font-bold text-primary">
-                                                {qr_code.qr_code.slice(0, 8).toUpperCase()}
+                                                {qr_code.qr_code}
                                             </span>
                                         </div>
                                     </div>

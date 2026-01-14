@@ -8,12 +8,18 @@ use App\Models\QrCodeGenerate;
 use App\Models\User;
 use App\Models\Attendance;
 use App\Models\ClassSession;
+use App\Models\Schedule;
+use App\Models\Enrolment;
 
 class ScanQRController extends Controller
 {
     public function index()
     {
-        return Inertia::render('operator/scan-qr');
+
+        $attendance = Attendance::whereDate('scan_time', today())->count();
+        return Inertia::render('operator/scan-qr', [
+            'attendance' => $attendance,
+        ]);
     }
 
     public function verify(Request $request)
@@ -25,13 +31,32 @@ class ScanQRController extends Controller
 
 
         $qrCode = QrCodeGenerate::where('qr_code', $request->qr_code)->first();
+        $user = User::find($qrCode->user_id);
+
+        $role = $user->getRoleNames();
+        $attendanceToday = Attendance::whereDate('scan_time', today())
+            ->count();
+
 
         if (!$qrCode) {
             return back()->with('scan_result', [
                 'success' => false,
                 'message' => 'QR Code tidak ditemukan atau tidak valid',
+                'member' => $request->qr_code,
+                'attendanceToday' => $attendanceToday,
             ]);
         }
+
+        if (!$user) {
+            return back()->with('scan_result', [
+                'success' => false,
+                'message' => 'Member tidak ditemukan',
+                'member' => $request->qr_code,
+                'attendanceToday' => $attendanceToday,
+            ]);
+        }
+
+        
 
         $alreadyAttend = Attendance::where('user_id', $qrCode->user_id)
             ->whereDate('scan_time', today())
@@ -41,36 +66,54 @@ class ScanQRController extends Controller
             return back()->with('scan_result', [
                 'success' => false,
                 'message' => 'Anda sudah melakukan absensi hari ini',
+                'member' => $user->name,
+                'attendanceToday' => $attendanceToday,
             ]);
         }
 
-        $user = User::find($qrCode->user_id);
-
-        if (!$user) {
-            return back()->with('scan_result', [
-                'success' => false,
-                'message' => 'Member tidak ditemukan',
-            ]);
-        }
+        
 
         // TODO: Add attendance record here
-        $classSessions = ClassSession::whereHas('enrolment.member', function ($query) use ($user) {
+        if($role[0] == 'member'){
+            $classSessions = ClassSession::whereHas('enrolment.member', function ($query) use ($user) {
             $query->where('user_id', $user->id);
         })
         ->first();
 
-        if(!$classSessions){
-            return back()->with('scan_result', [
-                'success' => false,
-                'message' => 'Anda tidak terdaftar di kelas mana pun',
-            ]);
-        }
+            if(!$classSessions ){
+                return back()->with('scan_result', [
+                    'success' => false,
+                    'message' => 'Anda tidak terdaftar di kelas mana pun',
+                    'member' => $user->name,
+                    'attendanceToday' => $attendanceToday,
+                ]);
+            }
 
+            $notHaveSchedule = Schedule::where('class_session_id', $classSessions->id)
+                ->whereDate('date', today())
+                ->exists();
+
+            if(!$notHaveSchedule ){
+                return back()->with('scan_result', [
+                    'success' => false,
+                    'message' => 'Kelas anda tidak ada jadwal hari ini',
+                    'member' => $user->name,
+                    'attendanceToday' => $attendanceToday,
+                ]);
+            }
+
+        }
+       
+        
         Attendance::create([
             'user_id' => $user->id,
             'scan_time' => now(),
-            'class_session_id' => $classSessions->id,
+            'class_session_id' => $classSessions->id ?? null,
         ]);
+
+
+        $attendanceToday = $attendanceToday + 1;
+
 
         return back()->with('scan_result', [
             'success' => true,
@@ -83,6 +126,7 @@ class ScanQRController extends Controller
                 'status' => 'active',
             ],
             'timestamp' => now()->format('H:i:s'),
+            'attendanceToday' => $attendanceToday,
         ]);
     }
 }
