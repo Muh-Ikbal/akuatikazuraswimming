@@ -128,5 +128,11 @@ Route::middleware(['auth', 'verified','role:operator'])->group(function () {
     Route::post('scan-qr-member/verify', [\App\Http\Controllers\ScanQRController::class,'verify'])->name('scan-qr-member.verify');
 });
 
+Route::middleware(['auth', 'verified','role:coach'])->group(function () {
+    Route::get('jadwal-coach', [\App\Http\Controllers\Coach\CoachScheduleController::class, 'index'])->name('jadwal-coach');
+    Route::get('riwayat-absensi-coach', [\App\Http\Controllers\Coach\CoachAttendanceHistoryController::class, 'index'])->name('riwayat-absensi-coach');
+});
+
 
 require __DIR__.'/settings.php';
+

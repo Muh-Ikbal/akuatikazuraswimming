@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { usePage } from '@inertiajs/react';
+import { AlerInformation } from "@/components/alert-information";
 import {
     Plus,
     Search,
@@ -67,6 +69,16 @@ const breadcrumbs: BreadcrumbItem[] = [
 export default function EnrolmentManagement(props: { enrolments: any }) {
     const [searchQuery, setSearchQuery] = useState("");
     const [filterState, setFilterState] = useState<string>("all");
+    const { flash } = usePage().props as any;
+    useEffect(() => {
+        if (flash.success || flash.error) {
+            setTimeout(() => {
+                router.reload();
+            }, 5000);
+        }
+    }, [flash]);
+
+
 
     const enrolments: Enrolment[] = props.enrolments.data;
 
@@ -122,6 +134,7 @@ export default function EnrolmentManagement(props: { enrolments: any }) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Enrolment Management" />
             <div className="p-6 space-y-6">
+                <AlerInformation flash={flash} />
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>

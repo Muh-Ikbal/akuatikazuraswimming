@@ -23,19 +23,21 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 interface payments {
     id: number;
-    amount: number;
+    amount: string;
     created_at: string;
+}
+
+interface schedule {
+    time: string;
+    date: string;
+    location: string;
 }
 
 interface classSession {
     id: number;
     title: string;
     enrolment_count: number;
-    schedule: {
-        time: string;
-        date: string;
-        location: string;
-    };
+    schedule: schedule[];
     // loca
 
 
@@ -62,12 +64,13 @@ export default function Dashboard(props: {
     const totalPaymentsThisMonth = props.payments.filter((payment) => {
         const paymentDate = new Date(payment.created_at);
         return paymentDate >= firstDayOfMonth && paymentDate <= lastDayOfMonth;
-    }).reduce((total, payment) => total + payment.amount, 0);
+    }).reduce((total, payment) => total + parseFloat(payment.amount), 0);
     const totalPaymentsLastMonth = props.payments.filter((payment) => {
         const paymentDate = new Date(payment.created_at);
         return paymentDate >= firstDayOfLastMonth && paymentDate <= lastDayOfLastMonth;
-    }).reduce((total, payment) => total + payment.amount, 0);
+    }).reduce((total, payment) => total + parseFloat(payment.amount), 0);
     // Data statistik (akan diganti dengan data asli dari backend)
+
     const stats = {
         totalPeserta: props.members,
         pesertaBaru: 12,
@@ -209,7 +212,7 @@ export default function Dashboard(props: {
                                     <div>
                                         <div className="font-medium text-foreground">{record.title}</div>
                                         <div className="text-sm text-muted-foreground">
-                                            {record.schedule.time} • {record.schedule.location}
+                                            {record.schedule[0].time} • {record.schedule[0].location}
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2 text-sm">

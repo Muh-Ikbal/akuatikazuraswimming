@@ -44,6 +44,12 @@ class EnrolmentCourseController extends Controller
             'state' => 'required|in:on_progress,completed,cancelled',
         ]);
 
+
+        $enromentAlready = EnrolmentCourse::where('member_id',$validated['member_id'])->where('state','on_progress')->first();
+        if($enromentAlready){
+            return redirect('/management-enrolment')->with('error', 'Member sudah memiliki enrolment yang sedang berlangsung');
+        }
+
         EnrolmentCourse::create($validated);
 
         return redirect('/management-enrolment')->with('success', 'Enrolment berhasil ditambahkan');

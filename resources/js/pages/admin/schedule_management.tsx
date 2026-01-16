@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { usePage } from '@inertiajs/react';
+
 import {
     Plus,
     Search,
@@ -35,7 +37,7 @@ import {
     PaginationPrevious,
 } from "@/components/ui/pagination";
 import AlertDelete from "@/components/alert-delete";
-
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 interface Schedule {
     id: number;
     class_session_id: number;
@@ -64,6 +66,18 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function ScheduleManagement(props: { schedules: any }) {
+    const { flash } = usePage().props as any;
+
+    // auto close alert
+    useEffect(() => {
+        if (flash.success || flash.error) {
+            setTimeout(() => {
+                router.reload();
+            }, 5000);
+        }
+    }, [flash]);
+
+    console.log(flash);
     const [searchQuery, setSearchQuery] = useState("");
     const [filterStatus, setFilterStatus] = useState<string>("all");
 
@@ -138,9 +152,27 @@ export default function ScheduleManagement(props: { schedules: any }) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Management Jadwal" />
             <div className="p-6 space-y-6">
+                {flash.success && (
+                    <Alert variant={'success'} className="bg-green-400" style={{ width: '100%' }}>
+                        <AlertTitle>Success</AlertTitle>
+                        <AlertDescription>
+                            {flash.success}
+                        </AlertDescription>
+                    </Alert>
+                )}
+                {flash.error && (
+                    <Alert variant={'error'} className="bg-red-400" style={{ width: '100%' }}>
+                        <AlertTitle>Error</AlertTitle>
+                        <AlertDescription>
+                            {flash.error}
+                        </AlertDescription>
+                    </Alert>
+                )}
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+
                     <div>
+
                         <h1 className="text-2xl font-bold text-foreground">
                             Management Jadwal
                         </h1>

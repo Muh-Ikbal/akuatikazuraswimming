@@ -201,7 +201,7 @@ export default function CreatePayment({ payment, enrolments }: Props) {
 
                         {/* Actions */}
                         <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
-                            <Link href="/management-payment" className="w-full sm:w-auto">
+                            <Link href="/management-pemasukan" className="w-full sm:w-auto">
                                 <Button type="button" variant="outline" className="w-full sm:w-auto h-11">
                                     Batal
                                 </Button>
