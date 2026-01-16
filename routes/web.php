@@ -121,6 +121,7 @@ Route::middleware(['auth', 'verified','role:admin'])->group(function () {
 
 Route::middleware(['auth', 'verified','role:member'])->group(function () {
     Route::get('jadwal-member', [\App\Http\Controllers\Member\MemberScheduleController::class, 'index'])->name('jadwal-member');
+    Route::get('riwayat-absensi', [\App\Http\Controllers\Member\MemberAttendanceController::class, 'index'])->name('riwayat-absensi');
 });
 
 Route::middleware(['auth', 'verified','role:operator'])->group(function () {
