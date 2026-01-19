@@ -64,7 +64,8 @@ export default function CreateCourse({ course }: { course: CourseFormData }) {
                 forceFormData: true,
             });
         } else {
-            put(`/management-course/update/${course.id}`, {
+            // Use post with _method=PUT for proper FormData handling with file uploads
+            post(`/management-course/update/${course.id}?_method=PUT`, {
                 forceFormData: true,
             });
         }

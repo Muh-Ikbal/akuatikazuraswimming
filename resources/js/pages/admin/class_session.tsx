@@ -71,6 +71,8 @@ export default function CoachManagement(props: { class_session: any, total_stude
     const class_sessions: ClassSession[] = props.class_session.data;
     const total_student: TotalStudent[] = props.total_student;
 
+    console.log(total_student);
+
     const filteredClassSessions = class_sessions.filter((c) => {
         const matchesSearch =
             c.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -202,7 +204,7 @@ export default function CoachManagement(props: { class_session: any, total_stude
                                                     <div>
                                                         <p className="font-medium">{class_session.title}</p>
                                                         <p className="text-xs text-muted-foreground md:hidden">
-                                                            {total_student.map((s) => s.class_session_id === class_session.id).length}/{class_session.capacity}
+                                                            {total_student.filter((s) => s.class_session_id === class_session.id).length}/{class_session.capacity}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -221,7 +223,7 @@ export default function CoachManagement(props: { class_session: any, total_stude
                                             <TableCell className="hidden sm:table-cell">
                                                 <div className="flex items-center gap-1 text-sm text-muted-foreground">
                                                     <User className="w-4 h-4" />
-                                                    {total_student.map((s) => s.class_session_id === class_session.id).length}/{class_session.capacity}
+                                                    {total_student.filter((s) => s.class_session_id === class_session.id).length}/{class_session.capacity}
                                                 </div>
                                             </TableCell>
                                             <TableCell className="text-right">

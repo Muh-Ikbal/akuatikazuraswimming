@@ -35,13 +35,16 @@ import {
     PaginationPrevious,
 } from "@/components/ui/pagination";
 import AlertDelete from "@/components/alert-delete";
+import DialogPayment from "./payment/dialog-payment";
+import AlertCancelPayment from "@/components/alert-cancel-payment";
 
 interface Payment {
     id: number;
     enrolment_course_id: number;
     amount: number;
+    amount_paid: number;
     payment_method: string;
-    state: 'pending' | 'paid' | 'failed';
+    state: 'pending' | 'paid' | 'partial_paid' | 'failed';
     enrolment_course?: {
         id: number;
         member?: {
@@ -58,8 +61,8 @@ interface Payment {
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Management Pemasukan',
-        href: '/management-pemasukan',
+        title: 'Management Pembayaran',
+        href: '/management-pembayaran',
     },
 ];
 
@@ -85,7 +88,7 @@ export default function PaymentManagement({ payments, totalIncome, pendingAmount
     });
 
     const handleDelete = (id: number) => {
-        router.delete(`/management-pemasukan/${id}`);
+        router.delete(`/management-pembayaran/${id}`);
     };
 
     const formatCurrency = (amount: number) => {
@@ -110,19 +113,25 @@ export default function PaymentManagement({ payments, totalIncome, pendingAmount
                 return {
                     label: 'Pending',
                     icon: <Clock className="w-3 h-3" />,
-                    className: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                    className: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 '
+                };
+            case 'partial_paid':
+                return {
+                    label: 'Belum Lunas',
+                    icon: <Clock className="w-3 h-3" />,
+                    className: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 '
                 };
             case 'paid':
                 return {
                     label: 'Lunas',
                     icon: <CheckCircle className="w-3 h-3" />,
-                    className: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                    className: 'bg-green-100 text-green-700 dark:bg-green-900/30'
                 };
             case 'failed':
                 return {
-                    label: 'Gagal',
+                    label: 'Batal',
                     icon: <XCircle className="w-3 h-3" />,
-                    className: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                    className: 'bg-red-100 text-red-700 dark:bg-red-900/30 '
                 };
             default:
                 return {
@@ -139,20 +148,20 @@ export default function PaymentManagement({ payments, totalIncome, pendingAmount
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Management Pemasukan" />
+            <Head title="Management Pembayaran" />
             <div className="p-6 space-y-6">
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
                         <h1 className="text-2xl font-bold text-foreground">
-                            Management Pemasukan
+                            Management Pembayaran
                         </h1>
                         <p className="text-muted-foreground">
-                            Kelola pembayaran dan pemasukan kursus
+                            Kelola pembayaran kursus
                         </p>
                     </div>
                     <div className="flex gap-3">
-                        <Link href="/management-pemasukan/create">
+                        <Link href="/management-pembayaran/create">
                             <Button>
                                 <Plus className="w-4 h-4 mr-2" />
                                 Tambah Payment
@@ -162,7 +171,7 @@ export default function PaymentManagement({ payments, totalIncome, pendingAmount
                 </div>
 
                 {/* Stats */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                     <Card>
                         <CardContent className="p-4 flex items-center gap-4">
                             <div className="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
@@ -181,7 +190,7 @@ export default function PaymentManagement({ payments, totalIncome, pendingAmount
                             </div>
                             <div>
                                 <div className="text-lg font-bold text-yellow-600">{formatCurrency(pendingAmount)}</div>
-                                <div className="text-sm text-muted-foreground">Pending</div>
+                                <div className="text-sm text-muted-foreground">Belum Terbayar</div>
                             </div>
                         </CardContent>
                     </Card>
@@ -196,17 +205,7 @@ export default function PaymentManagement({ payments, totalIncome, pendingAmount
                             </div>
                         </CardContent>
                     </Card>
-                    <Card>
-                        <CardContent className="p-4 flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-xl bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
-                                <Clock className="w-6 h-6 text-yellow-600" />
-                            </div>
-                            <div>
-                                <div className="text-2xl font-bold">{pendingCount}</div>
-                                <div className="text-sm text-muted-foreground">Menunggu</div>
-                            </div>
-                        </CardContent>
-                    </Card>
+
                 </div>
 
                 {/* Search & Filter */}
@@ -231,7 +230,7 @@ export default function PaymentManagement({ payments, totalIncome, pendingAmount
                                     <option value="all">Semua Status</option>
                                     <option value="paid">Lunas</option>
                                     <option value="pending">Pending</option>
-                                    <option value="failed">Gagal</option>
+                                    <option value="failed">Batal</option>
                                 </select>
                             </div>
                         </div>
@@ -248,7 +247,7 @@ export default function PaymentManagement({ payments, totalIncome, pendingAmount
                                         <TableHead>Member</TableHead>
                                         <TableHead className="hidden md:table-cell">Course</TableHead>
                                         <TableHead>Jumlah</TableHead>
-                                        <TableHead className="hidden sm:table-cell">Metode</TableHead>
+                                        <TableHead className="hidden sm:table-cell">Terbayar</TableHead>
                                         <TableHead>Status</TableHead>
                                         <TableHead className="hidden lg:table-cell">Tanggal</TableHead>
                                         <TableHead className="text-right">Aksi</TableHead>
@@ -283,6 +282,14 @@ export default function PaymentManagement({ payments, totalIncome, pendingAmount
                                                         </span>
                                                     </div>
                                                 </TableCell>
+                                                <TableCell>
+                                                    <div className="flex items-center gap-1">
+                                                        <Banknote className="w-4 h-4 text-green-600" />
+                                                        <span className="font-semibold text-green-600">
+                                                            {formatCurrency(payment.amount_paid)}
+                                                        </span>
+                                                    </div>
+                                                </TableCell>
                                                 <TableCell className="hidden sm:table-cell">
                                                     <div className="flex items-center gap-2">
                                                         <CreditCard className="w-4 h-4 text-muted-foreground" />
@@ -302,16 +309,29 @@ export default function PaymentManagement({ payments, totalIncome, pendingAmount
                                                 </TableCell>
                                                 <TableCell className="text-right">
                                                     <div className="flex justify-end gap-1">
-                                                        <Link href={`/management-pemasukan/edit/${payment.id}`}>
-                                                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                                <Edit className="w-4 h-4" />
-                                                            </Button>
-                                                        </Link>
-                                                        <AlertDelete
-                                                            title="Hapus Payment?"
-                                                            description={`Apakah Anda yakin ingin menghapus payment ini? Tindakan ini tidak dapat dibatalkan.`}
-                                                            action={() => handleDelete(payment.id)}
-                                                        />
+                                                        {
+                                                            payment.state !== 'paid' && payment.state !== 'failed' ? (
+                                                                <>
+                                                                    <DialogPayment payment={payment} />
+                                                                    <AlertCancelPayment title="Batal Pembayaran?" description={`Apakah Anda yakin ingin membatalkan pembayaran ini? Tindakan ini tidak dapat dibatalkan.`} action={() => router.put(`/management-pembayaran/fail/${payment.id}`)} />
+
+                                                                </>
+                                                            ) : null
+                                                        }
+                                                        {payment.state !== 'failed' && (
+                                                            <Link href={`/management-pembayaran/edit/${payment.id}`}>
+                                                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                                    <Edit className="w-4 h-4" />
+                                                                </Button>
+                                                            </Link>
+                                                        )}
+                                                        {payment.state !== 'paid' && (
+                                                            <AlertDelete
+                                                                title="Hapus Payment?"
+                                                                description={`Apakah Anda yakin ingin menghapus payment ini? Tindakan ini tidak dapat dibatalkan.`}
+                                                                action={() => handleDelete(payment.id)}
+                                                            />
+                                                        )}
                                                     </div>
                                                 </TableCell>
                                             </TableRow>
@@ -329,6 +349,7 @@ export default function PaymentManagement({ payments, totalIncome, pendingAmount
                         </div>
                     </CardContent>
                 </Card>
+
 
                 {/* Pagination */}
                 {payments.last_page > 1 && (

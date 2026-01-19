@@ -15,8 +15,9 @@ class PaymentController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
         
-        $totalIncome = Payment::where('state', 'paid')->sum('amount');
-        $pendingAmount = Payment::where('state', 'pending')->sum('amount');
+        $totalIncome = Payment::where('state', 'paid')->sum('amount_paid');
+        $allAmount = Payment::whereNot('state', 'failed')->sum('amount');
+        $pendingAmount = $allAmount-$totalIncome;
         
         return Inertia::render('admin/payment_management', [
             'payments' => $payments,
@@ -44,13 +45,21 @@ class PaymentController extends Controller
         $validated = $request->validate([
             'enrolment_course_id' => 'required|exists:enrolment_courses,id',
             'amount' => 'required|numeric|min:0',
+            'amount_paid' => 'required|numeric|min:0',
             'payment_method' => 'required|string|max:50',
-            'state' => 'required|in:pending,paid,failed',
         ]);
+
+        if($validated['amount'] <= $validated['amount_paid']) {
+            $validated['state'] = 'paid';
+        } else if ($validated['amount_paid'] > 0) {
+            $validated['state'] = 'partial_paid';
+        } else {
+            $validated['state'] = 'pending';
+        }
 
         Payment::create($validated);
 
-        return redirect('/management-pemasukan')->with('success', 'Payment berhasil ditambahkan');
+        return redirect('/management-pembayaran')->with('success', 'Payment berhasil ditambahkan');
     }
 
     public function show($id)
@@ -81,13 +90,22 @@ class PaymentController extends Controller
         $validated = $request->validate([
             'enrolment_course_id' => 'required|exists:enrolment_courses,id',
             'amount' => 'required|numeric|min:0',
+            'amount_paid' => 'required|numeric|min:0',
             'payment_method' => 'required|string|max:50',
-            'state' => 'required|in:pending,paid,failed',
+            // 'state' => 'required|in:pending,paid,failed',
         ]);
+
+        if($validated['amount'] <= $validated['amount_paid']) {
+            $validated['state'] = 'paid';
+        } else if ($validated['amount_paid'] > 0) {
+            $validated['state'] = 'partial_paid';
+        } else {
+            $validated['state'] = 'pending';
+        }
 
         $payment->update($validated);
 
-        return redirect('/management-pemasukan')->with('success', 'Payment berhasil diupdate');
+        return redirect('/management-pembayaran')->with('success', 'Payment berhasil diupdate');
     }
 
     public function destroy($id)
@@ -95,6 +113,43 @@ class PaymentController extends Controller
         $payment = Payment::findOrFail($id);
         $payment->delete();
 
-        return redirect('/management-pemasukan')->with('success', 'Payment berhasil dihapus');
+        return redirect('/management-pembayaran')->with('success', 'Payment berhasil dihapus');
+    }
+
+    public function pay(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'amount' => 'required|numeric|min:0',
+            'amount_paid' => 'required|numeric|min:0',
+            'payment_method' => 'required|string|max:50',
+        ]);
+        $payment = Payment::findOrFail($id);
+        $payment_paid = $payment->amount_paid + $validated['amount_paid'];
+        
+        if($payment_paid >= $validated['amount']) {
+            $validated['state'] = 'paid';
+        } else if ($payment_paid > 0) {
+            $validated['state'] = 'partial_paid';
+        } else {
+            $validated['state'] = 'pending';
+        }
+        $payment->update([
+            'state' => $validated['state'],
+            'amount_paid' => $payment_paid,
+            'payment_method' => $validated['payment_method'],
+        ]);
+        
+
+        return redirect('/management-pembayaran')->with('success', 'Payment berhasil dibayar');
+    }
+
+    public function fail($id)
+    {
+        $payment = Payment::findOrFail($id);
+        $payment->update([
+            'state' => 'failed',
+        ]);
+
+        return redirect('/management-pembayaran')->with('success', 'Payment berhasil dicancel');
     }
 }

@@ -149,7 +149,7 @@ export default function EnrolmentManagement(props: { enrolments: any }) {
                         <Link href="/management-enrolment/create">
                             <Button>
                                 <Plus className="w-4 h-4 mr-2" />
-                                Tambah Enrolment
+                                Perpanjang Masa Member
                             </Button>
                         </Link>
                     </div>

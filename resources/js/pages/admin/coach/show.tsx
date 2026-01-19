@@ -11,9 +11,18 @@ import {
     User,
     Mail,
     CheckCircle,
-    XCircle
+    XCircle,
+    Award
 } from 'lucide-react';
 import AlertDelete from '@/components/alert-delete';
+
+interface CertificateCoach {
+    id: number;
+    title: string;
+    description: string;
+    image: string | null;
+    coach_id: number;
+}
 
 interface Coach {
     id: number;
@@ -28,6 +37,7 @@ interface Coach {
         name: string;
         email: string;
     };
+    certificate_coaches?: CertificateCoach[];
     created_at?: string;
     updated_at?: string;
 }
@@ -123,12 +133,12 @@ export default function ShowCoach({ coach }: ShowCoachProps) {
                                         />
                                     ) : (
                                         <div className={`w-32 h-32 rounded-full flex items-center justify-center mb-4 ${coach.gender === 'male'
-                                                ? 'bg-blue-100 dark:bg-blue-900/30'
-                                                : 'bg-pink-100 dark:bg-pink-900/30'
+                                            ? 'bg-blue-100 dark:bg-blue-900/30'
+                                            : 'bg-pink-100 dark:bg-pink-900/30'
                                             }`}>
                                             <User className={`w-16 h-16 ${coach.gender === 'male'
-                                                    ? 'text-blue-600'
-                                                    : 'text-pink-600'
+                                                ? 'text-blue-600'
+                                                : 'text-pink-600'
                                                 }`} />
                                         </div>
                                     )}
@@ -212,6 +222,48 @@ export default function ShowCoach({ coach }: ShowCoachProps) {
                                         </p>
                                     </div>
                                 </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Certificates */}
+                        <Card>
+                            <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-3">
+                                <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                                    <Award className="w-5 h-5" />
+                                    Sertifikat
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-4 sm:p-6 pt-0">
+                                {coach.certificate_coaches && coach.certificate_coaches.length > 0 ? (
+                                    <div className="grid gap-4">
+                                        {coach.certificate_coaches.map((cert) => (
+                                            <div key={cert.id} className="flex gap-4 p-4 border rounded-lg">
+                                                {cert.image ? (
+                                                    <img
+                                                        src={`/storage/${cert.image}`}
+                                                        alt={cert.title}
+                                                        className="w-20 h-20 rounded-lg object-cover shrink-0"
+                                                    />
+                                                ) : (
+                                                    <div className="w-20 h-20 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                                                        <Award className="w-8 h-8 text-primary" />
+                                                    </div>
+                                                )}
+                                                <div className="flex-1 min-w-0">
+                                                    <h4 className="font-medium truncate">{cert.title}</h4>
+                                                    <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                                                        {cert.description || 'Tidak ada deskripsi'}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-8 text-muted-foreground">
+                                        <Award className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                                        <p>Belum ada sertifikat</p>
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
 

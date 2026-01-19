@@ -1,12 +1,29 @@
 import { useState, useRef } from "react";
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ArrowLeft, Save, User, Mail, Lock, Phone, Calendar, Upload, X } from 'lucide-react';
+import { ArrowLeft, Save, User, Mail, Lock, Phone, Calendar, Upload, X, Award, Plus, Trash2 } from 'lucide-react';
+
+
+interface Certificate {
+    id?: number;
+    title: string;
+    description: string;
+    image: File | null;
+    imagePreview: string | null;
+}
+
+interface CertificateFromServer {
+    id: number;
+    title: string;
+    description: string;
+    image: string | null;
+    coach_id: number;
+}
 
 interface Coach {
     id: number;
@@ -20,6 +37,7 @@ interface Coach {
         id: number;
         email: string;
     };
+    certificate_coaches?: CertificateFromServer[];
 }
 
 interface UserOption {
@@ -39,6 +57,7 @@ export default function CreateCoach({ coach, users = [] }: Props) {
     const [imagePreview, setImagePreview] = useState<string | null>(
         coach?.image ? `/storage/${coach.image}` : null
     );
+    const [deletedCertificates, setDeletedCertificates] = useState<number[]>([]);
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -63,16 +82,59 @@ export default function CreateCoach({ coach, users = [] }: Props) {
         password_confirmation: '',
     });
 
+    // Load existing certificates when editing
+    const [certificates, setCertificates] = useState<Certificate[]>(() => {
+        if (coach?.certificate_coaches) {
+            return coach.certificate_coaches.map(cert => ({
+                id: cert.id,
+                title: cert.title,
+                description: cert.description,
+                image: null,
+                imagePreview: cert.image ? `/storage/${cert.image}` : null,
+            }));
+        }
+        return [];
+    });
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (isEdit) {
-            post(`/management-coach/update/${coach?.id}?_method=PUT`, {
-                forceFormData: true,
-            });
+
+        const formData = new FormData();
+        formData.append('name', data.name);
+        formData.append('phone_number', data.phone_number);
+        formData.append('birth_date', data.birth_date);
+        formData.append('gender', data.gender);
+        if (data.image) formData.append('image', data.image);
+
+        if (!isEdit) {
+            formData.append('email', data.email);
+            formData.append('password', data.password);
+            formData.append('password_confirmation', data.password_confirmation);
         } else {
-            post('/management-coach', {
-                forceFormData: true,
-            });
+            if (data.user_id) formData.append('user_id', data.user_id.toString());
+        }
+
+        // Add certificates
+        certificates.forEach((cert, index) => {
+            if (cert.id) {
+                formData.append(`certificates[${index}][id]`, cert.id.toString());
+            }
+            formData.append(`certificates[${index}][title]`, cert.title);
+            formData.append(`certificates[${index}][description]`, cert.description);
+            if (cert.image) {
+                formData.append(`certificates[${index}][image]`, cert.image);
+            }
+        });
+
+        // Add deleted certificates
+        deletedCertificates.forEach((certId, index) => {
+            formData.append(`deleted_certificates[${index}]`, certId.toString());
+        });
+
+        if (isEdit) {
+            router.post(`/management-coach/update/${coach?.id}?_method=PUT`, formData);
+        } else {
+            router.post('/management-coach', formData);
         }
     };
 
@@ -94,6 +156,43 @@ export default function CreateCoach({ coach, users = [] }: Props) {
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }
+    };
+
+    // Certificate functions
+    const addCertificate = () => {
+        setCertificates([...certificates, { title: '', description: '', image: null, imagePreview: null }]);
+    };
+
+    const removeCertificate = (index: number) => {
+        const cert = certificates[index];
+        // If the certificate has an ID (exists in database), track it for deletion
+        if (cert.id) {
+            setDeletedCertificates([...deletedCertificates, cert.id]);
+        }
+        setCertificates(certificates.filter((_, i) => i !== index));
+    };
+
+    const updateCertificate = (index: number, field: keyof Certificate, value: string | File | null) => {
+        const updated = [...certificates];
+        if (field === 'image' && value instanceof File) {
+            updated[index].image = value;
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                updated[index].imagePreview = reader.result as string;
+                setCertificates([...updated]);
+            };
+            reader.readAsDataURL(value);
+        } else {
+            (updated[index] as any)[field] = value;
+            setCertificates(updated);
+        }
+    };
+
+    const removeCertificateImage = (index: number) => {
+        const updated = [...certificates];
+        updated[index].image = null;
+        updated[index].imagePreview = null;
+        setCertificates(updated);
     };
 
     return (
@@ -359,6 +458,117 @@ export default function CreateCoach({ coach, users = [] }: Props) {
                                 </CardContent>
                             </Card>
                         )}
+
+                        {/* Certificates Section */}
+                        <Card>
+                            <CardHeader className="p-4 sm:p-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                                            <Award className="w-5 h-5" />
+                                            Sertifikat
+                                        </CardTitle>
+                                        <CardDescription className="mt-1">
+                                            Tambahkan sertifikat coach (opsional)
+                                        </CardDescription>
+                                    </div>
+                                    <Button type="button" variant="outline" size="sm" onClick={addCertificate}>
+                                        <Plus className="w-4 h-4 mr-1" />
+                                        Tambah
+                                    </Button>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0 space-y-4">
+                                {certificates.length === 0 ? (
+                                    <div className="text-center py-8 border-2 border-dashed rounded-lg">
+                                        <Award className="w-10 h-10 mx-auto text-muted-foreground mb-2" />
+                                        <p className="text-sm text-muted-foreground">Belum ada sertifikat</p>
+                                        <Button type="button" variant="ghost" size="sm" onClick={addCertificate} className="mt-2">
+                                            <Plus className="w-4 h-4 mr-1" />
+                                            Tambah Sertifikat
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    certificates.map((cert, index) => (
+                                        <div key={index} className="border rounded-lg p-4 space-y-4">
+                                            <div className="flex items-center justify-between">
+                                                <span className="font-medium text-sm">Sertifikat {index + 1}</span>
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-8 w-8 text-destructive hover:text-destructive"
+                                                    onClick={() => removeCertificate(index)}
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </Button>
+                                            </div>
+
+                                            {/* Certificate Image */}
+                                            <div className="space-y-2">
+                                                <Label className="text-sm">Foto Sertifikat</Label>
+                                                <div className="flex items-start gap-4">
+                                                    {cert.imagePreview ? (
+                                                        <div className="relative">
+                                                            <img
+                                                                src={cert.imagePreview}
+                                                                alt="Preview"
+                                                                className="w-24 h-24 rounded-lg object-cover"
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => removeCertificateImage(index)}
+                                                                className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center"
+                                                            >
+                                                                <X className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <label className="w-24 h-24 rounded-lg border-2 border-dashed border-input flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-colors">
+                                                            <Upload className="w-6 h-6 text-muted-foreground" />
+                                                            <span className="text-xs text-muted-foreground mt-1">Upload</span>
+                                                            <input
+                                                                type="file"
+                                                                accept="image/*"
+                                                                onChange={(e) => {
+                                                                    const file = e.target.files?.[0];
+                                                                    if (file) updateCertificate(index, 'image', file);
+                                                                }}
+                                                                className="hidden"
+                                                            />
+                                                        </label>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Certificate Title */}
+                                            <div className="space-y-2">
+                                                <Label className="text-sm">
+                                                    Judul Sertifikat <span className="text-destructive">*</span>
+                                                </Label>
+                                                <Input
+                                                    placeholder="Contoh: Sertifikat Pelatih Renang Nasional"
+                                                    value={cert.title}
+                                                    onChange={(e) => updateCertificate(index, 'title', e.target.value)}
+                                                    className="h-10 sm:h-11"
+                                                />
+                                            </div>
+
+                                            {/* Certificate Description */}
+                                            <div className="space-y-2">
+                                                <Label className="text-sm">Deskripsi</Label>
+                                                <textarea
+                                                    placeholder="Deskripsi singkat tentang sertifikat"
+                                                    value={cert.description}
+                                                    onChange={(e) => updateCertificate(index, 'description', e.target.value)}
+                                                    className="w-full min-h-[80px] px-3 py-2 border border-input rounded-md bg-background text-sm resize-none"
+                                                />
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </CardContent>
+                        </Card>
 
                         {/* Actions */}
                         <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">

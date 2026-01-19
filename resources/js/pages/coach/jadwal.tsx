@@ -369,7 +369,7 @@ export default function JadwalCoach({
                             <CardHeader className="pb-3">
                                 <CardTitle className="text-base font-semibold">Jadwal Mendatang</CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-3">
+                            <CardContent className="space-y-3 overflow-y-auto max-h-[400px]">
                                 {upcomingSchedules.length > 0 ? (
                                     upcomingSchedules.map((schedule) => (
                                         <div

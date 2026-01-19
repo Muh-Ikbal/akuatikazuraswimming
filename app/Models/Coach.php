@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\User;
 use App\Models\ClassSession;
+use App\Models\CertificateCoach;
 
 use Illuminate\Database\Eloquent\Model;
 
@@ -24,5 +25,9 @@ class Coach extends Model
 
     public function class_sessions(){
         return $this->hasOne(ClassSession::class);
+    }
+
+    public function certificate_coaches(){
+        return $this->hasMany(CertificateCoach::class);
     }
 }

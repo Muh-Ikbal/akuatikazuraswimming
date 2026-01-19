@@ -74,7 +74,7 @@ class ScanQRController extends Controller
         
 
         // TODO: Add attendance record here
-        if($role[0] == 'member'){
+        // if($role[0] == 'member'){
             $classSessions = ClassSession::whereHas('enrolment.member', function ($query) use ($user) {
             $query->where('user_id', $user->id);
         })
@@ -102,7 +102,7 @@ class ScanQRController extends Controller
                 ]);
             }
 
-        }
+        // }
        
         
         Attendance::create([

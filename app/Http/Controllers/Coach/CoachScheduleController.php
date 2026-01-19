@@ -39,7 +39,7 @@ class CoachScheduleController extends Controller
                 ->get();
             
             $stats['total_classes'] = $classSessions->count();
-            
+             
             // Get all attendance records for this user (coach)
             $userAttendances = Attendance::where('user_id', $user->id)->get();
             

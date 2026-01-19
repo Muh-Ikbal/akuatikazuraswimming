@@ -47,6 +47,7 @@ class CourseController extends Controller
     }
 
     public function update(Request $request, $id){
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',

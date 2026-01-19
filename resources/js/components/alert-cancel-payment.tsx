@@ -1,15 +1,15 @@
-import { Trash2 } from "lucide-react"
+import { XCircle } from "lucide-react"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./ui/alert-dialog"
 import { Button } from "./ui/button"
 
 
 
-const AlertDelete = ({ title, description, action }: { title: string, description: string, action: () => void }) => {
+const AlertCancelPayment = ({ title, description, action }: { title: string, description: string, action: () => void }) => {
     return (
         <AlertDialog>
             <AlertDialogTrigger asChild>
                 <Button variant='outline' size='icon' className="text-destructive hover:bg-destructive/10">
-                    <Trash2 className="w-4 h-4" />
+                    <XCircle className="w-4 h-4" />
                 </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
@@ -26,4 +26,4 @@ const AlertDelete = ({ title, description, action }: { title: string, descriptio
     )
 }
 
-export default AlertDelete;
+export default AlertCancelPayment;

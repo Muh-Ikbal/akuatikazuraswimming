@@ -11,6 +11,7 @@ class Payment extends Model
         'enrolment_course_id',
         'amount',
         'payment_method',
+        'amount_paid',
         'state'
     ];
 

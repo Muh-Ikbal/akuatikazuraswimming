@@ -186,7 +186,6 @@ export default function CreateSchedule({ schedule, class_sessions }: Props) {
                                         onChange={(e) => setData('status', e.target.value)}
                                     >
                                         <option value="published">Dijadwalkan</option>
-                                        <option value="on_going">Berlangsung</option>
                                         <option value="completed">Selesai</option>
                                         <option value="cancelled">Dibatalkan</option>
                                     </select>

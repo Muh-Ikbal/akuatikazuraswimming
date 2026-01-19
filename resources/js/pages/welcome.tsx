@@ -1,4 +1,4 @@
-import { dashboard, login, register } from '@/routes';
+import { dashboard, login } from '@/routes';
 import { type SharedData } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
 import {
@@ -11,15 +11,53 @@ import {
     Phone,
     Mail,
     MapPin,
-    ChevronRight
+    ChevronRight,
+    User
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
+interface Certificate {
+    id: number;
+    title: string;
+    description: string;
+    image: string | null;
+}
+
+interface Course {
+    id: number;
+    title: string;
+    description: string;
+    total_meeting: number;
+    price: number;
+    image: string | null;
+}
+
+interface Coach {
+    id: number;
+    name: string;
+    image: string | null;
+    gender: string;
+    certificate_coaches: Certificate[];
+}
+
+interface Stats {
+    memberCount: number;
+    coachCount: number;
+}
+
+interface WelcomeProps {
+    canRegister?: boolean;
+    courses?: Course[];
+    coaches?: Coach[];
+    stats?: Stats;
+}
+
 export default function Welcome({
     canRegister = true,
-}: {
-    canRegister?: boolean;
-}) {
+    courses = [],
+    coaches = [],
+    stats = { memberCount: 0, coachCount: 0 }
+}: WelcomeProps) {
     const { auth } = usePage<SharedData>().props;
 
     const features = [
@@ -45,26 +83,14 @@ export default function Welcome({
         }
     ];
 
-    const courses = [
-        {
-            name: "Basic Swimming",
-            description: "Untuk pemula yang ingin belajar berenang dari dasar",
-            price: "Rp 750.000",
-            sessions: "12 pertemuan"
-        },
-        {
-            name: "Intermediate",
-            description: "Mengembangkan teknik dan gaya renang",
-            price: "Rp 1.000.000",
-            sessions: "16 pertemuan"
-        },
-        {
-            name: "Advanced",
-            description: "Teknik profesional dan persiapan kompetisi",
-            price: "Rp 1.500.000",
-            sessions: "20 pertemuan"
-        }
-    ];
+    const formatPrice = (price: number) => {
+        return new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+        }).format(price);
+    };
 
     return (
         <>
@@ -127,12 +153,7 @@ export default function Welcome({
                                     dalam lingkungan yang aman dan menyenangkan.
                                 </p>
                                 <div className="flex flex-col sm:flex-row gap-4">
-                                    <Link href={register()}>
-                                        <Button size="lg" className="w-full sm:w-auto">
-                                            Daftar Sekarang
-                                            <ChevronRight className="w-4 h-4 ml-2" />
-                                        </Button>
-                                    </Link>
+
                                     <a href="#courses">
                                         <Button variant="outline" size="lg" className="w-full sm:w-auto">
                                             Lihat Program
@@ -143,11 +164,11 @@ export default function Welcome({
                                 {/* Stats */}
                                 <div className="flex gap-8 mt-12">
                                     <div>
-                                        <div className="text-3xl font-bold text-primary">500+</div>
+                                        <div className="text-3xl font-bold text-primary">{stats.memberCount}+</div>
                                         <div className="text-sm text-muted-foreground">Peserta Aktif</div>
                                     </div>
                                     <div>
-                                        <div className="text-3xl font-bold text-primary">15+</div>
+                                        <div className="text-3xl font-bold text-primary">{stats.coachCount}+</div>
                                         <div className="text-sm text-muted-foreground">Coach Profesional</div>
                                     </div>
                                     <div>
@@ -217,20 +238,33 @@ export default function Welcome({
                         </div>
 
                         <div className="grid md:grid-cols-3 gap-8">
-                            {courses.map((course, index) => (
-                                <div
-                                    key={index}
-                                    className="bg-white rounded-2xl border border-border p-8 hover:shadow-xl transition-shadow"
-                                >
-                                    <h3 className="text-xl font-bold text-foreground mb-2">{course.name}</h3>
-                                    <p className="text-sm text-muted-foreground mb-6">{course.description}</p>
-                                    <div className="text-3xl font-bold text-primary mb-1">{course.price}</div>
-                                    <div className="text-sm text-muted-foreground mb-6">{course.sessions}</div>
-                                    <Link href={register()}>
-                                        <Button className="w-full">Daftar Sekarang</Button>
-                                    </Link>
+                            {courses.length > 0 ? (
+                                courses.map((course) => (
+                                    <div
+                                        key={course.id}
+                                        className="bg-white rounded-2xl border border-border p-8 hover:shadow-xl transition-shadow"
+                                    >
+                                        {course.image && (
+                                            <img
+                                                src={`/storage/${course.image}`}
+                                                alt={course.title}
+                                                className="w-full h-40 object-cover rounded-lg mb-4"
+                                            />
+                                        )}
+                                        <h3 className="text-xl font-bold text-foreground mb-2">{course.title}</h3>
+                                        <p className="text-sm text-muted-foreground mb-6 line-clamp-2">{course.description}</p>
+                                        <div className="text-3xl font-bold text-primary mb-1">{formatPrice(course.price)}</div>
+                                        <div className="text-sm text-muted-foreground mb-6">{course.total_meeting} pertemuan</div>
+                                        {/* <Link href={register()}>
+                                            <Button className="w-full">Daftar Sekarang</Button>
+                                        </Link> */}
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="col-span-3 text-center py-12 text-muted-foreground">
+                                    <p>Belum ada program kursus tersedia</p>
                                 </div>
-                            ))}
+                            )}
                         </div>
                     </div>
                 </section>
@@ -246,53 +280,42 @@ export default function Welcome({
                         </div>
 
                         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                            {/* Coach 1 */}
-                            <div className="bg-white rounded-2xl border border-border overflow-hidden hover:shadow-lg transition-shadow">
-                                <div className="aspect-square bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center">
-                                    <Users className="w-16 h-16 text-primary/40" />
+                            {coaches.length > 0 ? (
+                                coaches.map((coach) => (
+                                    <div key={coach.id} className="bg-white rounded-2xl border border-border overflow-hidden hover:shadow-lg transition-shadow">
+                                        <div className="aspect-square bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center overflow-hidden">
+                                            {coach.image ? (
+                                                <img
+                                                    src={`/storage/${coach.image}`}
+                                                    alt={coach.name}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            ) : (
+                                                <div className={`w-full h-full flex items-center justify-center ${coach.gender === 'male'
+                                                    ? 'bg-blue-100 dark:bg-blue-900/30'
+                                                    : 'bg-pink-100 dark:bg-pink-900/30'
+                                                    }`}>
+                                                    <User className={`w-16 h-16 ${coach.gender === 'male' ? 'text-blue-600' : 'text-pink-600'
+                                                        }`} />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="p-5 text-center">
+                                            <h3 className="font-semibold text-foreground mb-1">{coach.name}</h3>
+                                            <p className="text-sm text-primary font-medium mb-2">Coach</p>
+                                            {coach.certificate_coaches && coach.certificate_coaches.length > 0 && (
+                                                <p className="text-xs text-muted-foreground">
+                                                    {coach.certificate_coaches.map(c => c.title).slice(0, 2).join(' • ')}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="col-span-4 text-center py-12 text-muted-foreground">
+                                    <p>Belum ada coach tersedia</p>
                                 </div>
-                                <div className="p-5 text-center">
-                                    <h3 className="font-semibold text-foreground mb-1">Coach Budi</h3>
-                                    <p className="text-sm text-primary font-medium mb-2">Head Coach</p>
-                                    <p className="text-xs text-muted-foreground">PRSI Level 3 • 10 tahun pengalaman</p>
-                                </div>
-                            </div>
-
-                            {/* Coach 2 */}
-                            <div className="bg-white rounded-2xl border border-border overflow-hidden hover:shadow-lg transition-shadow">
-                                <div className="aspect-square bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center">
-                                    <Users className="w-16 h-16 text-primary/40" />
-                                </div>
-                                <div className="p-5 text-center">
-                                    <h3 className="font-semibold text-foreground mb-1">Coach Rina</h3>
-                                    <p className="text-sm text-primary font-medium mb-2">Senior Coach</p>
-                                    <p className="text-xs text-muted-foreground">PRSI Level 2 • 7 tahun pengalaman</p>
-                                </div>
-                            </div>
-
-                            {/* Coach 3 */}
-                            <div className="bg-white rounded-2xl border border-border overflow-hidden hover:shadow-lg transition-shadow">
-                                <div className="aspect-square bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center">
-                                    <Users className="w-16 h-16 text-primary/40" />
-                                </div>
-                                <div className="p-5 text-center">
-                                    <h3 className="font-semibold text-foreground mb-1">Coach Maya</h3>
-                                    <p className="text-sm text-primary font-medium mb-2">Kids Specialist</p>
-                                    <p className="text-xs text-muted-foreground">PRSI Level 2 • 5 tahun pengalaman</p>
-                                </div>
-                            </div>
-
-                            {/* Coach 4 */}
-                            <div className="bg-white rounded-2xl border border-border overflow-hidden hover:shadow-lg transition-shadow">
-                                <div className="aspect-square bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center">
-                                    <Users className="w-16 h-16 text-primary/40" />
-                                </div>
-                                <div className="p-5 text-center">
-                                    <h3 className="font-semibold text-foreground mb-1">Coach Dimas</h3>
-                                    <p className="text-sm text-primary font-medium mb-2">Advanced Coach</p>
-                                    <p className="text-xs text-muted-foreground">PRSI Level 2 • 6 tahun pengalaman</p>
-                                </div>
-                            </div>
+                            )}
                         </div>
                     </div>
                 </section>
@@ -354,3 +377,4 @@ export default function Welcome({
         </>
     );
 }
+

@@ -15,11 +15,28 @@ use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\QRCodeGenerateController;
+use App\Models\Course;
+use App\Models\Coach;
+use App\Models\Member;
 
 Route::get('/', function () {
+    // Get active courses
+    $courses = Course::where('state', 'active')->get();
+    
+    // Get coaches with certificates
+    $coaches = Coach::with('certificate_coaches')->get();
+    
+    // Get stats
+    $stats = [
+        'memberCount' => Member::count(),
+        'coachCount' => Coach::count(),
+    ];
     
     return Inertia::render('welcome', [
         'canRegister' => Features::enabled(Features::registration()),
+        'courses' => $courses,
+        'coaches' => $coaches,
+        'stats' => $stats,
     ]);
 })->name('home');
 
@@ -84,13 +101,15 @@ Route::middleware(['auth', 'verified','role:admin'])->group(function () {
     Route::delete('management-enrolment/{id}', [EnrolmentCourseController::class,'destroy'])->name('management-enrolment.destroy');
     
     // management payment (pemasukan)
-    Route::get('management-pemasukan', [PaymentController::class,'index'])->name('management-pemasukan');
-    Route::get('management-pemasukan/create', [PaymentController::class,'create'])->name('management-pemasukan.create');
-    Route::post('management-pemasukan', [PaymentController::class,'store'])->name('management-pemasukan.store');
-    Route::get('management-pemasukan/{id}', [PaymentController::class,'show'])->name('management-pemasukan.show');
-    Route::get('management-pemasukan/edit/{id}', [PaymentController::class,'edit'])->name('management-pemasukan.edit');
-    Route::put('management-pemasukan/update/{id}', [PaymentController::class,'update'])->name('management-pemasukan.update');
-    Route::delete('management-pemasukan/{id}', [PaymentController::class,'destroy'])->name('management-pemasukan.destroy');
+    Route::get('management-pembayaran', [PaymentController::class,'index'])->name('management-pembayaran');
+    Route::get('management-pembayaran/create', [PaymentController::class,'create'])->name('management-pembayaran.create');
+    Route::post('management-pembayaran/store', [PaymentController::class,'store'])->name('management-pembayaran.store');
+    Route::get('management-pembayaran/{id}', [PaymentController::class,'show'])->name('management-pembayaran.show');
+    Route::get('management-pembayaran/edit/{id}', [PaymentController::class,'edit'])->name('management-pembayaran.edit');
+    Route::put('management-pembayaran/update/{id}', [PaymentController::class,'update'])->name('management-pembayaran.update');
+    Route::delete('management-pembayaran/{id}', [PaymentController::class,'destroy'])->name('management-pembayaran.destroy');
+    Route::put('management-pembayaran/bayar/{id}', [PaymentController::class,'pay'])->name('management-pembayaran.bayar');
+    Route::put('management-pembayaran/fail/{id}', [PaymentController::class,'fail'])->name('management-pembayaran.fail');
 
     // kategori pengeluaran
     Route::get('kategori-pengeluaran', [ExpenseCategoryController::class,'index'])->name('kategori-pengeluaran');
@@ -132,6 +151,7 @@ Route::middleware(['auth', 'verified','role:operator'])->group(function () {
 Route::middleware(['auth', 'verified','role:coach'])->group(function () {
     Route::get('jadwal-coach', [\App\Http\Controllers\Coach\CoachScheduleController::class, 'index'])->name('jadwal-coach');
     Route::get('riwayat-absensi-coach', [\App\Http\Controllers\Coach\CoachAttendanceHistoryController::class, 'index'])->name('riwayat-absensi-coach');
+    Route::get('siswa-coach', [\App\Http\Controllers\Coach\CoachStudentController::class, 'index'])->name('siswa-coach');
 });
 
 

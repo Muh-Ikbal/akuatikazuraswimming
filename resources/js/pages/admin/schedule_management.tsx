@@ -191,7 +191,7 @@ export default function ScheduleManagement(props: { schedules: any }) {
                 </div>
 
                 {/* Stats */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                     <Card>
                         <CardContent className="p-4 flex items-center gap-4">
                             <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -214,17 +214,7 @@ export default function ScheduleManagement(props: { schedules: any }) {
                             </div>
                         </CardContent>
                     </Card>
-                    <Card>
-                        <CardContent className="p-4 flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-xl bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
-                                <PlayCircle className="w-6 h-6 text-yellow-600" />
-                            </div>
-                            <div>
-                                <div className="text-2xl font-bold">{onGoingCount}</div>
-                                <div className="text-sm text-muted-foreground">Berlangsung</div>
-                            </div>
-                        </CardContent>
-                    </Card>
+
                     <Card>
                         <CardContent className="p-4 flex items-center gap-4">
                             <div className="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
@@ -259,7 +249,6 @@ export default function ScheduleManagement(props: { schedules: any }) {
                                 >
                                     <option value="all">Semua Status</option>
                                     <option value="published">Dijadwalkan</option>
-                                    <option value="on_going">Berlangsung</option>
                                     <option value="completed">Selesai</option>
                                     <option value="cancelled">Dibatalkan</option>
                                 </select>

@@ -37,7 +37,7 @@ export default function Dashboard() {
                             <p className="text-sm text-muted-foreground mb-4">
                                 Scan QR code member untuk verifikasi kehadiran
                             </p>
-                            <Link href="/scan-qr-member">
+                            <Link href="/scan-qr">
                                 <Button className="w-full">
                                     <QrCode className="mr-2 h-4 w-4" />
                                     Mulai Scan
