@@ -27,9 +27,9 @@ class MemberAttendanceController extends Controller
             ->with(['class_session.course', 'class_session.schedule'])
             ->get();
         
-        // Get all user attendances with schedule relationship
+        // Get all user attendances
         $userAttendances = Attendance::where('user_id', $user->id)
-            ->with(['classSession', 'schedule'])
+            ->with('classSession')
             ->get();
         
         // Collect all schedules from enrolled courses
@@ -72,13 +72,7 @@ class MemberAttendanceController extends Controller
             $scheduleDate = Carbon::parse($schedule['date']);
             
             // Check if user has attendance for this schedule
-            // First try to match by schedule_id (preferred), then fallback to date matching
             $attendance = $userAttendances->first(function ($att) use ($schedule, $scheduleDate) {
-                // Match by schedule_id if available
-                if ($att->schedule_id !== null) {
-                    return $att->schedule_id == $schedule['id'];
-                }
-                // Fallback: Match by class_session_id and date
                 $scanDate = Carbon::parse($att->scan_time)->toDateString();
                 return $att->class_session_id == $schedule['class_session_id'] 
                     && $scanDate == $scheduleDate->toDateString();

@@ -153,9 +153,6 @@ class MemberTestDataSeeder extends Seeder
                     [
                         'user_id' => $memberUser->id,
                         'class_session_id' => $classSession->id,
-                        'schedule_id' => $schedule->id, // Link to specific schedule
-                    ],
-                    [
                         'scan_time' => $scanTime,
                     ]
                 );
