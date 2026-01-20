@@ -164,12 +164,12 @@ export default function Welcome({
                             {/* Auth Buttons */}
                             <div className="flex items-center gap-3">
                                 {auth.user ? (
-                                    <Link href={dashboard()}>
+                                    <Link href={dashboard().url}>
                                         <Button>Dashboard</Button>
                                     </Link>
                                 ) : (
                                     <>
-                                        <Link href={login()}>
+                                        <Link href={login().url}>
                                             <Button className='bg-primary'>Masuk</Button>
                                         </Link>
 

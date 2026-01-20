@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import AuthLayout from '@/layouts/auth-layout';
-// import { register } from '@/routes';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 import { Form, Head } from '@inertiajs/react';
@@ -74,7 +73,7 @@ export default function Login({
                                     </Label>
                                     {canResetPassword && (
                                         <TextLink
-                                            href={request()}
+                                            href={request().url}
                                             className="text-xs text-primary hover:underline"
                                             tabIndex={5}
                                         >
@@ -127,7 +126,7 @@ export default function Login({
                             <div className="text-center text-sm text-muted-foreground pt-2">
                                 Belum punya akun?{' '}
                                 <TextLink
-                                    href={register()}
+                                    href="/register"
                                     tabIndex={5}
                                     className="text-primary font-medium hover:underline"
                                 >
