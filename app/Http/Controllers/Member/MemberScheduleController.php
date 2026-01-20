@@ -119,11 +119,13 @@ class MemberScheduleController extends Controller
     private function getAttendanceStatus($schedule, $classSessionId, $userAttendances)
     {
         // Check if user has attendance record for this class session on this date
-        $scheduleDate = Carbon::parse($schedule->date);
+        $scheduleDateString = Carbon::parse($schedule->date)->format('Y-m-d');
+        $scheduleDate = Carbon::parse($schedule->date)->startOfDay();
+        $today = Carbon::today();
         
-        $hasAttendance = $userAttendances->first(function ($attendance) use ($classSessionId, $scheduleDate) {
-            $scanDate = Carbon::parse($attendance->scan_time)->toDateString();
-            return $attendance->class_session_id == $classSessionId && $scanDate == $scheduleDate->toDateString();
+        $hasAttendance = $userAttendances->first(function ($attendance) use ($classSessionId, $scheduleDateString) {
+            $scanDateString = Carbon::parse($attendance->scan_time)->format('Y-m-d');
+            return $attendance->class_session_id == $classSessionId && $scanDateString === $scheduleDateString;
         });
         
         // If has attendance record → present (green)
@@ -142,12 +144,12 @@ class MemberScheduleController extends Controller
         }
         
         // If schedule is today or on_going
-        if ($schedule->status === 'on_going' || $scheduleDate->isToday()) {
+        if ($schedule->status === 'on_going' || $scheduleDate->eq($today)) {
             return 'on_going';
         }
         
         // If schedule is in the past but not completed yet (might be missed data)
-        if ($scheduleDate->lt(today())) {
+        if ($scheduleDate->lt($today)) {
             return 'absent';
         }
         

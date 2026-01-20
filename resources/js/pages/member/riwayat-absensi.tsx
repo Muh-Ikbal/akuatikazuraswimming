@@ -10,7 +10,7 @@ import {
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
-import { CheckCircle2, XCircle, Filter } from 'lucide-react';
+import { CheckCircle2, XCircle, Filter, Clock, CalendarDays } from 'lucide-react';
 import { useState } from 'react';
 
 interface Statistics {
@@ -26,7 +26,8 @@ interface AttendanceDetail {
     date: string;
     time: string;
     location: string;
-    status: 'present' | 'absent';
+    status: 'present' | 'absent' | 'scheduled' | 'today';
+    schedule_status?: string;
     scan_time: string | null;
     course_title: string;
 }
@@ -44,7 +45,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function RiwayatAbsensi({ statistics, detailedAttendance }: Props) {
-    const [filterStatus, setFilterStatus] = useState<'all' | 'present' | 'absent'>('all');
+    const [filterStatus, setFilterStatus] = useState<'all' | 'present' | 'absent' | 'scheduled' | 'today'>('all');
 
     // Format date to Indonesian format
     const formatDate = (dateStr: string) => {
@@ -77,8 +78,44 @@ export default function RiwayatAbsensi({ statistics, detailedAttendance }: Props
                 return 'Hadir';
             case 'absent':
                 return 'Tidak Hadir';
+            case 'scheduled':
+                return 'Terjadwal';
+            case 'today':
+                return 'Hari Ini';
             default:
                 return 'Semua';
+        }
+    };
+
+    // Get status badge style and label
+    const getStatusStyle = (status: string) => {
+        switch (status) {
+            case 'present':
+                return { bg: 'bg-green-100 text-green-700 border-green-200', label: 'Hadir' };
+            case 'absent':
+                return { bg: 'bg-red-100 text-red-700 border-red-200', label: 'Tidak Hadir' };
+            case 'scheduled':
+                return { bg: 'bg-blue-100 text-blue-700 border-blue-200', label: 'Terjadwal' };
+            case 'today':
+                return { bg: 'bg-yellow-100 text-yellow-700 border-yellow-200', label: 'Hari Ini' };
+            default:
+                return { bg: 'bg-gray-100 text-gray-700 border-gray-200', label: status };
+        }
+    };
+
+    // Get status icon
+    const getStatusIcon = (status: string) => {
+        switch (status) {
+            case 'present':
+                return <CheckCircle2 className="h-6 w-6 text-green-600" />;
+            case 'absent':
+                return <XCircle className="h-6 w-6 text-red-600" />;
+            case 'scheduled':
+                return <CalendarDays className="h-6 w-6 text-blue-600" />;
+            case 'today':
+                return <Clock className="h-6 w-6 text-yellow-600" />;
+            default:
+                return <Clock className="h-6 w-6 text-gray-600" />;
         }
     };
 
@@ -231,6 +268,12 @@ export default function RiwayatAbsensi({ statistics, detailedAttendance }: Props
                                 <DropdownMenuItem onClick={() => setFilterStatus('absent')}>
                                     Tidak Hadir
                                 </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setFilterStatus('scheduled')}>
+                                    Terjadwal
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setFilterStatus('today')}>
+                                    Hari Ini
+                                </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </CardHeader>
@@ -244,11 +287,7 @@ export default function RiwayatAbsensi({ statistics, detailedAttendance }: Props
                                     >
                                         {/* Icon */}
                                         <div className="flex-shrink-0 mt-1">
-                                            {attendance.status === 'present' ? (
-                                                <CheckCircle2 className="h-6 w-6 text-green-600" />
-                                            ) : (
-                                                <XCircle className="h-6 w-6 text-red-600" />
-                                            )}
+                                            {getStatusIcon(attendance.status)}
                                         </div>
 
                                         {/* Content */}
@@ -257,14 +296,8 @@ export default function RiwayatAbsensi({ statistics, detailedAttendance }: Props
                                                 <h4 className="font-medium">
                                                     Pertemuan {attendance.meeting_number}
                                                 </h4>
-                                                <Badge
-                                                    className={
-                                                        attendance.status === 'present'
-                                                            ? 'bg-green-100 text-green-700 border-green-200'
-                                                            : 'bg-red-100 text-red-700 border-red-200'
-                                                    }
-                                                >
-                                                    {attendance.status === 'present' ? 'Hadir' : 'Tidak Hadir'}
+                                                <Badge className={getStatusStyle(attendance.status).bg}>
+                                                    {getStatusStyle(attendance.status).label}
                                                 </Badge>
                                             </div>
                                             <div className="text-sm text-muted-foreground space-y-1">

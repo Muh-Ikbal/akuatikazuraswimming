@@ -133,8 +133,10 @@ export default function Jadwal({
                 return 'text-red-600 font-semibold';
             case 'on_going':
                 return 'text-blue-600 font-semibold';
+            case 'scheduled':
+                return 'text-orange-500 font-semibold';
             default:
-                return 'text-green-600 font-semibold';
+                return 'text-orange-500 font-semibold';
         }
     };
 
@@ -264,6 +266,10 @@ export default function Jadwal({
                                 <div className="flex items-center gap-2 text-sm">
                                     <span className="w-3 h-3 rounded-full bg-green-500" />
                                     <span className="text-muted-foreground">Hadir</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-sm">
+                                    <span className="w-3 h-3 rounded-full bg-orange-500" />
+                                    <span className="text-muted-foreground">Terjadwal</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-sm">
                                     <span className="w-3 h-3 rounded-full bg-red-500" />

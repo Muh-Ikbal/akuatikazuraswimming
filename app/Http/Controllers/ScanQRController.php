@@ -88,9 +88,9 @@ class ScanQRController extends Controller
                     'attendanceToday' => $attendanceToday,
                 ]);
             }
-
+            // dd(today()->toDateString());
             $notHaveSchedule = Schedule::where('class_session_id', $classSessions->id)
-                ->whereDate('date', today())
+                ->whereDate('date', today()->toDateString())
                 ->exists();
 
             if(!$notHaveSchedule ){

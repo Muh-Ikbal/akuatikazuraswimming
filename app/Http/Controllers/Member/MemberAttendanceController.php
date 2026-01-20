@@ -22,6 +22,9 @@ class MemberAttendanceController extends Controller
             return redirect()->route('dashboard')->with('error', 'Member data not found');
         }
         
+        // Set Carbon timezone
+        $today = Carbon::today();
+        
         // Get enrolled courses for this member
         $enrolments = EnrolmentCourse::where('member_id', $member->id)
             ->with(['class_session.course', 'class_session.schedule'])
@@ -35,7 +38,7 @@ class MemberAttendanceController extends Controller
         // Collect all schedules from enrolled courses
         $allSchedules = collect();
         foreach ($enrolments as $enrolment) {
-            if ($enrolment->class_session) {
+            if ($enrolment->class_session && $enrolment->class_session->schedule) {
                 $schedules = $enrolment->class_session->schedule;
                 foreach ($schedules as $schedule) {
                     $allSchedules->push([
@@ -45,53 +48,74 @@ class MemberAttendanceController extends Controller
                         'location' => $schedule->location,
                         'status' => $schedule->status,
                         'class_session_id' => $enrolment->class_session->id,
-                        'course_title' => $enrolment->class_session->course->title,
+                        'course_title' => $enrolment->class_session->course->title ?? '-',
                     ]);
                 }
             }
         }
         
-        // Filter only completed or past schedules for statistics
-        $completedSchedules = $allSchedules->filter(function ($schedule) {
-            $scheduleDate = Carbon::parse($schedule['date']);
-            return $schedule['status'] === 'completed' || $scheduleDate->lt(today());
-        });
-        
-        // Calculate statistics
-        $totalMeetings = $completedSchedules->count();
-        
-        // Count present (has attendance record)
+        // Calculate statistics - schedule yang sudah lewat ATAU sudah ada attendance
         $presentCount = 0;
         $absentCount = 0;
         
-        // Build detailed attendance list
+        foreach ($allSchedules as $schedule) {
+            $scheduleDateString = Carbon::parse($schedule['date'])->format('Y-m-d');
+            $scheduleDate = Carbon::parse($schedule['date'])->startOfDay();
+            
+            // Check if user has attendance for this schedule
+            $attendance = $userAttendances->first(function ($att) use ($schedule, $scheduleDateString) {
+                $scanDateString = Carbon::parse($att->scan_time)->format('Y-m-d');
+                return $att->class_session_id == $schedule['class_session_id'] 
+                    && $scanDateString === $scheduleDateString;
+            });
+            
+            if ($attendance) {
+                // Jika ada attendance, hitung sebagai present
+                $presentCount++;
+            } elseif ($schedule['status'] === 'completed' || $scheduleDate->lt($today)) {
+                // Jika jadwal sudah lewat atau completed tapi tidak ada attendance, hitung sebagai absent
+                $absentCount++;
+            }
+            // Jadwal yang akan datang tidak dihitung ke statistik
+        }
+        
+        // Total meetings = yang sudah ada keputusan (present + absent)
+        $totalMeetings = $presentCount + $absentCount;
+        
+        // Build detailed attendance list - SEMUA schedule (termasuk yang akan datang)
         $detailedAttendance = [];
         $meetingNumber = 1;
         
-        foreach ($completedSchedules->sortBy('date') as $schedule) {
-            $scheduleDate = Carbon::parse($schedule['date']);
+        foreach ($allSchedules->sortBy('date') as $schedule) {
+            $scheduleDateString = Carbon::parse($schedule['date'])->format('Y-m-d');
+            $scheduleDate = Carbon::parse($schedule['date'])->startOfDay();
             
             // Check if user has attendance for this schedule
-            $attendance = $userAttendances->first(function ($att) use ($schedule, $scheduleDate) {
-                $scanDate = Carbon::parse($att->scan_time)->toDateString();
+            $attendance = $userAttendances->first(function ($att) use ($schedule, $scheduleDateString) {
+                $scanDateString = Carbon::parse($att->scan_time)->format('Y-m-d');
                 return $att->class_session_id == $schedule['class_session_id'] 
-                    && $scanDate == $scheduleDate->toDateString();
+                    && $scanDateString === $scheduleDateString;
             });
             
-            $isPresent = $attendance !== null;
+            // Determine status
+            $status = 'scheduled'; // default untuk jadwal yang akan datang
             
-            if ($isPresent) {
-                $presentCount++;
-            } else {
-                $absentCount++;
+            if ($attendance) {
+                $status = 'present';
+            } elseif ($schedule['status'] === 'completed' || $scheduleDate->lt($today)) {
+                $status = 'absent';
+            } elseif ($scheduleDate->eq($today)) {
+                $status = 'today'; // jadwal hari ini
             }
+            // else tetap 'scheduled' untuk jadwal yang akan datang
             
             $detailedAttendance[] = [
                 'meeting_number' => $meetingNumber,
                 'date' => $schedule['date'],
                 'time' => $schedule['time'],
                 'location' => $schedule['location'],
-                'status' => $isPresent ? 'present' : 'absent',
+                'status' => $status,
+                'schedule_status' => $schedule['status'], // status dari schedule (completed, on_going, dll)
                 'scan_time' => $attendance ? Carbon::parse($attendance->scan_time)->format('H:i') : null,
                 'course_title' => $schedule['course_title'],
             ];
@@ -99,15 +123,15 @@ class MemberAttendanceController extends Controller
             $meetingNumber++;
         }
         
-        // Calculate attendance percentage
+        // Calculate attendance percentage (dari yang sudah lewat saja)
         $attendancePercentage = $totalMeetings > 0 
             ? round(($presentCount / $totalMeetings) * 100) 
             : 0;
         
-        // Count remaining (future) meetings
-        $remainingMeetings = $allSchedules->filter(function ($schedule) {
-            $scheduleDate = Carbon::parse($schedule['date']);
-            return $scheduleDate->gte(today()) && $schedule['status'] !== 'completed';
+        // Count remaining (future) meetings including today
+        $remainingMeetings = $allSchedules->filter(function ($schedule) use ($today) {
+            $scheduleDate = Carbon::parse($schedule['date'])->startOfDay();
+            return $scheduleDate->gte($today) && $schedule['status'] !== 'completed';
         })->count();
         
         return Inertia::render('member/riwayat-absensi', [
@@ -117,6 +141,7 @@ class MemberAttendanceController extends Controller
                 'absent' => $absentCount,
                 'percentage' => $attendancePercentage,
                 'remaining' => $remainingMeetings,
+                'all_schedules' => $allSchedules->count(), // total semua jadwal
             ],
             'detailedAttendance' => $detailedAttendance,
         ]);
