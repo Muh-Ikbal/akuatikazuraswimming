@@ -12,7 +12,12 @@ import {
     Mail,
     MapPin,
     ChevronRight,
-    User
+    User,
+    Heart,
+    Zap,
+    Target,
+    Clock,
+    Star,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -23,12 +28,19 @@ interface Certificate {
     image: string | null;
 }
 
+interface Feature {
+    id: number;
+    title: string;
+    description: string;
+    icon: string;
+}
+
 interface Course {
     id: number;
     title: string;
     description: string;
-    total_meeting: number;
     price: number;
+    total_meeting: number;
     image: string | null;
 }
 
@@ -40,57 +52,86 @@ interface Coach {
     certificate_coaches: Certificate[];
 }
 
+interface Settings {
+    hero_title: string | null;
+    hero_subtitle: string | null;
+    hero_image: string | null;
+    contact_phone: string | null;
+    contact_email: string | null;
+    contact_address: string | null;
+}
+
 interface Stats {
-    memberCount: number;
-    coachCount: number;
+    members_count: number;
+    coaches_count: number;
+    satisfaction_rate: string;
 }
 
 interface WelcomeProps {
     canRegister?: boolean;
+    settings?: Settings;
+    features?: Feature[];
     courses?: Course[];
     coaches?: Coach[];
     stats?: Stats;
 }
 
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+    Award,
+    Shield,
+    Users,
+    Calendar,
+    CheckCircle,
+    Heart,
+    Zap,
+    Target,
+    Clock,
+    Star,
+};
+
+const getIcon = (iconName: string) => {
+    return iconMap[iconName] || Award;
+};
+
+const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+    }).format(price);
+};
+
 export default function Welcome({
     canRegister = true,
+    settings,
+    features,
     courses = [],
     coaches = [],
-    stats = { memberCount: 0, coachCount: 0 }
+    stats,
 }: WelcomeProps) {
     const { auth } = usePage<SharedData>().props;
 
-    const features = [
-        {
-            icon: Award,
-            title: "Coach Bersertifikasi",
-            description: "Pelatih profesional dengan sertifikasi PRSI dan pengalaman bertahun-tahun"
-        },
-        {
-            icon: Shield,
-            title: "Keamanan Terjamin",
-            description: "Fasilitas kolam renang yang aman dengan pengawasan ketat"
-        },
-        {
-            icon: Users,
-            title: "Kelas Kecil",
-            description: "Maksimal 8 peserta per kelas untuk perhatian maksimal"
-        },
-        {
-            icon: Calendar,
-            title: "Jadwal Fleksibel",
-            description: "Pilihan waktu yang beragam sesuai kesibukan Anda"
-        }
+    // Default values if settings are not set
+    const heroTitle = settings?.hero_title || 'Belajar Berenang dengan Menyenangkan';
+    const heroSubtitle = settings?.hero_subtitle || 'Kursus renang profesional untuk semua usia. Didampingi coach bersertifikasi dalam lingkungan yang aman dan menyenangkan.';
+    const heroImage = settings?.hero_image ? `/storage/${settings.hero_image}` : null;
+    const contactPhone = settings?.contact_phone || '+62 812 3456 7890';
+    const contactEmail = settings?.contact_email || 'info@akuatikazura.com';
+    const contactAddress = settings?.contact_address || 'Jl. Renang No. 123, Jakarta';
+
+    // Default features if none in database
+    const displayFeatures = features && features.length > 0 ? features : [
+        { id: 1, icon: 'Award', title: 'Coach Bersertifikasi', description: 'Pelatih profesional dengan sertifikasi PRSI dan pengalaman bertahun-tahun' },
+        { id: 2, icon: 'Shield', title: 'Keamanan Terjamin', description: 'Fasilitas kolam renang yang aman dengan pengawasan ketat' },
+        { id: 3, icon: 'Users', title: 'Kelas Kecil', description: 'Maksimal 8 peserta per kelas untuk perhatian maksimal' },
+        { id: 4, icon: 'Calendar', title: 'Jadwal Fleksibel', description: 'Pilihan waktu yang beragam sesuai kesibukan Anda' },
     ];
 
-    const formatPrice = (price: number) => {
-        return new Intl.NumberFormat('id-ID', {
-            style: 'currency',
-            currency: 'IDR',
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0,
-        }).format(price);
-    };
+    // Stats
+    const membersCount = stats?.members_count || 0;
+    const coachesCount = stats?.coaches_count || 0;
+    const satisfactionRate = stats?.satisfaction_rate || '98';
 
     return (
         <>
@@ -145,12 +186,18 @@ export default function Welcome({
                         <div className="grid lg:grid-cols-2 gap-12 items-center">
                             <div>
                                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-6">
-                                    Belajar Berenang dengan
-                                    <span className="text-primary"> Menyenangkan</span>
+                                    {heroTitle.includes('Menyenangkan') ? (
+                                        <>
+                                            {heroTitle.split('Menyenangkan')[0]}
+                                            <span className="text-primary">Menyenangkan</span>
+                                            {heroTitle.split('Menyenangkan')[1]}
+                                        </>
+                                    ) : (
+                                        heroTitle
+                                    )}
                                 </h1>
                                 <p className="text-lg text-muted-foreground mb-8 max-w-xl">
-                                    Kursus renang profesional untuk semua usia. Didampingi coach bersertifikasi
-                                    dalam lingkungan yang aman dan menyenangkan.
+                                    {heroSubtitle}
                                 </p>
                                 <div className="flex flex-col sm:flex-row gap-4">
 
@@ -164,15 +211,15 @@ export default function Welcome({
                                 {/* Stats */}
                                 <div className="flex gap-8 mt-12">
                                     <div>
-                                        <div className="text-3xl font-bold text-primary">{stats.memberCount}+</div>
+                                        <div className="text-3xl font-bold text-primary">{membersCount > 0 ? `${membersCount}+` : '500+'}</div>
                                         <div className="text-sm text-muted-foreground">Peserta Aktif</div>
                                     </div>
                                     <div>
-                                        <div className="text-3xl font-bold text-primary">{stats.coachCount}+</div>
+                                        <div className="text-3xl font-bold text-primary">{coachesCount > 0 ? `${coachesCount}+` : '15+'}</div>
                                         <div className="text-sm text-muted-foreground">Coach Profesional</div>
                                     </div>
                                     <div>
-                                        <div className="text-3xl font-bold text-primary">98%</div>
+                                        <div className="text-3xl font-bold text-primary">{satisfactionRate}%</div>
                                         <div className="text-sm text-muted-foreground">Tingkat Kepuasan</div>
                                     </div>
                                 </div>
@@ -181,7 +228,11 @@ export default function Welcome({
                             {/* Hero Image */}
                             <div className="relative">
                                 <div className="aspect-[4/3] rounded-2xl bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center overflow-hidden">
-                                    <Waves className="w-32 h-32 text-primary/30" />
+                                    {heroImage ? (
+                                        <img src={heroImage} alt="Hero" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <Waves className="w-32 h-32 text-primary/30" />
+                                    )}
                                 </div>
                                 {/* Floating Card */}
                                 <div className="absolute -bottom-6 -left-6 bg-white rounded-xl shadow-xl p-4 border border-border">
@@ -211,18 +262,21 @@ export default function Welcome({
                         </div>
 
                         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                            {features.map((feature, index) => (
-                                <div
-                                    key={index}
-                                    className="bg-white rounded-xl border border-border p-6 hover:shadow-lg transition-shadow"
-                                >
-                                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-                                        <feature.icon className="w-6 h-6 text-primary" />
+                            {displayFeatures.map((feature) => {
+                                const IconComponent = getIcon(feature.icon);
+                                return (
+                                    <div
+                                        key={feature.id}
+                                        className="bg-white rounded-xl border border-border p-6 hover:shadow-lg transition-shadow"
+                                    >
+                                        <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
+                                            <IconComponent className="w-6 h-6 text-primary" />
+                                        </div>
+                                        <h3 className="font-semibold text-foreground mb-2">{feature.title}</h3>
+                                        <p className="text-sm text-muted-foreground">{feature.description}</p>
                                     </div>
-                                    <h3 className="font-semibold text-foreground mb-2">{feature.title}</h3>
-                                    <p className="text-sm text-muted-foreground">{feature.description}</p>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </div>
                 </section>
@@ -255,9 +309,6 @@ export default function Welcome({
                                         <p className="text-sm text-muted-foreground mb-6 line-clamp-2">{course.description}</p>
                                         <div className="text-3xl font-bold text-primary mb-1">{formatPrice(course.price)}</div>
                                         <div className="text-sm text-muted-foreground mb-6">{course.total_meeting} pertemuan</div>
-                                        {/* <Link href={register()}>
-                                            <Button className="w-full">Daftar Sekarang</Button>
-                                        </Link> */}
                                     </div>
                                 ))
                             ) : (
@@ -337,21 +388,21 @@ export default function Welcome({
                                     <Phone className="w-6 h-6 text-primary" />
                                 </div>
                                 <h3 className="font-semibold text-foreground mb-2">Telepon</h3>
-                                <p className="text-muted-foreground">+62 812 3456 7890</p>
+                                <p className="text-muted-foreground">{contactPhone}</p>
                             </div>
                             <div className="text-center">
                                 <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
                                     <Mail className="w-6 h-6 text-primary" />
                                 </div>
                                 <h3 className="font-semibold text-foreground mb-2">Email</h3>
-                                <p className="text-muted-foreground">info@akuatikazura.com</p>
+                                <p className="text-muted-foreground">{contactEmail}</p>
                             </div>
                             <div className="text-center">
                                 <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
                                     <MapPin className="w-6 h-6 text-primary" />
                                 </div>
                                 <h3 className="font-semibold text-foreground mb-2">Lokasi</h3>
-                                <p className="text-muted-foreground">Jl. Renang No. 123, Jakarta</p>
+                                <p className="text-muted-foreground">{contactAddress}</p>
                             </div>
                         </div>
                     </div>
@@ -377,4 +428,3 @@ export default function Welcome({
         </>
     );
 }
-

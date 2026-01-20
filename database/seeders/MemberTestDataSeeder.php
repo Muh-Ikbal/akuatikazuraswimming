@@ -10,6 +10,7 @@ use App\Models\Course;
 use App\Models\ClassSession;
 use App\Models\EnrolmentCourse;
 use App\Models\Schedule;
+use App\Models\Attendance;
 use Carbon\Carbon;
 
 class MemberTestDataSeeder extends Seeder
@@ -134,8 +135,34 @@ class MemberTestDataSeeder extends Seeder
         }
         
         $this->command->info('✓ Schedules created: ' . $schedulesCreated . ' meetings');
+        
+        // 7. Create Attendance records for past schedules
+        $pastSchedules = Schedule::where('class_session_id', $classSession->id)
+            ->where('status', 'completed')
+            ->get();
+        
+        $attendanceCreated = 0;
+        foreach ($pastSchedules as $index => $schedule) {
+            // Create attendance for 70% of completed schedules (simulate realistic attendance)
+            // Randomly skip some to show "absent" status
+            if ($index % 3 !== 0) { // Skip every 3rd schedule
+                $scanTime = Carbon::parse($schedule->date . ' ' . $schedule->time)
+                    ->addMinutes(rand(-10, 15)); // Scan time around schedule time
+                
+                Attendance::firstOrCreate(
+                    [
+                        'user_id' => $memberUser->id,
+                        'class_session_id' => $classSession->id,
+                        'scan_time' => $scanTime,
+                    ]
+                );
+                $attendanceCreated++;
+            }
+        }
+        
+        $this->command->info('✓ Attendance records created: ' . $attendanceCreated . ' out of ' . $pastSchedules->count() . ' completed schedules');
         $this->command->info('');
         $this->command->info('🎉 Test data seeding completed!');
-        $this->command->info('You can now login as member@azura.id and see the schedules.');
+        $this->command->info('You can now login as member@azura.id and see the schedules and attendance history.');
     }
 }

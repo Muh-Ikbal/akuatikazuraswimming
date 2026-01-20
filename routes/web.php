@@ -20,6 +20,20 @@ use App\Models\Coach;
 use App\Models\Member;
 
 Route::get('/', function () {
+    // Get hero and contact settings
+    $settings = \App\Models\SiteSetting::getMany([
+        'hero_title',
+        'hero_subtitle',
+        'hero_image',
+        'satisfaction_rate',
+        'contact_phone',
+        'contact_email',
+        'contact_address',
+    ]);
+
+    // Get active features
+    $features = \App\Models\Feature::active()->ordered()->get();
+
     // Get active courses
     $courses = Course::where('state', 'active')->get();
     
@@ -28,12 +42,15 @@ Route::get('/', function () {
     
     // Get stats
     $stats = [
-        'memberCount' => Member::count(),
-        'coachCount' => Coach::count(),
+        'members_count' => Member::count(),
+        'coaches_count' => Coach::count(),
+        'satisfaction_rate' => $settings['satisfaction_rate'] ?? '98',
     ];
     
     return Inertia::render('welcome', [
         'canRegister' => Features::enabled(Features::registration()),
+        'settings' => $settings,
+        'features' => $features,
         'courses' => $courses,
         'coaches' => $coaches,
         'stats' => $stats,
@@ -135,6 +152,17 @@ Route::middleware(['auth', 'verified','role:admin'])->group(function () {
     Route::put('management-jadwal/{id}',[ScheduleController::class,'update'])->name('management-jadwal.update');
     Route::delete('management-jadwal/{id}',[ScheduleController::class,'destroy'])->name('management-jadwal.destroy');
 
+    // CMS Routes
+    Route::get('cms/hero', [\App\Http\Controllers\Admin\CmsHeroController::class, 'index'])->name('cms.hero');
+    Route::put('cms/hero', [\App\Http\Controllers\Admin\CmsHeroController::class, 'update'])->name('cms.hero.update');
+
+    Route::get('cms/keunggulan', [\App\Http\Controllers\Admin\CmsFeatureController::class, 'index'])->name('cms.keunggulan');
+    Route::post('cms/keunggulan', [\App\Http\Controllers\Admin\CmsFeatureController::class, 'store'])->name('cms.keunggulan.store');
+    Route::put('cms/keunggulan/{id}', [\App\Http\Controllers\Admin\CmsFeatureController::class, 'update'])->name('cms.keunggulan.update');
+    Route::delete('cms/keunggulan/{id}', [\App\Http\Controllers\Admin\CmsFeatureController::class, 'destroy'])->name('cms.keunggulan.destroy');
+
+    Route::get('cms/kontak', [\App\Http\Controllers\Admin\CmsContactController::class, 'index'])->name('cms.kontak');
+    Route::put('cms/kontak', [\App\Http\Controllers\Admin\CmsContactController::class, 'update'])->name('cms.kontak.update');
 
 });
 
