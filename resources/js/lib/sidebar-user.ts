@@ -27,11 +27,7 @@ const adminNavItems: NavGroup[] = [
                 href: '/management-enrolment',
                 icon: UserCheck,
             },
-            {
-                title: 'Coach',
-                href: '/management-coach',
-                icon: UserCog,
-            },
+
             {
                 title: 'Jadwal',
                 href: '/management-jadwal',
@@ -58,6 +54,11 @@ const adminNavItems: NavGroup[] = [
                 icon: School,
             },
             {
+                title: 'Coach',
+                href: '/management-coach',
+                icon: UserCog,
+            },
+            {
                 title: 'Kategori Pengeluaran',
                 href: '/kategori-pengeluaran',
                 icon: HandCoins,
@@ -76,11 +77,7 @@ const adminNavItems: NavGroup[] = [
                 href: '/management-pengeluaran',
                 icon: Banknote,
             },
-            {
-                title: 'Pemasukan',
-                href: '/management-pemasukan',
-                icon: PiggyBank,
-            },
+
             {
                 title: 'Laporan Keuangan',
                 href: '/laporan-keuangan',

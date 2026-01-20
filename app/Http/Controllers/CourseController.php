@@ -23,7 +23,7 @@ class CourseController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'image' => 'required|image|mimes:jpg,jpeg,png|max:2048',
             'total_meeting' => 'required|integer|min:1',
             'weekly_meeting_count' => 'required|integer|min:1|max:7',
             'price' => 'required|numeric|min:0',
