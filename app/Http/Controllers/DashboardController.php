@@ -22,7 +22,7 @@ class DashboardController extends Controller
             $members = Member::count();
             $coaches = Coach::count();
             $courses = Course::count();
-            $payments = Payment::where('state', 'paid')->get();
+            $payments = Payment::where('state', ['paid','partial_paid'])->get();
             $class_sessions = ClassSession::whereHas('schedule',function($query){
                 $query->whereDate('date',today()->toDateString())->orderBy('time','asc');
             })->with([
@@ -30,12 +30,36 @@ class DashboardController extends Controller
                     $query->whereDate('date',today()->toDateString())->get();
                 }
             ])->withCount('enrolment')->get();
+            
+            // Revenue per course
+            $revenuePerCourse = Course::withSum(['class_sessions as total_revenue' => function($query) {
+                $query->join('enrolment_courses', 'class_sessions.id', '=', 'enrolment_courses.class_session_id')
+                    ->join('payments', 'enrolment_courses.id', '=', 'payments.enrolment_course_id')
+                    ->whereIn('payments.state', ['paid', 'partial_paid']);
+            }], 'payments.amount_paid')
+            ->withCount(['class_sessions as total_students' => function($query) {
+                $query->join('enrolment_courses', 'class_sessions.id', '=', 'enrolment_courses.class_session_id');
+            }])
+            ->get()
+            ->map(function($course) {
+                return [
+                    'id' => $course->id,
+                    'title' => $course->title,
+                    'total_revenue' => (float) ($course->total_revenue ?? 0),
+                    'total_students' => (int) ($course->total_students ?? 0),
+                ];
+            })
+            ->sortByDesc('total_revenue')
+            ->values()
+            ->take(5);
+            
             return Inertia::render('admin/dashboard',[
                 'members'=>$members,
                 'coaches'=>$coaches,
                 'courses'=>$courses,
                 'payments'=>$payments,
-                'class_sessions'=>$class_sessions
+                'class_sessions'=>$class_sessions,
+                'revenue_per_course'=>$revenuePerCourse
             ]);
         } else if($user->getRoleNames()->first() == 'member') {
             return Inertia::render('member/dashboard');

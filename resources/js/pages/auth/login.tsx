@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import AuthLayout from '@/layouts/auth-layout';
-import { register } from '@/routes';
+// import { register } from '@/routes';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 import { Form, Head } from '@inertiajs/react';
@@ -123,7 +123,7 @@ export default function Login({
                             </Button>
                         </div>
 
-                        {canRegister && (
+                        {/* {canRegister && (
                             <div className="text-center text-sm text-muted-foreground pt-2">
                                 Belum punya akun?{' '}
                                 <TextLink
@@ -134,7 +134,7 @@ export default function Login({
                                     Daftar sekarang
                                 </TextLink>
                             </div>
-                        )}
+                        )} */}
                     </>
                 )}
             </Form>

@@ -135,6 +135,9 @@ Route::middleware(['auth', 'verified','role:admin'])->group(function () {
     Route::put('management-jadwal/{id}',[ScheduleController::class,'update'])->name('management-jadwal.update');
     Route::delete('management-jadwal/{id}',[ScheduleController::class,'destroy'])->name('management-jadwal.destroy');
 
+    // Laporan Keuangan
+    Route::get('laporan-keuangan',[\App\Http\Controllers\ReportController::class,'financial'])->name('laporan-keuangan');
+
 
 });
 

@@ -13,9 +13,9 @@ export function NavMain({ group = [] }: { group: NavGroup[] }) {
     const page = usePage();
     return (
         <SidebarGroup className="px-2 py-0">
-            {group.map( navGroup =>(
-                <>
-                    <SidebarGroupLabel>{navGroup.title}</SidebarGroupLabel>
+            {group.map(navGroup => (
+                <div key={navGroup.title}>
+                    <SidebarGroupLabel className='font-bold'>{navGroup.title}</SidebarGroupLabel>
                     <SidebarMenu>
                         {navGroup.items.map((item) => (
                             <SidebarMenuItem key={item.title} className=''>
@@ -27,7 +27,7 @@ export function NavMain({ group = [] }: { group: NavGroup[] }) {
                                     tooltip={{ children: item.title }}
                                     className='h-12'
                                 >
-                                        <Link className=' font-bold' href={item.href} prefetch>
+                                    <Link className=' font-bold' href={item.href} prefetch>
                                         {item.icon && <item.icon />}
                                         <span>{item.title}</span>
                                     </Link>
@@ -35,10 +35,8 @@ export function NavMain({ group = [] }: { group: NavGroup[] }) {
                             </SidebarMenuItem>
                         ))}
                     </SidebarMenu>
-                </>
-            )
-
-            )}
+                </div>
+            ))}
 
         </SidebarGroup>
     );

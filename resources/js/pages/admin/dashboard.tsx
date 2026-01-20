@@ -7,11 +7,11 @@ import {
     Users,
     BookOpen,
     Calendar,
-    CreditCard,
     TrendingUp,
     TrendingDown,
     UserCheck,
-    Wallet
+    Wallet,
+    DollarSign
 } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -24,6 +24,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 interface payments {
     id: number;
     amount: string;
+    amount_paid: string;
     created_at: string;
 }
 
@@ -38,9 +39,13 @@ interface classSession {
     title: string;
     enrolment_count: number;
     schedule: schedule[];
-    // loca
+}
 
-
+interface RevenuePerCourse {
+    id: number;
+    title: string;
+    total_revenue: number;
+    total_students: number;
 }
 
 export default function Dashboard(props: {
@@ -48,11 +53,12 @@ export default function Dashboard(props: {
     coaches: number,
     courses: number,
     payments: payments[],
-    class_sessions: classSession[]
+    class_sessions: classSession[],
+    revenue_per_course: RevenuePerCourse[]
 }) {
 
     const class_sessions = props.class_sessions;
-    console.log(class_sessions);
+    const revenuePerCourse = props.revenue_per_course || [];
     const now = new Date();
     const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
@@ -64,7 +70,7 @@ export default function Dashboard(props: {
     const totalPaymentsThisMonth = props.payments.filter((payment) => {
         const paymentDate = new Date(payment.created_at);
         return paymentDate >= firstDayOfMonth && paymentDate <= lastDayOfMonth;
-    }).reduce((total, payment) => total + parseFloat(payment.amount), 0);
+    }).reduce((total, payment) => total + parseFloat(payment.amount_paid), 0);
     const totalPaymentsLastMonth = props.payments.filter((payment) => {
         const paymentDate = new Date(payment.created_at);
         return paymentDate >= firstDayOfLastMonth && paymentDate <= lastDayOfLastMonth;
@@ -76,25 +82,13 @@ export default function Dashboard(props: {
         pesertaBaru: 12,
         totalCoach: props.coaches,
         totalCourse: props.courses,
-        jadwalHariIni: 6,
+        jadwalHariIni: class_sessions.length,
         pendapatanBulanIni: totalPaymentsThisMonth,
         pendapatanBulanLalu: totalPaymentsLastMonth,
     };
 
-    const recentActivities = [
-        { type: 'enrollment', name: 'Siti Nurhaliza', action: 'mendaftar course Basic Swimming', time: '2 jam lalu' },
-        { type: 'payment', name: 'Ahmad Wijaya', action: 'melakukan pembayaran Rp 750.000', time: '3 jam lalu' },
-        { type: 'schedule', name: 'Coach Budi', action: 'menyelesaikan sesi kelas Basic 1A', time: '5 jam lalu' },
-        { type: 'enrollment', name: 'Dewi Lestari', action: 'mendaftar course Intermediate', time: '1 hari lalu' },
-    ];
-
-    const upcomingSchedules = [
-        { kelas: 'Kelas Basic 1A', waktu: '08:00 - 09:00', lokasi: 'Kolam Utama', peserta: 6 },
-        { kelas: 'Kelas Basic 1B', waktu: '09:30 - 10:30', lokasi: 'Kolam Utama', peserta: 8 },
-        { kelas: 'Kelas Intermediate 2A', waktu: '14:00 - 15:00', lokasi: 'Kolam Utama', peserta: 5 },
-    ];
-
-    // console.log(stats);
+    // Calculate max revenue for progress bar
+    const maxRevenue = Math.max(...revenuePerCourse.map(c => c.total_revenue), 1);
 
     const pendapatanTrend = stats.pendapatanBulanLalu === 0 ? (stats.pendapatanBulanIni > 0 ? 100 : 0) : ((stats.pendapatanBulanIni - stats.pendapatanBulanLalu) / stats.pendapatanBulanLalu) * 100;
 
@@ -204,53 +198,72 @@ export default function Dashboard(props: {
                             <span className="text-sm text-muted-foreground">{stats.jadwalHariIni} sesi</span>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            {class_sessions.map((record, index) => (
-                                <div
-                                    key={index}
-                                    className="flex items-center justify-between p-4 rounded-lg bg-primary/5 border border-primary/10"
-                                >
-                                    <div>
-                                        <div className="font-medium text-foreground">{record.title}</div>
-                                        <div className="text-sm text-muted-foreground">
-                                            {record.schedule[0].time} • {record.schedule[0].location}
+                            {class_sessions.length > 0 ? (
+                                class_sessions.map((record, index) => (
+                                    <div
+                                        key={index}
+                                        className="flex items-center justify-between p-4 rounded-lg bg-primary/5 border border-primary/10"
+                                    >
+                                        <div>
+                                            <div className="font-medium text-foreground">{record.title}</div>
+                                            <div className="text-sm text-muted-foreground">
+                                                {record.schedule[0]?.time} • {record.schedule[0]?.location}
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2 text-sm">
+                                            <Users className="h-4 w-4 text-primary" />
+                                            <span className="font-medium">{record.enrolment_count}</span>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-2 text-sm">
-                                        <Users className="h-4 w-4 text-primary" />
-                                        <span className="font-medium">{record.enrolment_count}</span>
-                                    </div>
+                                ))
+                            ) : (
+                                <div className="text-center py-8 text-muted-foreground">
+                                    <Calendar className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                                    <p>Tidak ada jadwal hari ini</p>
                                 </div>
-                            ))}
+                            )}
                         </CardContent>
                     </Card>
 
-                    {/* Aktivitas Terbaru */}
+                    {/* Pendapatan per Course */}
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
-                                <CreditCard className="h-5 w-5 text-primary" />
-                                Aktivitas Terbaru
+                                <DollarSign className="h-5 w-5 text-green-600" />
+                                Pendapatan per Course
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            {recentActivities.map((activity, index) => (
-                                <div
-                                    key={index}
-                                    className="flex items-start gap-4 py-3 border-b border-border last:border-0"
-                                >
-                                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10">
-                                        {activity.type === 'enrollment' && <Users className="h-4 w-4 text-primary" />}
-                                        {activity.type === 'payment' && <CreditCard className="h-4 w-4 text-green-600" />}
-                                        {activity.type === 'schedule' && <Calendar className="h-4 w-4 text-blue-600" />}
+                            {revenuePerCourse.length > 0 ? (
+                                revenuePerCourse.map((course) => (
+                                    <div key={course.id} className="space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex-1 min-w-0">
+                                                <p className="font-medium truncate">{course.title}</p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    {course.total_students} peserta
+                                                </p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="font-bold text-green-600">
+                                                    {formatCurrency(course.total_revenue)}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="w-full bg-muted rounded-full h-2">
+                                            <div
+                                                className="bg-green-500 h-2 rounded-full transition-all"
+                                                style={{ width: `${(course.total_revenue / maxRevenue) * 100}%` }}
+                                            />
+                                        </div>
                                     </div>
-                                    <div className="flex-1">
-                                        <p className="text-sm">
-                                            <span className="font-medium">{activity.name}</span> {activity.action}
-                                        </p>
-                                        <p className="text-xs text-muted-foreground">{activity.time}</p>
-                                    </div>
+                                ))
+                            ) : (
+                                <div className="text-center py-8 text-muted-foreground">
+                                    <DollarSign className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                                    <p>Belum ada data pendapatan</p>
                                 </div>
-                            ))}
+                            )}
                         </CardContent>
                     </Card>
                 </div>
@@ -258,3 +271,4 @@ export default function Dashboard(props: {
         </AppLayout>
     );
 }
+
