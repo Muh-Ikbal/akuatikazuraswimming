@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
@@ -39,6 +40,7 @@ import {
 } from "@/components/ui/pagination"
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import AlertDelete from "@/components/alert-delete";
+import { AlerInformation } from "@/components/alert-information";
 
 interface Course {
     id: number;
@@ -62,6 +64,14 @@ export default function CourseManagement(props: { courses: any }) {
     const [searchQuery, setSearchQuery] = useState("");
     const [filterStatus, setFilterStatus] = useState<string>("all");
     const [viewMode, setViewMode] = useState<"card" | "table">("card");
+    const { flash } = usePage().props as any;
+    useEffect(() => {
+        if (flash.success || flash.error) {
+            setTimeout(() => {
+                router.reload();
+            }, 5000);
+        }
+    }, [flash]);
 
     const courses: Course[] = props.courses.data;
     const filteredCourses = courses.filter((c) => {
@@ -89,8 +99,10 @@ export default function CourseManagement(props: { courses: any }) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Course Management" />
             <div className="p-6 space-y-6">
+                <AlerInformation flash={flash} />
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+
                     <div>
                         <h1 className="text-2xl font-bold text-foreground">
                             Manajemen Course

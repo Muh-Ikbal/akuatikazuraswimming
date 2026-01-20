@@ -7,7 +7,9 @@ use App\Models\EnrolmentCourse;
 use App\Models\Member;
 use App\Models\ClassSession;
 use App\Models\Course;
+use App\Models\Payment;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\DB;
 
 class EnrolmentCourseController extends Controller
 {
@@ -34,7 +36,7 @@ class EnrolmentCourseController extends Controller
             'courses' => $courses
         ]);
     }
-
+ 
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -49,8 +51,19 @@ class EnrolmentCourseController extends Controller
         if($enromentAlready){
             return redirect('/management-enrolment')->with('error', 'Member sudah memiliki enrolment yang sedang berlangsung');
         }
+         DB::transaction(function () use ($validated) {
+            $enrolmentCourse = EnrolmentCourse::create($validated);
 
-        EnrolmentCourse::create($validated);
+            $course = Course::findOrFail($validated['course_id']);
+            $enrolmentCourseId = $enrolmentCourse->id;
+            Payment::create([
+                'enrolment_course_id' => $enrolmentCourseId,
+                'amount' => $course->price,
+                'state' => 'pending',
+            ]);
+        });
+        
+        
 
         return redirect('/management-enrolment')->with('success', 'Enrolment berhasil ditambahkan');
     }
@@ -91,6 +104,13 @@ class EnrolmentCourseController extends Controller
             'state' => 'required|in:on_progress,completed,cancelled',
         ]);
 
+        $course = Course::findOrFail($validated['course_id']);
+
+        $payment = Payment::where('enrolment_course_id', $id)->first();
+        $payment->update([
+            'amount' => $course->price,
+        ]);
+
         $enrolment->update($validated);
 
         return redirect('/management-enrolment')->with('success', 'Enrolment berhasil diupdate');
@@ -98,7 +118,12 @@ class EnrolmentCourseController extends Controller
 
     public function destroy($id)
     {
+
         $enrolment = EnrolmentCourse::findOrFail($id);
+        $payment = Payment::where('enrolment_course_id', $id)->first();
+        if($payment){
+            return redirect('/management-enrolment')->with('error', 'Enrolment tidak dapat dihapus karena ada pembayaran yang terkait');
+        }
         $enrolment->delete();
 
         return redirect('/management-enrolment')->with('success', 'Enrolment berhasil dihapus');

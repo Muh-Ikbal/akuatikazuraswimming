@@ -1,4 +1,4 @@
-import { LayoutGrid, UserCheck, UserCog, Users, BookOpen, Calendar, School, Banknote, Contact, HandCoins, PiggyBank, Landmark, QrCode, GraduationCap, Home, Star, Phone } from 'lucide-react';
+import { LayoutGrid, UserCheck, UserCog, Users, BookOpen, Calendar, School, Banknote, Contact, HandCoins, PiggyBank, Landmark, QrCode, GraduationCap, Home, Star, Phone, ClipboardCheck, ClipboardList } from 'lucide-react';
 import { type NavGroup } from '@/types';
 import { dashboard } from '@/routes';
 
@@ -23,7 +23,7 @@ const adminNavItems: NavGroup[] = [
                 icon: Users,
             },
             {
-                title: 'Enrolment',
+                title: 'Pendaftaran',
                 href: '/management-enrolment',
                 icon: UserCheck,
             },
@@ -37,6 +37,21 @@ const adminNavItems: NavGroup[] = [
                 title: 'Pembayaran',
                 href: '/management-pembayaran',
                 icon: PiggyBank,
+            },
+        ]
+    },
+    {
+        title: 'KEHADIRAN',
+        items: [
+            {
+                title: 'Kehadiran Member',
+                href: '/kehadiran-member',
+                icon: ClipboardCheck,
+            },
+            {
+                title: 'Kehadiran Coach',
+                href: '/kehadiran-coach',
+                icon: ClipboardList,
             },
         ]
     },

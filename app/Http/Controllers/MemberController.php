@@ -160,6 +160,11 @@ class MemberController extends Controller
     public function destroy($id)
     {
         $member = Member::findOrFail($id);
+
+        $enrolments = EnrolmentCourse::where('member_id', $id)->get();
+        if($enrolments->count() > 0){
+            return redirect('/management-member')->with('error', 'Member masih memiliki enrolment');
+        }
         $member->delete();
 
         return redirect('/management-member')->with('success', 'Member berhasil dihapus');

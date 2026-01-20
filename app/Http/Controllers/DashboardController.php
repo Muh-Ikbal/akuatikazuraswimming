@@ -81,8 +81,7 @@ class DashboardController extends Controller
                 $stats['total_courses'] = $enrolments->count();
                 
                 // 2. Total Attendance (Count 'present' status in users attendance or verify manually if needed, 
-                // but simpler approach: count completed schedules user attended)
-                // Using simple approach similar to Controller logic:
+               
                 $userAttendances = \App\Models\Attendance::where('user_id', $user->id)->count();
                 $stats['total_attendance'] = $userAttendances;
 

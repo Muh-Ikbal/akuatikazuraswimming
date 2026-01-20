@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { usePage } from "@inertiajs/react";
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
@@ -36,18 +37,8 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from "@/components/ui/pagination";
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import AlertDelete from "@/components/alert-delete";
+import { AlerInformation } from "@/components/alert-information";
 
 interface Member {
     id: number;
@@ -77,6 +68,14 @@ const breadcrumbs: BreadcrumbItem[] = [
 export default function MemberManagement(props: { members: any }) {
     const [searchQuery, setSearchQuery] = useState("");
     const [filterGender, setFilterGender] = useState<string>("all");
+    const { flash } = usePage().props as any;
+    useEffect(() => {
+        if (flash.success || flash.error) {
+            setTimeout(() => {
+                router.reload();
+            }, 5000);
+        }
+    }, [flash]);
 
     const members: Member[] = props.members.data;
 
@@ -123,6 +122,7 @@ export default function MemberManagement(props: { members: any }) {
             <Head title="Member Management" />
             <div className="p-6 space-y-6">
                 {/* Header */}
+                <AlerInformation flash={flash} />
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
                         <h1 className="text-2xl font-bold text-foreground">

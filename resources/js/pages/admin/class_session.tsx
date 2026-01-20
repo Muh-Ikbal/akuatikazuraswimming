@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
@@ -34,6 +35,7 @@ import {
     PaginationPrevious,
 } from "@/components/ui/pagination";
 import AlertDelete from "@/components/alert-delete";
+import { AlerInformation } from "@/components/alert-information";
 
 interface ClassSession {
     id: number;
@@ -70,6 +72,14 @@ export default function CoachManagement(props: { class_session: any, total_stude
 
     const class_sessions: ClassSession[] = props.class_session.data;
     const total_student: TotalStudent[] = props.total_student;
+    const { flash } = usePage().props as any;
+    useEffect(() => {
+        if (flash.success || flash.error) {
+            setTimeout(() => {
+                router.reload();
+            }, 5000);
+        }
+    }, [flash]);
 
     console.log(total_student);
 
@@ -98,6 +108,7 @@ export default function CoachManagement(props: { class_session: any, total_stude
             <Head title="Coach Management" />
             <div className="p-6 space-y-6">
                 {/* Header */}
+                <AlerInformation flash={flash} />
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
                         <h1 className="text-2xl font-bold text-foreground">

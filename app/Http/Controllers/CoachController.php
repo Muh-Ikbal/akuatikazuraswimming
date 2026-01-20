@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules\Password;
+use App\Models\ClassSession;
 
 class CoachController extends Controller
 {
@@ -218,11 +219,27 @@ class CoachController extends Controller
     public function destroy($id)
     {
         $coach = Coach::findOrFail($id);
+
+        $class_coaches = ClassSession::where('coach_id', $coach->id)->get();
+        if($class_coaches->count() > 0){
+            return redirect('/management-coach')->with('error', 'Coach gagal dihapus, masih ada data yang terkait dengan coach ini');
+        }
         
         // Delete image
         if ($coach->image) {
             Storage::disk('public')->delete($coach->image);
         }
+
+        $certificates = CertificateCoach::where('coach_id', $coach->id)->get();
+        foreach ($certificates as $certificate) {
+            if ($certificate->image) {
+                Storage::disk('public')->delete($certificate->image);
+            }
+            $certificate->delete();
+        }
+
+        $coach->certificate_coaches()->delete();
+
         
         $coach->delete();
 

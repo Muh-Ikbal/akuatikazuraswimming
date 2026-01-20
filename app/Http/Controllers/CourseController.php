@@ -78,11 +78,17 @@ class CourseController extends Controller
     }
 
     public function destroy($id){
-        $course = Course::findOrFail($id);
-        if($course->image){
-            Storage::disk('public')->delete($course->image);
+
+        try {
+            $course = Course::findOrFail($id);
+            if($course->image){
+                Storage::disk('public')->delete($course->image);
+            }
+            $course->delete();
+        } catch (\Throwable $th) {
+            return redirect('/management-course')->with('error', 'Course gagal dihapus, masih ada data yang terkait dengan course ini');
         }
-        $course->delete();
+        
         return redirect('/management-course')->with('success', 'Course berhasil dihapus');
     }
 }

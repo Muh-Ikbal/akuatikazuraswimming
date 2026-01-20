@@ -347,13 +347,13 @@ export default function CreateMember({ member, users = [], courses = [], classSe
                                     </CardContent>
                                 </Card>
 
-                                <Card>
-                                    <CardHeader className="p-4 sm:p-6">
+                                <Card className="mt-6">
+                                    <CardHeader className="p-4 sm:p-6 ">
                                         <div className="flex items-center justify-between">
                                             <div>
                                                 <CardTitle className="text-base sm:text-lg flex items-center gap-2">
                                                     <Book className="w-5 h-5" />
-                                                    Enroll Course
+                                                    Daftar Course
                                                 </CardTitle>
                                                 <CardDescription className="mt-1">
                                                     Pilih course yang akan diikuti oleh member ini

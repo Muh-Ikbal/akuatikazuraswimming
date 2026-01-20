@@ -1,6 +1,6 @@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -14,6 +14,7 @@ import {
     XCircle,
     Banknote
 } from 'lucide-react';
+import AlertDelete from '@/components/alert-delete';
 
 interface Course {
     id: string;
@@ -52,6 +53,10 @@ export default function ShowCourse({ course }: ShowCourseProps) {
         }).format(value);
     };
 
+    const handleDelete = () => {
+        router.delete(`/management-course/delete/${course.id}`);
+    }
+
     const formatDate = (dateString?: string) => {
         if (!dateString) return '-';
         return new Date(dateString).toLocaleDateString('id-ID', {
@@ -83,16 +88,14 @@ export default function ShowCourse({ course }: ShowCourseProps) {
                         </div>
                     </div>
                     <div className="flex gap-2 sm:gap-3 ml-12 sm:ml-0">
-                        <Link href={`/management-course/${course.id}/edit`}>
+                        <Link href={`/management-course/edit/${course.id}`}>
                             <Button variant="outline" className="h-10">
                                 <Edit className="w-4 h-4 mr-2" />
                                 <span className="hidden sm:inline">Edit</span>
                             </Button>
                         </Link>
-                        <Button variant="destructive" className="h-10">
-                            <Trash2 className="w-4 h-4 mr−2 sm:mr-2" />
-                            <span className="hidden sm:inline">Hapus</span>
-                        </Button>
+
+                        <AlertDelete title="Hapus Course" description='Apakah anda yakin ingin menghapus course ini?' action={handleDelete} />
                     </div>
                 </div>
 
@@ -119,8 +122,8 @@ export default function ShowCourse({ course }: ShowCourseProps) {
                                     <div className="flex items-center justify-between">
                                         <span className="text-sm text-muted-foreground">Status</span>
                                         <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${course.state === "active"
-                                                ? "bg-green-100 text-green-700"
-                                                : "bg-gray-100 text-gray-600"
+                                            ? "bg-green-100 text-green-700"
+                                            : "bg-gray-100 text-gray-600"
                                             }`}>
                                             {course.state === "active" ? (
                                                 <CheckCircle className="w-4 h-4" />

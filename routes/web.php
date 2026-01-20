@@ -167,6 +167,14 @@ Route::middleware(['auth', 'verified','role:admin'])->group(function () {
     Route::get('cms/kontak', [\App\Http\Controllers\Admin\CmsContactController::class, 'index'])->name('cms.kontak');
     Route::put('cms/kontak', [\App\Http\Controllers\Admin\CmsContactController::class, 'update'])->name('cms.kontak.update');
 
+    // Kehadiran Member
+    Route::get('kehadiran-member', [\App\Http\Controllers\Admin\AdminMemberAttendanceController::class, 'index'])->name('kehadiran-member');
+    Route::delete('kehadiran-member/{id}', [\App\Http\Controllers\Admin\AdminMemberAttendanceController::class, 'destroy'])->name('kehadiran-member.destroy');
+
+    // Kehadiran Coach
+    Route::get('kehadiran-coach', [\App\Http\Controllers\Admin\AdminCoachAttendanceController::class, 'index'])->name('kehadiran-coach');
+    Route::delete('kehadiran-coach/{id}', [\App\Http\Controllers\Admin\AdminCoachAttendanceController::class, 'destroy'])->name('kehadiran-coach.destroy');
+
 });
 
 Route::middleware(['auth', 'verified','role:member'])->group(function () {

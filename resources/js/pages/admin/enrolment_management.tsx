@@ -139,7 +139,7 @@ export default function EnrolmentManagement(props: { enrolments: any }) {
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
                         <h1 className="text-2xl font-bold text-foreground">
-                            Manajemen Enrolment
+                            Manajemen Pendaftaran
                         </h1>
                         <p className="text-muted-foreground">
                             Kelola pendaftaran siswa ke kelas

@@ -93,6 +93,14 @@ class ClassSessionController extends Controller
     public function destroy($id)
     {
         $class_session = ClassSession::findOrFail($id);
+        $enrolments = EnrolmentCourse::where('class_session_id', $id)->get();
+        if($enrolments->count() > 0) {
+            return redirect('/management-kelas')->with('error', 'Kelas tidak dapat dihapus karena ada yang terdaftar');
+        }
+        $schedule = Schedule::where('class_session_id', $id)->get();
+        if($schedule->count() > 0) {
+            return redirect('/management-kelas')->with('error', 'Kelas tidak dapat dihapus karena ada jadwal yang terkait');
+        }
         $class_session->delete();
 
         return redirect('/management-kelas')->with('success', 'Kelas berhasil dihapus');
