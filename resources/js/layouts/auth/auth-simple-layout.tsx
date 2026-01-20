@@ -19,7 +19,7 @@ export default function AuthSimpleLayout({
             <div className="w-full max-w-md">
                 {/* Logo & Branding */}
                 <div className="text-center mb-8">
-                    <Link href={home()} className="inline-block">
+                    <Link href={home().url} className="inline-block">
                         <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-white shadow-lg flex items-center justify-center p-3 hover:shadow-xl transition-shadow">
                             <img
                                 src="/logo.png"

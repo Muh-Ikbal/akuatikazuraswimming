@@ -38,7 +38,61 @@ class DashboardController extends Controller
                 'class_sessions'=>$class_sessions
             ]);
         } else if($user->getRoleNames()->first() == 'member') {
-            return Inertia::render('member/dashboard');
+            $member = $user->member;
+            
+            if (!$member) {
+               $stats = [
+                   'total_attendance' => 0,
+                   'total_courses' => 0,
+               ];
+               $upcomingSchedules = [];
+            } else {
+                // Get enrolled courses
+                $enrolments = EnrolmentCourse::where('member_id', $member->id)
+                    ->where('state', 'on_progress')
+                    ->with(['class_session.schedule', 'class_session.course'])
+                    ->get();
+                
+                // 1. Total Courses
+                $stats['total_courses'] = $enrolments->count();
+                
+                // 2. Total Attendance (Count 'present' status in users attendance or verify manually if needed, 
+                // but simpler approach: count completed schedules user attended)
+                // Using simple approach similar to Controller logic:
+                $userAttendances = \App\Models\Attendance::where('user_id', $user->id)->count();
+                $stats['total_attendance'] = $userAttendances;
+
+                // 3. Upcoming Schedules
+                $upcomingSchedules = collect();
+                foreach ($enrolments as $enrolment) {
+                    if ($enrolment->class_session) {
+                        foreach ($enrolment->class_session->schedule as $schedule) {
+                            $scheduleDate = \Carbon\Carbon::parse($schedule->date);
+                            // Only future or today schedules that are not completed
+                            if ($scheduleDate->gte(today()) && $schedule->status !== 'completed') {
+                                $upcomingSchedules->push([
+                                    'id' => $schedule->id,
+                                    'date' => $schedule->date,
+                                    'time' => $schedule->time,
+                                    'location' => $schedule->location,
+                                    'class_title' => $enrolment->class_session->title,
+                                    'course_title' => $enrolment->class_session->course->title,
+                                ]);
+                            }
+                        }
+                    }
+                }
+                // Sort by date and time
+                $upcomingSchedules = $upcomingSchedules->sortBy([
+                    ['date', 'asc'],
+                    ['time', 'asc'],
+                ])->values()->take(5); // Limit to 5
+            }
+
+            return Inertia::render('member/dashboard', [
+                'stats' => $stats,
+                'upcomingSchedules' => $upcomingSchedules
+            ]);
         } else if($user->getRoleNames()->first() == 'coach') {
             $coach = Coach::where('user_id', $user->id)->first();
             
