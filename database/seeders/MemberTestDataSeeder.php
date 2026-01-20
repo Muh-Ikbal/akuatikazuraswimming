@@ -149,6 +149,11 @@ class MemberTestDataSeeder extends Seeder
                 $scanTime = Carbon::parse($schedule->date . ' ' . $schedule->time)
                     ->addMinutes(rand(-10, 15)); // Scan time around schedule time
                 
+                // SAFETY: Ensure the scan date is exactly the same as schedule date
+                if ($scanTime->toDateString() !== $schedule->date) {
+                        $scanTime = Carbon::parse($schedule->date . ' ' . $schedule->time);
+                }
+                
                 Attendance::firstOrCreate(
                     [
                         'user_id' => $memberUser->id,
