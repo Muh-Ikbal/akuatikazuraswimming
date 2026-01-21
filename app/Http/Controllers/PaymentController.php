@@ -9,20 +9,29 @@ use Inertia\Inertia;
 
 class PaymentController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $search = $request->query('search');
         $payments = Payment::with(['enrolment_course.member', 'enrolment_course.course'])
+            ->when($search, function($query,$search){
+                $query->whereHas('enrolment_course.member',function ($query) use ($search){
+                    $query->where('name','like',"%{$search}%");
+                });
+            })
             ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString();
         
         $totalIncome = Payment::where('state', 'paid')->sum('amount_paid');
         $allAmount = Payment::whereNot('state', 'failed')->sum('amount');
         $pendingAmount = $allAmount-$totalIncome;
+        $totalPaidCount = Payment::where('state','paid')->count();
         
         return Inertia::render('admin/payment_management', [
             'payments' => $payments,
             'totalIncome' => $totalIncome,
-            'pendingAmount' => $pendingAmount
+            'pendingAmount' => $pendingAmount,
+            'totalPaidCount'=>$totalPaidCount
         ]);
     }
 

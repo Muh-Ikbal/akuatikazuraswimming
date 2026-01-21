@@ -20,6 +20,8 @@ class AdminCoachAttendanceController extends Controller
         ])
         ->whereHas('user.coach'); // Only coach attendances
 
+        // dd($query->get());
+
         // Filter by date range
         if ($request->has('start_date') && $request->start_date) {
             $query->whereDate('scan_time', '>=', $request->start_date);

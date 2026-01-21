@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { usePage } from "@inertiajs/react";
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { debounce } from "lodash";
 import {
     Plus,
     Download,
@@ -60,7 +61,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function CoachManagement(props: { coaches: any }) {
+export default function CoachManagement(props: { coaches: any, coachStats: any }) {
     const [searchQuery, setSearchQuery] = useState("");
     const [filterGender, setFilterGender] = useState<string>("all");
     const { flash } = usePage().props as any;
@@ -72,7 +73,35 @@ export default function CoachManagement(props: { coaches: any }) {
         }
     }, [flash]);
 
+    const debouncedSearch = useMemo(
+        () =>
+            debounce((query: string) => {
+                router.get('/management-coach', {
+                    search: query,
+                    page: 1
+                }, {
+                    preserveState: true,
+                    replace: true,
+                })
+            }, 500),
+        []
+    )
+    useEffect(() => {
+        debouncedSearch(searchQuery)
+
+        return () => {
+            debouncedSearch.cancel()
+        }
+    }, [searchQuery])
+
+
+    // const handleSearch = (e: React.FormEvent) => {
+    //     e.preventDefault();
+
+    // };
+
     const coaches: Coach[] = props.coaches.data;
+    const coachStats: Coach[] = props.coachStats;
 
     const filteredCoaches = coaches.filter((c) => {
         const matchesSearch =
@@ -99,8 +128,8 @@ export default function CoachManagement(props: { coaches: any }) {
     };
 
     // Stats
-    const maleCount = coaches.filter(c => c.gender === 'male').length;
-    const femaleCount = coaches.filter(c => c.gender === 'female').length;
+    const maleCount = coachStats.filter(c => c.gender === 'male').length;
+    const femaleCount = coachStats.filter(c => c.gender === 'female').length;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -136,7 +165,7 @@ export default function CoachManagement(props: { coaches: any }) {
                                 <Users className="w-6 h-6 text-primary" />
                             </div>
                             <div>
-                                <div className="text-2xl font-bold">{coaches.length}</div>
+                                <div className="text-2xl font-bold">{coachStats.length}</div>
                                 <div className="text-sm text-muted-foreground">Total Coach</div>
                             </div>
                         </CardContent>
@@ -169,15 +198,22 @@ export default function CoachManagement(props: { coaches: any }) {
                 <Card>
                     <CardContent className="p-4">
                         <div className="flex flex-col sm:flex-row gap-4">
-                            <div className="relative flex-1">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                                <Input
-                                    placeholder="Cari coach..."
-                                    className="pl-10"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                />
+                            <div className="flex w-full">
+
+                                <div className="relative flex-1">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                    <Input
+                                        id="search"
+                                        placeholder="Cari coach..."
+                                        className="pl-10"
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                    />
+
+                                </div>
+
                             </div>
+
                             <div className="flex gap-2">
                                 <select
                                     className="px-4 py-2 border border-input rounded-md bg-background text-sm"

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { debounce } from "lodash";
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
@@ -70,11 +71,34 @@ interface Props {
     payments: any;
     totalIncome: number;
     pendingAmount: number;
+    totalPaidCount: number;
 }
 
-export default function PaymentManagement({ payments, totalIncome, pendingAmount }: Props) {
+export default function PaymentManagement({ payments, totalIncome, pendingAmount, totalPaidCount }: Props) {
     const [searchQuery, setSearchQuery] = useState("");
     const [filterState, setFilterState] = useState<string>("all");
+
+    const debounceSearch = useMemo(
+        () =>
+            debounce((query: string) => {
+                router.get('/management-pembayaran', {
+                    search: query,
+                    page: 1
+                }, {
+                    preserveState: true,
+                    replace: true
+
+                })
+            }, 500),
+        []
+    )
+
+    useEffect(() => {
+        debounceSearch(searchQuery);
+        return () => {
+            debounceSearch.cancel()
+        }
+    }, [searchQuery])
 
     const paymentList: Payment[] = payments.data;
 
@@ -200,7 +224,7 @@ export default function PaymentManagement({ payments, totalIncome, pendingAmount
                                 <CheckCircle className="w-6 h-6 text-primary" />
                             </div>
                             <div>
-                                <div className="text-2xl font-bold">{paidCount}</div>
+                                <div className="text-2xl font-bold">{totalPaidCount}</div>
                                 <div className="text-sm text-muted-foreground">Lunas</div>
                             </div>
                         </CardContent>

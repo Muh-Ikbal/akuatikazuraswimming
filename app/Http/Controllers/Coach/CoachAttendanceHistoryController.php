@@ -36,6 +36,7 @@ class CoachAttendanceHistoryController extends Controller
             $classSessions = ClassSession::where('coach_id', $coach->id)
                 ->with(['course', 'schedule'])
                 ->get();
+
             
             // Map attendance dates for quick lookup
             $attendanceDates = $userAttendances->map(function ($attendance) {

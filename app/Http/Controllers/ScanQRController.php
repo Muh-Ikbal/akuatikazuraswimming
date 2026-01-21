@@ -74,7 +74,7 @@ class ScanQRController extends Controller
         
 
         // TODO: Add attendance record here
-        // if($role[0] == 'member'){
+        if($role[0] == 'member'){
             $classSessions = ClassSession::whereHas('enrolment.member', function ($query) use ($user) {
             $query->where('user_id', $user->id);
         })
@@ -88,7 +88,6 @@ class ScanQRController extends Controller
                     'attendanceToday' => $attendanceToday,
                 ]);
             }
-            // dd(today()->toDateString());
             $notHaveSchedule = Schedule::where('class_session_id', $classSessions->id)
                 ->whereDate('date', today()->toDateString())
                 ->exists();
@@ -102,7 +101,21 @@ class ScanQRController extends Controller
                 ]);
             }
 
-        // }
+        }else if($role[0] == 'coach'){
+            $classSessions = ClassSession::whereHas('coach', function ($query) use ($user) {
+            $query->where('user_id', $user->id);
+        })
+        ->first();
+
+            if(!$classSessions ){
+                return back()->with('scan_result', [
+                    'success' => false,
+                    'message' => 'Anda tidak terdaftar di kelas mana pun',
+                    'member' => $user->name,
+                    'attendanceToday' => $attendanceToday,
+                ]);
+            }
+        }
        
         
         Attendance::create([

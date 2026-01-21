@@ -15,12 +15,24 @@ use App\Models\ClassSession;
 
 class CoachController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $coaches = Coach::with('user')->paginate(10);
+
+        $search = $request->query('search');
+        $coaches = Coach::with('user')
+        ->when($search, function ($query,$search){
+            $query->whereHas('user', function ($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%");
+            });
+        })
+        ->paginate(10)
+        ->withQueryString();
+
+        $coachStats = Coach::with('user')->get();
         
         return Inertia::render('admin/coach_management', [
-            'coaches' => $coaches
+            'coaches' => $coaches,
+            'coachStats'=>$coachStats,
         ]);
     }
 
