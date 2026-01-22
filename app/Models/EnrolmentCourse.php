@@ -7,6 +7,7 @@ use App\Models\Member;
 use App\Models\ClassSession;
 use App\Models\Course;
 use App\Models\Payment;
+use App\Models\Attendance;
 
 class EnrolmentCourse extends Model
 {
@@ -32,4 +33,9 @@ class EnrolmentCourse extends Model
     public function payment(){
         return $this->hasOne(Payment::class);
     }
+
+    public function attendance(){
+        return $this->hasMany(Attendance::class);
+
+    }   
 }

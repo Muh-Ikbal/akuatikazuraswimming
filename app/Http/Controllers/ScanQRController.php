@@ -9,7 +9,7 @@ use App\Models\User;
 use App\Models\Attendance;
 use App\Models\ClassSession;
 use App\Models\Schedule;
-use App\Models\Enrolment;
+use App\Models\EnrolmentCourse;
 
 class ScanQRController extends Controller
 {
@@ -116,11 +116,17 @@ class ScanQRController extends Controller
                 ]);
             }
         }
+
+        $enrolmentCourse = EnrolmentCourse::whereHas('member', function ($query) use ($user) {
+            $query->where('user_id', $user->id);
+        })
+            ->first();
        
         
         Attendance::create([
             'user_id' => $user->id,
             'scan_time' => now(),
+            'enrolment_course_id' => $enrolmentCourse->id,
             'class_session_id' => $classSessions->id ?? null,
         ]);
 

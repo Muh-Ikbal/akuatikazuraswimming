@@ -8,6 +8,7 @@ use App\Models\Member;
 use App\Models\ClassSession;
 use App\Models\Course;
 use App\Models\Payment;
+use App\Models\Scheduler;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
 
@@ -16,8 +17,10 @@ class EnrolmentCourseController extends Controller
     public function index()
     {
         $enrolments = EnrolmentCourse::with(['member', 'class_session', 'course', 'payment'])
+            ->withCount('attendance')
             ->orderBy('created_at', 'desc')
             ->paginate(10);
+        // dd($enrolments);
         
         return Inertia::render('admin/enrolment_management', [
             'enrolments' => $enrolments

@@ -54,8 +54,10 @@ interface Enrolment {
     course?: {
         id: number;
         title: string;
+        total_meeting: number;
         price: number;
     };
+    attendance_count: number;
     created_at: string;
 }
 
@@ -242,6 +244,7 @@ export default function EnrolmentManagement(props: { enrolments: any }) {
                                         <TableHead>Member</TableHead>
                                         <TableHead className="hidden md:table-cell">Kelas</TableHead>
                                         <TableHead className="hidden lg:table-cell">Course</TableHead>
+                                        <TableHead>Pertemuan</TableHead>
                                         <TableHead>Status</TableHead>
                                         <TableHead className="text-right">Aksi</TableHead>
                                     </TableRow>
@@ -275,6 +278,9 @@ export default function EnrolmentManagement(props: { enrolments: any }) {
                                                         <BookOpen className="w-4 h-4 text-muted-foreground" />
                                                         <span>{enrolment.course?.title}</span>
                                                     </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div>{enrolment.attendance_count}/{enrolment.course?.total_meeting}</div>
                                                 </TableCell>
                                                 <TableCell>
                                                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${stateDisplay.className}`}>
