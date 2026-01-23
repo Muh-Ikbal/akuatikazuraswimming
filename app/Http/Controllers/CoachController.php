@@ -50,6 +50,8 @@ class CoachController extends Controller
             'birth_date' => 'required|date',
             'gender' => 'required|in:male,female',
             'image' => 'nullable|image|max:2048',
+            'address' => 'required|string',
+            'birthplace' => 'required|string',
             // User data
             'email' => 'required|email|unique:users,email',
             'password' => ['required', 'confirmed', Password::defaults()],
@@ -81,6 +83,8 @@ class CoachController extends Controller
                 'phone_number' => $validated['phone_number'],
                 'birth_date' => $validated['birth_date'],
                 'gender' => $validated['gender'],
+                'address' => $validated['address'],
+                'birthplace' => $validated['birthplace'],
                 'image' => $imagePath,
                 'user_id' => $user->id,
             ]);
@@ -139,6 +143,8 @@ class CoachController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'phone_number' => 'required|string|max:20',
+            'address' => 'required|string',
+            'birthplace' => 'required|string',
             'birth_date' => 'required|date',
             'gender' => 'required|in:male,female',
             'image' => 'nullable|image|max:2048',
@@ -165,6 +171,8 @@ class CoachController extends Controller
         $coach->update([
             'name' => $validated['name'],
             'phone_number' => $validated['phone_number'],
+            'address' => $validated['address'],
+            'birthplace' => $validated['birthplace'],
             'birth_date' => $validated['birth_date'],
             'gender' => $validated['gender'],
             'image' => $validated['image'] ?? $coach->image,

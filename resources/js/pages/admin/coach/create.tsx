@@ -33,6 +33,8 @@ interface Coach {
     gender: string;
     image: string | null;
     user_id: number | null;
+    address: string | null;
+    birthplace: string | null;
     user?: {
         id: number;
         email: string;
@@ -75,6 +77,8 @@ export default function CreateCoach({ coach, users = [] }: Props) {
         phone_number: coach?.phone_number || '',
         birth_date: coach?.birth_date || '',
         gender: coach?.gender || 'male',
+        address: coach?.address || '',
+        birthplace: coach?.birthplace || '',
         image: null as File | null,
         user_id: coach?.user_id || '',
         email: '',
@@ -104,6 +108,8 @@ export default function CreateCoach({ coach, users = [] }: Props) {
         formData.append('phone_number', data.phone_number);
         formData.append('birth_date', data.birth_date);
         formData.append('gender', data.gender);
+        formData.append('address', data.address);
+        formData.append('birthplace', data.birthplace);
         if (data.image) formData.append('image', data.image);
 
         if (!isEdit) {
@@ -285,6 +291,36 @@ export default function CreateCoach({ coach, users = [] }: Props) {
                                         className={`h-10 sm:h-11 ${errors.name ? 'border-destructive' : ''}`}
                                     />
                                     {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
+                                </div>
+
+                                {/* Alamat */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="address" className="text-sm">
+                                        Alamat <span className="text-destructive">*</span>
+                                    </Label>
+                                    <Input
+                                        id="address"
+                                        placeholder="Masukkan alamat"
+                                        value={data.address}
+                                        onChange={(e) => setData('address', e.target.value)}
+                                        className={`h-10 sm:h-11 ${errors.address ? 'border-destructive' : ''}`}
+                                    />
+                                    {errors.address && <p className="text-sm text-destructive">{errors.address}</p>}
+                                </div>
+
+                                {/* Birthplace */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="birthplace" className="text-sm">
+                                        Tempat Lahir <span className="text-destructive">*</span>
+                                    </Label>
+                                    <Input
+                                        id="birthplace"
+                                        placeholder="Masukkan tempat lahir"
+                                        value={data.birthplace}
+                                        onChange={(e) => setData('birthplace', e.target.value)}
+                                        className={`h-10 sm:h-11 ${errors.birthplace ? 'border-destructive' : ''}`}
+                                    />
+                                    {errors.birthplace && <p className="text-sm text-destructive">{errors.birthplace}</p>}
                                 </div>
 
                                 {/* Birth Date & Gender */}

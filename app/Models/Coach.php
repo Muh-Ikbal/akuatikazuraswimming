@@ -14,6 +14,8 @@ class Coach extends Model
         'name',
         'phone_number',
         'birth_date',
+        'address',
+        'birthplace',
         'gender',
         'image',
         'user_id',

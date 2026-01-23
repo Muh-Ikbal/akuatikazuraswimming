@@ -28,6 +28,8 @@ interface Coach {
     id: number;
     name: string;
     phone_number: string;
+    address: string;
+    birthplace: string;
     birth_date: string;
     gender: string;
     image: string | null;
@@ -200,10 +202,15 @@ export default function ShowCoach({ coach }: ShowCoachProps) {
                                         <p className="font-medium">{coach.name}</p>
                                     </div>
                                     <div>
-                                        <p className="text-sm text-muted-foreground">Tanggal Lahir</p>
+                                        <p className="text-sm text-muted-foreground">Alamat</p>
+                                        <p className="font-medium">{coach.address}</p>
+                                    </div>
+
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">Tempat/Tanggal Lahir</p>
                                         <p className="font-medium flex items-center gap-2">
                                             <Calendar className="w-4 h-4 text-muted-foreground" />
-                                            {formatDate(coach.birth_date)}
+                                            {coach.birthplace}, {formatDate(coach.birth_date)}
                                         </p>
                                     </div>
                                     <div>
