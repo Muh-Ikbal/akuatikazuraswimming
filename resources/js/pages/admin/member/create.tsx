@@ -19,6 +19,8 @@ interface Member {
     phone_number: string;
     parent_name: string;
     parent_phone_number: string;
+    birth_place: string;
+    entry_date: string;
     user_id: number | null;
     user?: {
         id: number;
@@ -76,6 +78,8 @@ export default function CreateMember({ member, users = [], courses = [], classSe
         parent_name: member?.parent_name || '',
         parent_phone_number: member?.parent_phone_number || '',
         user_id: member?.user_id || '',
+        birth_place: member?.birth_place || '',
+        entry_date: member?.entry_date || '',
         create_user: false,
         email: '',
         password: '',
@@ -145,6 +149,20 @@ export default function CreateMember({ member, users = [], courses = [], classSe
                                     />
                                     {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
                                 </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="birth_place" className="text-sm">
+                                        Tempat Lahir <span className="text-destructive">*</span>
+                                    </Label>
+                                    <Input
+                                        id="birth_place"
+                                        placeholder="Masukkan tempat lahir"
+                                        value={data.birth_place}
+                                        onChange={(e) => setData('birth_place', e.target.value)}
+                                        className={`h-10 sm:h-11 ${errors.birth_place ? 'border-destructive' : ''}`}
+                                    />
+                                    {errors.birth_place && <p className="text-sm text-destructive">{errors.birth_place}</p>}
+                                </div>
+
 
                                 {/* Birth Date & Gender */}
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -217,6 +235,23 @@ export default function CreateMember({ member, users = [], courses = [], classSe
                                         />
                                     </div>
                                     {errors.address && <p className="text-sm text-destructive">{errors.address}</p>}
+                                </div>
+                                {/* tanggal masuk */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="entry_date" className="text-sm">
+                                        Tanggal Masuk <span className="text-destructive">*</span>
+                                    </Label>
+                                    <div className="relative">
+                                        <Input
+                                            id="entry_date"
+                                            type="date"
+                                            placeholder="Masukkan tanggal masuk"
+                                            value={data.entry_date}
+                                            onChange={(e) => setData('entry_date', e.target.value)}
+                                            className={`h-10 sm:h-11 ${errors.entry_date ? 'border-destructive' : ''}`}
+                                        />
+                                    </div>
+                                    {errors.entry_date && <p className="text-sm text-destructive">{errors.entry_date}</p>}
                                 </div>
                             </CardContent>
                         </Card>

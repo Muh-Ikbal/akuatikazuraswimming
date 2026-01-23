@@ -25,6 +25,8 @@ interface Member {
     gender: string;
     address: string;
     phone_number: string;
+    birth_place: string;
+    entry_date: string;
     parent_name: string;
     parent_phone_number: string;
     user_id: number | null;
@@ -187,10 +189,10 @@ export default function ShowMember({ member }: ShowMemberProps) {
                                         <p className="font-medium">{member.name}</p>
                                     </div>
                                     <div>
-                                        <p className="text-sm text-muted-foreground">Tanggal Lahir</p>
+                                        <p className="text-sm text-muted-foreground">Tempat/Tanggal Lahir</p>
                                         <p className="font-medium flex items-center gap-2">
                                             <Calendar className="w-4 h-4 text-muted-foreground" />
-                                            {formatDate(member.birth_date)}
+                                            {member.birth_place},{formatDate(member.birth_date)}
                                         </p>
                                     </div>
                                     <div>
@@ -213,6 +215,13 @@ export default function ShowMember({ member }: ShowMemberProps) {
                                         <p className="font-medium flex items-start gap-2">
                                             <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
                                             {member.address}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">Tanggal Masuk</p>
+                                        <p className="font-medium flex items-center gap-2">
+                                            <Calendar className="w-4 h-4 text-muted-foreground" />
+                                            {formatDate(member.entry_date)}
                                         </p>
                                     </div>
                                 </div>

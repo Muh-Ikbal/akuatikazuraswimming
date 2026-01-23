@@ -12,6 +12,8 @@ class Member extends Model
         'birth_date',
         'gender',
         'address',
+        'birth_place',
+        'entry_date',
         'phone_number',
         'parent_name',
         'parent_phone_number',
