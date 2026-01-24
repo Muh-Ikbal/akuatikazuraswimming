@@ -64,6 +64,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 export default function CoachManagement(props: { coaches: any, coachStats: any }) {
     const [searchQuery, setSearchQuery] = useState("");
     const [filterGender, setFilterGender] = useState<string>("all");
+    const [page, setPage] = useState<number>(1);
     const { flash } = usePage().props as any;
     useEffect(() => {
         if (flash.success || flash.error) {
@@ -73,12 +74,16 @@ export default function CoachManagement(props: { coaches: any, coachStats: any }
         }
     }, [flash]);
 
+    useEffect(() => {
+        setPage(1);
+    }, [searchQuery]);
+
     const debouncedSearch = useMemo(
         () =>
-            debounce((query: string) => {
+            debounce((query: string, page: number) => {
                 router.get('/management-coach', {
                     search: query,
-                    page: 1
+                    page: page
                 }, {
                     preserveState: true,
                     replace: true,
@@ -87,12 +92,12 @@ export default function CoachManagement(props: { coaches: any, coachStats: any }
         []
     )
     useEffect(() => {
-        debouncedSearch(searchQuery)
+        debouncedSearch(searchQuery, page)
 
         return () => {
             debouncedSearch.cancel()
         }
-    }, [searchQuery])
+    }, [searchQuery, page])
 
 
     // const handleSearch = (e: React.FormEvent) => {
