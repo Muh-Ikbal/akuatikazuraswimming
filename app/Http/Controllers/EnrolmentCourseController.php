@@ -23,7 +23,7 @@ class EnrolmentCourseController extends Controller
             })
             ->withCount('attendance')
             ->orderBy('created_at', 'desc')
-            ->paginate(1)
+            ->paginate(10)
             ->withQueryString();
 
             $enrolmentsStats = EnrolmentCourse::select(
