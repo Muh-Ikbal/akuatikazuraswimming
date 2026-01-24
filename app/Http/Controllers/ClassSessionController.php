@@ -7,6 +7,7 @@ use App\Models\ClassSession;
 use App\Models\Course;
 use App\Models\Coach;
 use App\Models\EnrolmentCourse;
+use App\Models\Schedule;
 use Inertia\Inertia;
 
 class ClassSessionController extends Controller

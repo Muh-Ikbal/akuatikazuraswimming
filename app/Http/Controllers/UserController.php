@@ -8,6 +8,7 @@ use App\Models\User;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
@@ -15,10 +16,26 @@ class UserController extends Controller
     {
         $users = User::with('roles')->paginate(10);
         $roles = Role::all();
+
+        $userStats = DB::table('users')
+            ->leftJoin('model_has_roles', function ($join) {
+                $join->on('users.id', '=', 'model_has_roles.model_id')
+                    ->where('model_has_roles.model_type', User::class);
+            })
+            ->leftJoin('roles', 'roles.id', '=', 'model_has_roles.role_id')
+            ->selectRaw('
+                COUNT(DISTINCT users.id) as total,
+                SUM(CASE WHEN roles.name = "admin" THEN 1 ELSE 0 END) as admin_count,
+                SUM(CASE WHEN roles.name = "coach" THEN 1 ELSE 0 END) as coach_count,
+                SUM(CASE WHEN roles.name = "member" THEN 1 ELSE 0 END) as member_count,
+                SUM(CASE WHEN roles.name = "operator" THEN 1 ELSE 0 END) as operator_count
+            ')
+            ->first();
         
         return Inertia::render('admin/user_management', [
             'users' => $users,
-            'roles' => $roles
+            'roles' => $roles,
+            'stats' => $userStats
         ]);
     }
 

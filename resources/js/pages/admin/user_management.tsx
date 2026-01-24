@@ -77,7 +77,7 @@ const roleColors: Record<string, string> = {
     operator: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
 };
 
-export default function UserManagement(props: { users: any; roles: Role[] }) {
+export default function UserManagement(props: { users: any; roles: Role[], stats: any }) {
     const [searchQuery, setSearchQuery] = useState("");
     const [filterRole, setFilterRole] = useState<string>("all");
     const [viewMode, setViewMode] = useState<"card" | "table">("table");
@@ -115,10 +115,10 @@ export default function UserManagement(props: { users: any; roles: Role[] }) {
     };
 
     // Count users by role
-    const roleStats = props.roles.map(role => ({
-        name: role.name,
-        count: users.filter(u => u.roles.some(r => r.name === role.name)).length
-    }));
+    // const roleStats = props.stats.map(role => ({
+    //     name: role.name,
+    //     count: users.filter(u => u.roles.some(r => r.name === role.name)).length
+    // }));
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -148,37 +148,81 @@ export default function UserManagement(props: { users: any; roles: Role[] }) {
                 {/* Stats */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                     <Card>
-                        <CardContent className="p-4 flex items-center gap-4">
+                        <CardContent className="p-4 flex items-center gap-4 ">
                             <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
                                 <Users className="w-6 h-6 text-primary" />
                             </div>
                             <div>
-                                <div className="text-2xl font-bold">{users.length}</div>
+                                <div className="text-2xl font-bold">{props.stats.total}</div>
                                 <div className="text-sm text-muted-foreground">Total User</div>
                             </div>
                         </CardContent>
                     </Card>
-                    {roleStats.map((stat) => (
-                        <Card key={stat.name}>
-                            <CardContent className="p-4 flex items-center gap-4">
-                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${stat.name === 'admin' ? 'bg-red-100 dark:bg-red-900/30' :
-                                    stat.name === 'coach' ? 'bg-blue-100 dark:bg-blue-900/30' :
-                                        stat.name === 'member' ? 'bg-green-100 dark:bg-green-900/30' :
-                                            'bg-purple-100 dark:bg-purple-900/30'
-                                    }`}>
-                                    <Shield className={`w-6 h-6 ${stat.name === 'admin' ? 'text-red-600' :
-                                        stat.name === 'coach' ? 'text-blue-600' :
-                                            stat.name === 'member' ? 'text-green-600' :
-                                                'text-purple-600'
-                                        }`} />
-                                </div>
-                                <div>
-                                    <div className="text-2xl font-bold">{stat.count}</div>
-                                    <div className="text-sm text-muted-foreground capitalize">{stat.name}</div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
+                    <Card>
+                        <CardContent className="p-4 flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-xl bg-red-100 tex t-red-700 flex items-center justify-center">
+                                <Shield className="w-6 h-6 text-red-700 " />
+                            </div>
+                            <div>
+                                <div className="text-2xl font-bold">{props.stats.admin_count}</div>
+                                <div className="text-sm text-muted-foreground">Admin</div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardContent className="p-4 flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center">
+                                <Shield className="w-6 h-6 text-blue-700" />
+                            </div>
+                            <div>
+                                <div className="text-2xl font-bold">{props.stats.coach_count}</div>
+                                <div className="text-sm text-muted-foreground">Coach</div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardContent className="p-4 flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-xl bg-green-100 text-green-700 flex items-center justify-center">
+                                <Shield className="w-6 h-6 text-green-700" />
+                            </div>
+                            <div>
+                                <div className="text-2xl font-bold">{props.stats.member_count}</div>
+                                <div className="text-sm text-muted-foreground">Member</div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardContent className="p-4 flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
+                                <Shield className="w-6 h-6 text-purple-700" />
+                            </div>
+                            <div>
+                                <div className="text-2xl font-bold">{props.stats.operator_count}</div>
+                                <div className="text-sm text-muted-foreground">Operator</div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                    {/* {roleStats.map((stat) => ( */}
+                    {/* <Card key={stat.name}>
+                        <CardContent className="p-4 flex items-center gap-4">
+                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${stat.name === 'admin' ? 'bg-red-100 dark:bg-red-900/30' :
+                                stat.name === 'coach' ? 'bg-blue-100 dark:bg-blue-900/30' :
+                                    stat.name === 'member' ? 'bg-green-100 dark:bg-green-900/30' :
+                                        'bg-purple-100 dark:bg-purple-900/30'
+                                }`}>
+                                <Shield className={`w-6 h-6 ${stat.name === 'admin' ? 'text-red-600' :
+                                    stat.name === 'coach' ? 'text-blue-600' :
+                                        stat.name === 'member' ? 'text-green-600' :
+                                            'text-purple-600'
+                                    }`} />
+                            </div>
+                            <div>
+                                <div className="text-2xl font-bold">{stat.count}</div>
+                                <div className="text-sm text-muted-foreground capitalize">{stat.name}</div>
+                            </div>
+                        </CardContent>
+                    </Card> */}
+                    {/* ))} */}
                 </div>
 
                 {/* Search & Filter */}
