@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
@@ -27,6 +27,7 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent } from '@/components/ui/card';
+import { debounce } from 'lodash';
 import {
     Pagination,
     PaginationContent,
@@ -68,8 +69,16 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function EnrolmentManagement(props: { enrolments: any }) {
-    const [searchQuery, setSearchQuery] = useState("");
+interface props {
+    enrolments: any;
+    filters: any;
+    stats: any;
+}
+
+export default function EnrolmentManagement(props: props) {
+    const [searchQuery, setSearchQuery] = useState(props.filters?.search ?? "");
+    const [page, setPage] = useState(props.enrolments.current_page);
+    const isTyping = useRef(false);
     const [filterState, setFilterState] = useState<string>("all");
     const { flash } = usePage().props as any;
     useEffect(() => {
@@ -80,17 +89,43 @@ export default function EnrolmentManagement(props: { enrolments: any }) {
         }
     }, [flash]);
 
+    // fitur search
+    const onChangeSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchQuery(e.target.value);
+        isTyping.current = true;
+    };
 
+    useEffect(() => {
+        if (isTyping.current) {
+            setPage(1);
+            isTyping.current = false;
+        }
+    }, [searchQuery])
+
+    const debouncedSearch = useMemo(() =>
+        debounce((query: string, page: number) => {
+            router.get('/management-enrolment', {
+                search: query,
+                page: page
+            }, {
+                preserveState: true,
+                replace: true
+
+            })
+        }, 500),
+        []
+    )
+
+    useEffect(() => {
+        debouncedSearch(searchQuery, page);
+    }, [searchQuery, page])
 
     const enrolments: Enrolment[] = props.enrolments.data;
+    const stats = props.stats;
 
     const filteredEnrolments = enrolments.filter((e) => {
-        const matchesSearch =
-            e.member?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            e.course?.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            e.class_session?.title.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesState = filterState === "all" || e.state === filterState;
-        return matchesSearch && matchesState;
+        return matchesState;
     });
 
     const handleDelete = (id: number) => {
@@ -165,7 +200,7 @@ export default function EnrolmentManagement(props: { enrolments: any }) {
                                 <BookOpen className="w-6 h-6 text-primary" />
                             </div>
                             <div>
-                                <div className="text-2xl font-bold">{totalEnrolments}</div>
+                                <div className="text-2xl font-bold">{stats.total}</div>
                                 <div className="text-sm text-muted-foreground">Total Enrolment</div>
                             </div>
                         </CardContent>
@@ -176,7 +211,7 @@ export default function EnrolmentManagement(props: { enrolments: any }) {
                                 <Clock className="w-6 h-6 text-blue-600" />
                             </div>
                             <div>
-                                <div className="text-2xl font-bold">{onProgressCount}</div>
+                                <div className="text-2xl font-bold">{stats.on_progress_count}</div>
                                 <div className="text-sm text-muted-foreground">Berlangsung</div>
                             </div>
                         </CardContent>
@@ -187,7 +222,7 @@ export default function EnrolmentManagement(props: { enrolments: any }) {
                                 <CheckCircle className="w-6 h-6 text-green-600" />
                             </div>
                             <div>
-                                <div className="text-2xl font-bold">{completedCount}</div>
+                                <div className="text-2xl font-bold">{stats.completed_count}</div>
                                 <div className="text-sm text-muted-foreground">Selesai</div>
                             </div>
                         </CardContent>
@@ -198,7 +233,7 @@ export default function EnrolmentManagement(props: { enrolments: any }) {
                                 <XCircle className="w-6 h-6 text-red-600" />
                             </div>
                             <div>
-                                <div className="text-2xl font-bold">{cancelledCount}</div>
+                                <div className="text-2xl font-bold">{stats.cancelled_count}</div>
                                 <div className="text-sm text-muted-foreground">Dibatalkan</div>
                             </div>
                         </CardContent>
@@ -215,7 +250,7 @@ export default function EnrolmentManagement(props: { enrolments: any }) {
                                     placeholder="Cari member, kelas, atau course..."
                                     className="pl-10"
                                     value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onChange={onChangeSearch}
                                 />
                             </div>
                             <div className="flex gap-2">

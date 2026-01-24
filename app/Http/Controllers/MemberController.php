@@ -16,12 +16,25 @@ use Illuminate\Validation\Rules\Password;
 
 class MemberController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $members = Member::with('user')->paginate(10);
+        $search = $request->query('search');
+        $members = Member::with('user')
+            ->where('name', 'like', "%{$search}%")
+            ->paginate(10)
+            ->withQueryString();
+
+        $memberStats = Member::select(
+            DB::raw('COUNT(*) as total'),
+            DB::raw('SUM(CASE WHEN gender = "male" THEN 1 ELSE 0 END) as male_count'),
+            DB::raw('SUM(CASE WHEN gender = "female" THEN 1 ELSE 0 END) as female_count'),
+            DB::raw('SUM(CASE WHEN user_id IS NOT NULL THEN 1 ELSE 0 END) as user_count')
+        )->first();
         
         return Inertia::render('admin/member_management', [
-            'members' => $members
+            'members' => $members,
+            'filters' => $request->only(['search']),
+            'memberStats' => $memberStats,
         ]);
     }
 

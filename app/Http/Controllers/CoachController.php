@@ -33,6 +33,7 @@ class CoachController extends Controller
         return Inertia::render('admin/coach_management', [
             'coaches' => $coaches,
             'coachStats'=>$coachStats,
+            'filters' => $request->only(['search']),
         ]);
     }
 

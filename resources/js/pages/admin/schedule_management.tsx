@@ -77,7 +77,6 @@ export default function ScheduleManagement(props: { schedules: any }) {
         }
     }, [flash]);
 
-    console.log(flash);
     const [searchQuery, setSearchQuery] = useState("");
     const [filterStatus, setFilterStatus] = useState<string>("all");
 

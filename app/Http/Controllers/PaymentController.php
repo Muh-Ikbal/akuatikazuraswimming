@@ -31,7 +31,8 @@ class PaymentController extends Controller
             'payments' => $payments,
             'totalIncome' => $totalIncome,
             'pendingAmount' => $pendingAmount,
-            'totalPaidCount'=>$totalPaidCount
+            'totalPaidCount'=>$totalPaidCount,
+            'filters' => $request->only(['search']),
         ]);
     }
 

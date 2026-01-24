@@ -14,16 +14,30 @@ use Illuminate\Support\Facades\DB;
 
 class EnrolmentCourseController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $search = $request->query('search');
         $enrolments = EnrolmentCourse::with(['member', 'class_session', 'course', 'payment'])
+            ->whereHas('member', function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%');
+            })
             ->withCount('attendance')
             ->orderBy('created_at', 'desc')
-            ->paginate(10);
-        // dd($enrolments);
+            ->paginate(1)
+            ->withQueryString();
+
+            $enrolmentsStats = EnrolmentCourse::select(
+                DB::raw('COUNT(*) as total'),
+                DB::raw('SUM(CASE WHEN state = "on_progress" THEN 1 ELSE 0 END) as on_progress_count'),
+                DB::raw('SUM(CASE WHEN state = "completed" THEN 1 ELSE 0 END) as completed_count'),
+                DB::raw('SUM(CASE WHEN state = "cancelled" THEN 1 ELSE 0 END) as cancelled_count'),
+            )
+            ->first();
         
         return Inertia::render('admin/enrolment_management', [
-            'enrolments' => $enrolments
+            'enrolments' => $enrolments,
+            'filters' => $request->only('search'),
+            'stats' => $enrolmentsStats
         ]);
     }
 

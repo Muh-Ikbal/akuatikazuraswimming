@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { usePage } from "@inertiajs/react";
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
@@ -28,6 +28,7 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent } from '@/components/ui/card';
+import { debounce } from "lodash";
 import {
     Pagination,
     PaginationContent,
@@ -65,9 +66,17 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function MemberManagement(props: { members: any }) {
-    const [searchQuery, setSearchQuery] = useState("");
+interface Props {
+    members: any;
+    filters: any;
+    memberStats: any;
+}
+
+export default function MemberManagement(props: Props) {
+    const [searchQuery, setSearchQuery] = useState(props.filters?.search ?? "");
     const [filterGender, setFilterGender] = useState<string>("all");
+    const [page, setPage] = useState<number>(props.members.current_page);
+
     const { flash } = usePage().props as any;
     useEffect(() => {
         if (flash.success || flash.error) {
@@ -77,16 +86,54 @@ export default function MemberManagement(props: { members: any }) {
         }
     }, [flash]);
 
+    // fitur search
+
+    const isTyping = useRef(false);
+
+    const onSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        isTyping.current = true;
+        setSearchQuery(e.target.value);
+    };
+
+
+    useEffect(() => {
+        if (isTyping.current) {
+            setTimeout(() => {
+                setPage(1);
+                isTyping.current = false;
+            }, 500);
+        }
+    }, [searchQuery]);
+
+    const debounceSearch = useMemo(
+        () =>
+            debounce((query: string, page: number) => {
+                router.get('/management-member', {
+                    search: query,
+                    page: page
+                }, {
+                    preserveState: true,
+                    replace: true
+
+                })
+            }, 500),
+        []
+    )
+
+    useEffect(() => {
+        debounceSearch(searchQuery, page);
+        return () => {
+            debounceSearch.cancel()
+        }
+    }, [searchQuery, page])
+
     const members: Member[] = props.members.data;
 
     const filteredMembers = members.filter((m) => {
-        const matchesSearch =
-            m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            m.parent_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            m.phone_number.includes(searchQuery);
+
         const matchesGender =
             filterGender === "all" || m.gender === filterGender;
-        return matchesSearch && matchesGender;
+        return matchesGender;
     });
 
     const calculateAge = (birthDate: string) => {
@@ -112,10 +159,7 @@ export default function MemberManagement(props: { members: any }) {
         router.delete(`/management-member/${id}`);
     };
 
-    // Stats
-    const maleCount = members.filter(m => m.gender === 'male').length;
-    const femaleCount = members.filter(m => m.gender === 'female').length;
-    const withAccountCount = members.filter(m => m.user_id !== null).length;
+    const memberStats = props.memberStats;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -150,7 +194,7 @@ export default function MemberManagement(props: { members: any }) {
                                 <Users className="w-6 h-6 text-primary" />
                             </div>
                             <div>
-                                <div className="text-2xl font-bold">{members.length}</div>
+                                <div className="text-2xl font-bold">{memberStats.total}</div>
                                 <div className="text-sm text-muted-foreground">Total Member</div>
                             </div>
                         </CardContent>
@@ -161,7 +205,7 @@ export default function MemberManagement(props: { members: any }) {
                                 <User className="w-6 h-6 text-blue-600" />
                             </div>
                             <div>
-                                <div className="text-2xl font-bold">{maleCount}</div>
+                                <div className="text-2xl font-bold">{memberStats.male_count}</div>
                                 <div className="text-sm text-muted-foreground">Laki-laki</div>
                             </div>
                         </CardContent>
@@ -172,7 +216,7 @@ export default function MemberManagement(props: { members: any }) {
                                 <User className="w-6 h-6 text-pink-600" />
                             </div>
                             <div>
-                                <div className="text-2xl font-bold">{femaleCount}</div>
+                                <div className="text-2xl font-bold">{memberStats.female_count}</div>
                                 <div className="text-sm text-muted-foreground">Perempuan</div>
                             </div>
                         </CardContent>
@@ -183,7 +227,7 @@ export default function MemberManagement(props: { members: any }) {
                                 <UserCircle className="w-6 h-6 text-green-600" />
                             </div>
                             <div>
-                                <div className="text-2xl font-bold">{withAccountCount}</div>
+                                <div className="text-2xl font-bold">{memberStats.user_count}</div>
                                 <div className="text-sm text-muted-foreground">Punya Akun</div>
                             </div>
                         </CardContent>
@@ -200,7 +244,7 @@ export default function MemberManagement(props: { members: any }) {
                                     placeholder="Cari member atau orang tua..."
                                     className="pl-10"
                                     value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onChange={onSearchChange}
                                 />
                             </div>
                             <div className="flex gap-2">

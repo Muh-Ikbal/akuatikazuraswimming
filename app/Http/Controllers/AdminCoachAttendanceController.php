@@ -1,25 +1,26 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\Attendance;
-use App\Models\Member;
+use App\Models\Coach;
 use App\Models\ClassSession;
 use Carbon\Carbon;
 
-class AdminMemberAttendanceController extends Controller
+class AdminCoachAttendanceController extends Controller
 {
     public function index(Request $request)
     {
         $query = Attendance::with([
-            'user.member',
-            'classSession.course',
-            'classSession.coach'
+            'user.coach',
+            'classSession.course'
         ])
-        ->whereHas('user.member'); // Only member attendances
+        ->whereHas('user.coach'); // Only coach attendances
+
+        // dd($query->get());
 
         // Filter by date range
         if ($request->has('start_date') && $request->start_date) {
@@ -34,10 +35,10 @@ class AdminMemberAttendanceController extends Controller
             $query->where('class_session_id', $request->class_session_id);
         }
 
-        // Search by member name
+        // Search by coach name
         if ($request->has('search') && $request->search) {
             $search = $request->search;
-            $query->whereHas('user.member', function ($q) use ($search) {
+            $query->whereHas('user.coach', function ($q) use ($search) {
                 $q->where('name', 'like', '%' . $search . '%');
             });
         }
@@ -48,10 +49,9 @@ class AdminMemberAttendanceController extends Controller
         $attendanceData = $attendances->through(function ($attendance) {
             return [
                 'id' => $attendance->id,
-                'member_name' => $attendance->user->member->name ?? '-',
+                'coach_name' => $attendance->user->coach->name ?? '-',
                 'class_session' => $attendance->classSession->title ?? '-',
                 'course' => $attendance->classSession->course->title ?? '-',
-                'coach' => $attendance->classSession->coach->name ?? '-',
                 'scan_time' => Carbon::parse($attendance->scan_time)->format('d M Y H:i'),
                 'date' => Carbon::parse($attendance->scan_time)->format('Y-m-d'),
             ];
@@ -70,12 +70,12 @@ class AdminMemberAttendanceController extends Controller
         $thisMonth = Carbon::now()->startOfMonth();
 
         $stats = [
-            'total' => Attendance::whereHas('user.member')->count(),
-            'today' => Attendance::whereHas('user.member')->whereDate('scan_time', $today)->count(),
-            'this_month' => Attendance::whereHas('user.member')->where('scan_time', '>=', $thisMonth)->count(),
+            'total' => Attendance::whereHas('user.coach')->count(),
+            'today' => Attendance::whereHas('user.coach')->whereDate('scan_time', $today)->count(),
+            'this_month' => Attendance::whereHas('user.coach')->where('scan_time', '>=', $thisMonth)->count(),
         ];
 
-        return Inertia::render('admin/kehadiran/member', [
+        return Inertia::render('admin/kehadiran/coach', [
             'attendances' => $attendanceData,
             'class_sessions' => $classSessions,
             'stats' => $stats,

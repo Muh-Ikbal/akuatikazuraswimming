@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { debounce } from "lodash";
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
@@ -69,21 +69,36 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 interface Props {
     payments: any;
+    filters: any;
     totalIncome: number;
     pendingAmount: number;
     totalPaidCount: number;
 }
 
-export default function PaymentManagement({ payments, totalIncome, pendingAmount, totalPaidCount }: Props) {
-    const [searchQuery, setSearchQuery] = useState("");
+export default function PaymentManagement({ payments, filters, totalIncome, pendingAmount, totalPaidCount }: Props) {
+    const [searchQuery, setSearchQuery] = useState(filters?.search ?? "");
+    const [page, setPage] = useState(payments.current_page)
     const [filterState, setFilterState] = useState<string>("all");
+    const isTyping = useRef(false);
+
+    const onSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        isTyping.current = true;
+        setSearchQuery(e.target.value);
+    };
+
+    useEffect(() => {
+        if (isTyping.current) {
+            setPage(1);
+            isTyping.current = false;
+        }
+    }, [searchQuery]);
 
     const debounceSearch = useMemo(
         () =>
-            debounce((query: string) => {
+            debounce((query: string, page: number) => {
                 router.get('/management-pembayaran', {
                     search: query,
-                    page: 1
+                    page: page
                 }, {
                     preserveState: true,
                     replace: true
@@ -94,21 +109,18 @@ export default function PaymentManagement({ payments, totalIncome, pendingAmount
     )
 
     useEffect(() => {
-        debounceSearch(searchQuery);
+        debounceSearch(searchQuery, page);
         return () => {
             debounceSearch.cancel()
         }
-    }, [searchQuery])
+    }, [searchQuery, page])
 
     const paymentList: Payment[] = payments.data;
 
     const filteredPayments = paymentList.filter((p) => {
-        const matchesSearch =
-            p.enrolment_course?.member?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            p.enrolment_course?.course?.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            p.payment_method.toLowerCase().includes(searchQuery.toLowerCase());
+
         const matchesState = filterState === "all" || p.state === filterState;
-        return matchesSearch && matchesState;
+        return matchesState;
     });
 
     const handleDelete = (id: number) => {
@@ -242,7 +254,7 @@ export default function PaymentManagement({ payments, totalIncome, pendingAmount
                                     placeholder="Cari member, course, atau metode..."
                                     className="pl-10"
                                     value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onChange={onSearchChange}
                                 />
                             </div>
                             <div className="flex gap-2">

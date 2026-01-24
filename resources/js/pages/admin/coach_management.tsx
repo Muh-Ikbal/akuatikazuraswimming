@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { usePage } from "@inertiajs/react";
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
@@ -61,11 +61,18 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function CoachManagement(props: { coaches: any, coachStats: any }) {
-    const [searchQuery, setSearchQuery] = useState("");
+export default function CoachManagement(props: { coaches: any, coachStats: any, filters: any }) {
+    const [searchQuery, setSearchQuery] = useState(props.filters?.search ?? "");
     const [filterGender, setFilterGender] = useState<string>("all");
-    const [page, setPage] = useState<number>(1);
+    const initialPage = props.coaches.current_page;
+    const [page, setPage] = useState<number>(initialPage);
     const { flash } = usePage().props as any;
+    const isTyping = useRef(false);
+
+    const onSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        isTyping.current = true;
+        setSearchQuery(e.target.value);
+    };
     useEffect(() => {
         if (flash.success || flash.error) {
             setTimeout(() => {
@@ -74,8 +81,12 @@ export default function CoachManagement(props: { coaches: any, coachStats: any }
         }
     }, [flash]);
 
+
     useEffect(() => {
-        setPage(1);
+        if (isTyping.current) {
+            setPage(1);
+            isTyping.current = false;
+        }
     }, [searchQuery]);
 
     const debouncedSearch = useMemo(
@@ -212,7 +223,7 @@ export default function CoachManagement(props: { coaches: any, coachStats: any }
                                         placeholder="Cari coach..."
                                         className="pl-10"
                                         value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        onChange={onSearchChange}
                                     />
 
                                 </div>
