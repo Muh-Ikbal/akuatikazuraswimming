@@ -8,6 +8,7 @@ use Inertia\Inertia;
 use App\Models\Coach;
 use App\Models\ClassSession;
 use App\Models\EnrolmentCourse;
+use App\Models\Schedule;
 
 class CoachStudentController extends Controller
 {
@@ -24,8 +25,14 @@ class CoachStudentController extends Controller
         ];
         
         if ($coach) {
-            // Get all class sessions for this coach
-            $classSessions = ClassSession::where('coach_id', $coach->id)
+            // Get unique class session IDs from schedules for this coach
+            $classSessionIds = Schedule::where('coach_id', $coach->id)
+                ->pluck('class_session_id')
+                ->unique()
+                ->filter();
+            
+            // Get class sessions with enrolment
+            $classSessions = ClassSession::whereIn('id', $classSessionIds)
                 ->with(['course', 'enrolment.member'])
                 ->get();
             

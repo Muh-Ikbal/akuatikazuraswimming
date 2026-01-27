@@ -115,7 +115,7 @@ export default function Dashboard(props: {
                     {/* Total Peserta */}
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Total Peserta</CardTitle>
+                            <CardTitle className="text-sm font-medium">Total Member</CardTitle>
                             <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10">
                                 <Users className="h-5 w-5 text-primary" />
                             </div>
@@ -133,28 +133,28 @@ export default function Dashboard(props: {
                     {/* Total Coach */}
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Total Coach</CardTitle>
+                            <CardTitle className="text-sm font-medium">Total Pelatih</CardTitle>
                             <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-100">
                                 <UserCheck className="h-5 w-5 text-blue-600" />
                             </div>
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{stats.totalCoach}</div>
-                            <p className="text-xs text-muted-foreground">coach aktif</p>
+                            <p className="text-xs text-muted-foreground">Pelatih aktif</p>
                         </CardContent>
                     </Card>
 
                     {/* Total Course */}
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Total Course</CardTitle>
+                            <CardTitle className="text-sm font-medium">Total Kursus</CardTitle>
                             <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-purple-100">
                                 <BookOpen className="h-5 w-5 text-purple-600" />
                             </div>
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{stats.totalCourse}</div>
-                            <p className="text-xs text-muted-foreground">course tersedia</p>
+                            <p className="text-xs text-muted-foreground">kursus tersedia</p>
                         </CardContent>
                     </Card>
 
@@ -241,7 +241,7 @@ export default function Dashboard(props: {
                                             <div className="flex-1 min-w-0">
                                                 <p className="font-medium truncate">{course.title}</p>
                                                 <p className="text-xs text-muted-foreground">
-                                                    {course.total_students} peserta
+                                                    {course.total_students} member
                                                 </p>
                                             </div>
                                             <div className="text-right">

@@ -105,7 +105,7 @@ export default function CreatePayment({ payment, enrolments }: Props) {
                 </div>
 
                 <form onSubmit={handleSubmit}>
-                    <div className="grid gap-4 sm:gap-6 max-w-2xl">
+                    <div className="grid gap-4 sm:gap-6 ">
                         {/* Data Pembayaran */}
                         <Card>
                             <CardHeader className="p-4 sm:p-6">
@@ -118,7 +118,7 @@ export default function CreatePayment({ payment, enrolments }: Props) {
                                 {/* Enrolment */}
                                 <div className="space-y-2">
                                     <Label htmlFor="enrolment_course_id" className="text-sm">
-                                        Enrolment <span className="text-destructive">*</span>
+                                        Pendaftar <span className="text-destructive">*</span>
                                     </Label>
                                     <div className="relative">
                                         <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -128,7 +128,7 @@ export default function CreatePayment({ payment, enrolments }: Props) {
                                             value={data.enrolment_course_id}
                                             onChange={(e) => handleEnrolmentChange(parseInt(e.target.value))}
                                         >
-                                            <option value="">-- Pilih Enrolment --</option>
+                                            <option value="">-- Pilih Pendaftar --</option>
                                             {enrolments.map((enrolment) => (
                                                 <option key={enrolment.id} value={enrolment.id}>
                                                     {enrolment.member?.name} - {enrolment.course?.title} ({formatCurrency(enrolment.course?.price || 0)})

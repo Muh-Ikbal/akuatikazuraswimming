@@ -17,11 +17,18 @@ class EnrolmentCourseController extends Controller
     public function index(Request $request)
     {
         $search = $request->query('search');
+        // update status if meeting_count == course.total_meeting
+        EnrolmentCourse::where('meeting_count', '>=', function ($query) {
+            $query->select('total_meeting')
+                  ->from('courses')
+                  ->whereColumn('courses.id', 'enrolment_courses.course_id');
+        })->update(['state' => 'completed']);
+
         $enrolments = EnrolmentCourse::with(['member', 'class_session', 'course', 'payment'])
             ->whereHas('member', function ($q) use ($search) {
                 $q->where('name', 'like', '%' . $search . '%');
             })
-            ->withCount('attendance')
+            // ->withCount('attendance')
             ->orderBy('created_at', 'desc')
             ->paginate(10)
             ->withQueryString();
@@ -44,7 +51,7 @@ class EnrolmentCourseController extends Controller
     public function create()
     {
         $members = Member::all(['id', 'name']);
-        $class_sessions = ClassSession::with('course', 'coach')->get();
+        $class_sessions = ClassSession::get();
         $courses = Course::where('state', 'active')->get(['id', 'title', 'price']);
         
         return Inertia::render('admin/enrolment/create', [
@@ -60,6 +67,7 @@ class EnrolmentCourseController extends Controller
             'member_id' => 'required|exists:members,id',
             'class_session_id' => 'required|exists:class_sessions,id',
             'course_id' => 'required|exists:courses,id',
+            'meeting_count' => 'nullable|numeric',
             'state' => 'required|in:on_progress,completed,cancelled',
         ]);
 
@@ -99,7 +107,7 @@ class EnrolmentCourseController extends Controller
     {
         $enrolment = EnrolmentCourse::with(['member', 'class_session', 'course'])->findOrFail($id);
         $members = Member::all(['id', 'name']);
-        $class_sessions = ClassSession::with('course', 'coach')->get();
+        $class_sessions = ClassSession::get();
         $courses = Course::where('state', 'active')->get(['id', 'title', 'price']);
         
         return Inertia::render('admin/enrolment/create', [
@@ -117,6 +125,7 @@ class EnrolmentCourseController extends Controller
         $validated = $request->validate([
             'member_id' => 'required|exists:members,id',
             'class_session_id' => 'required|exists:class_sessions,id',
+            'meeting_count' => 'nullable|numeric',
             'course_id' => 'required|exists:courses,id',
             'state' => 'required|in:on_progress,completed,cancelled',
         ]);

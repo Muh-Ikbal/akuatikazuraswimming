@@ -37,7 +37,26 @@ export default function Dashboard() {
                             <p className="text-sm text-muted-foreground mb-4">
                                 Scan QR code member untuk verifikasi kehadiran
                             </p>
-                            <Link href="/scan-qr">
+                            <Link href="/scan-qr-member">
+                                <Button className="w-full">
+                                    <QrCode className="mr-2 h-4 w-4" />
+                                    Mulai Scan
+                                </Button>
+                            </Link>
+                        </CardContent>
+                    </Card>
+                    <Card className="hover:shadow-md transition-shadow">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Scan QR Pegawai</CardTitle>
+                            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10">
+                                <ScanLine className="h-5 w-5 text-primary" />
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-sm text-muted-foreground mb-4">
+                                Scan QR code Pegawai untuk verifikasi kehadiran
+                            </p>
+                            <Link href="/scan-qr-pegawai">
                                 <Button className="w-full">
                                     <QrCode className="mr-2 h-4 w-4" />
                                     Mulai Scan

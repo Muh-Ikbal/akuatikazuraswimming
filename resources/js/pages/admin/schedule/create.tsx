@@ -5,24 +5,26 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Save, Calendar, Clock, MapPin, School } from 'lucide-react';
+import { ArrowLeft, Save, Calendar, Clock, MapPin, School, User } from 'lucide-react';
 
 interface ClassSession {
     id: number;
     title: string;
-    course?: {
-        title: string;
-    };
-    coach?: {
-        name: string;
-    };
+
+}
+
+interface Coach {
+    id: number;
+    name: string;
 }
 
 interface Schedule {
     id: number;
     class_session_id: number;
+    coach_id: number;
     date: string;
     time: string;
+    end_time: string;
     location: string;
     status: string;
 }
@@ -30,9 +32,10 @@ interface Schedule {
 interface Props {
     schedule?: Schedule;
     class_sessions: ClassSession[];
+    coaches: Coach[];
 }
 
-export default function CreateSchedule({ schedule, class_sessions }: Props) {
+export default function CreateSchedule({ schedule, class_sessions, coaches }: Props) {
     const isEdit = !!schedule;
 
     const breadcrumbs: BreadcrumbItem[] = [
@@ -47,9 +50,11 @@ export default function CreateSchedule({ schedule, class_sessions }: Props) {
     ];
 
     const { data, setData, post, put, processing, errors } = useForm({
+        coach_id: schedule?.coach_id || '',
         class_session_id: schedule?.class_session_id || '',
         date: schedule?.date || '',
         time: schedule?.time || '',
+        end_time: schedule?.end_time || '',
         location: schedule?.location || '',
         status: schedule?.status || 'published',
     });
@@ -95,6 +100,29 @@ export default function CreateSchedule({ schedule, class_sessions }: Props) {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0 space-y-4">
+                                {/* coach */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="coach_id" className="text-sm">
+                                        Pelatih <span className="text-destructive">*</span>
+                                    </Label>
+                                    <div className="relative">
+                                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                        <select
+                                            id="coach_id"
+                                            className={`w-full h-10 sm:h-11 pl-10 pr-3 border rounded-md bg-background text-sm ${errors.coach_id ? 'border-destructive' : 'border-input'}`}
+                                            value={data.coach_id}
+                                            onChange={(e) => setData('coach_id', parseInt(e.target.value))}
+                                        >
+                                            <option value="">-- Pilih Pelatih --</option>
+                                            {coaches.map((coach) => (
+                                                <option key={coach.id} value={coach.id}>
+                                                    {coach.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    {errors.coach_id && <p className="text-sm text-destructive">{errors.coach_id}</p>}
+                                </div>
                                 {/* Kelas */}
                                 <div className="space-y-2">
                                     <Label htmlFor="class_session_id" className="text-sm">
@@ -111,7 +139,7 @@ export default function CreateSchedule({ schedule, class_sessions }: Props) {
                                             <option value="">-- Pilih Kelas --</option>
                                             {class_sessions.map((session) => (
                                                 <option key={session.id} value={session.id}>
-                                                    {session.title} - {session.course?.title}
+                                                    {session.title}
                                                 </option>
                                             ))}
                                         </select>
@@ -120,27 +148,28 @@ export default function CreateSchedule({ schedule, class_sessions }: Props) {
                                 </div>
 
                                 {/* Date & Time */}
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="date" className="text-sm">
-                                            Tanggal <span className="text-destructive">*</span>
-                                        </Label>
-                                        <div className="relative">
-                                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                                            <Input
-                                                id="date"
-                                                type="date"
-                                                value={data.date}
-                                                onChange={(e) => setData('date', e.target.value)}
-                                                className={`h-10 sm:h-11 pl-10 ${errors.date ? 'border-destructive' : ''}`}
-                                            />
-                                        </div>
-                                        {errors.date && <p className="text-sm text-destructive">{errors.date}</p>}
+                                <div className="space-y-2 col-span-2">
+                                    <Label htmlFor="date" className="text-sm">
+                                        Tanggal <span className="text-destructive">*</span>
+                                    </Label>
+                                    <div className="relative">
+                                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                        <Input
+                                            id="date"
+                                            type="date"
+                                            value={data.date}
+                                            onChange={(e) => setData('date', e.target.value)}
+                                            className={`h-10 sm:h-11 pl-10 ${errors.date ? 'border-destructive' : ''}`}
+                                        />
                                     </div>
+                                    {errors.date && <p className="text-sm text-destructive">{errors.date}</p>}
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
 
                                     <div className="space-y-2">
                                         <Label htmlFor="time" className="text-sm">
-                                            Waktu <span className="text-destructive">*</span>
+                                            Waktu Mulai <span className="text-destructive">*</span>
                                         </Label>
                                         <div className="relative">
                                             <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -153,6 +182,23 @@ export default function CreateSchedule({ schedule, class_sessions }: Props) {
                                             />
                                         </div>
                                         {errors.time && <p className="text-sm text-destructive">{errors.time}</p>}
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="end_time" className="text-sm">
+                                            Waktu Selesai
+                                        </Label>
+                                        <div className="relative">
+                                            <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                            <Input
+                                                id="end_time"
+                                                type="time"
+                                                value={data.end_time}
+                                                onChange={(e) => setData('end_time', e.target.value)}
+                                                className={`h-10 sm:h-11 pl-10 ${errors.end_time ? 'border-destructive' : ''}`}
+                                            />
+                                        </div>
+                                        {errors.end_time && <p className="text-sm text-destructive">{errors.end_time}</p>}
                                     </div>
                                 </div>
 

@@ -16,8 +16,9 @@ class AdminMemberAttendanceController extends Controller
     {
         $query = Attendance::with([
             'user.member',
-            'classSession.course',
-            'classSession.coach'
+            'classSession',
+            'enrolmentCourse.course',
+            'schedule.coach'
         ])
         ->whereHas('user.member'); // Only member attendances
 
@@ -50,18 +51,18 @@ class AdminMemberAttendanceController extends Controller
                 'id' => $attendance->id,
                 'member_name' => $attendance->user->member->name ?? '-',
                 'class_session' => $attendance->classSession->title ?? '-',
-                'course' => $attendance->classSession->course->title ?? '-',
-                'coach' => $attendance->classSession->coach->name ?? '-',
+                'course' => $attendance->enrolmentCourse->course->title ?? '-',
+                'coach' => $attendance->schedule->coach->name ?? '-',
                 'scan_time' => Carbon::parse($attendance->scan_time)->format('d M Y H:i'),
                 'date' => Carbon::parse($attendance->scan_time)->format('Y-m-d'),
             ];
         });
 
         // Get class sessions for filter
-        $classSessions = ClassSession::with('course')->get()->map(function ($session) {
+        $classSessions = ClassSession::all()->map(function ($session) {
             return [
                 'id' => $session->id,
-                'title' => $session->title . ' - ' . ($session->course->title ?? ''),
+                'title' => $session->title,
             ];
         });
 

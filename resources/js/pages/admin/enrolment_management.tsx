@@ -58,7 +58,7 @@ interface Enrolment {
         total_meeting: number;
         price: number;
     };
-    attendance_count: number;
+    meeting_count: number;
     created_at: string;
 }
 
@@ -201,7 +201,7 @@ export default function EnrolmentManagement(props: props) {
                             </div>
                             <div>
                                 <div className="text-2xl font-bold">{stats.total}</div>
-                                <div className="text-sm text-muted-foreground">Total Enrolment</div>
+                                <div className="text-sm text-muted-foreground">Total Pendaftar</div>
                             </div>
                         </CardContent>
                     </Card>
@@ -247,7 +247,7 @@ export default function EnrolmentManagement(props: props) {
                             <div className="relative flex-1">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                                 <Input
-                                    placeholder="Cari member, kelas, atau course..."
+                                    placeholder="Cari member..."
                                     className="pl-10"
                                     value={searchQuery}
                                     onChange={onChangeSearch}
@@ -278,7 +278,7 @@ export default function EnrolmentManagement(props: props) {
                                     <TableRow>
                                         <TableHead>Member</TableHead>
                                         <TableHead className="hidden md:table-cell">Kelas</TableHead>
-                                        <TableHead className="hidden lg:table-cell">Course</TableHead>
+                                        <TableHead className="hidden lg:table-cell">Kursus</TableHead>
                                         <TableHead>Pertemuan</TableHead>
                                         <TableHead>Status</TableHead>
                                         <TableHead className="text-right">Aksi</TableHead>
@@ -315,7 +315,7 @@ export default function EnrolmentManagement(props: props) {
                                                     </div>
                                                 </TableCell>
                                                 <TableCell>
-                                                    <div>{enrolment.attendance_count}/{enrolment.course?.total_meeting}</div>
+                                                    <div>{enrolment.meeting_count}/{enrolment.course?.total_meeting}</div>
                                                 </TableCell>
                                                 <TableCell>
                                                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${stateDisplay.className}`}>
@@ -331,7 +331,7 @@ export default function EnrolmentManagement(props: props) {
                                                             </Button>
                                                         </Link>
                                                         <AlertDelete
-                                                            title="Hapus Enrolment?"
+                                                            title="Hapus Pendaftaran?"
                                                             description={`Apakah Anda yakin ingin menghapus enrolment ${enrolment.member?.name}? Tindakan ini tidak dapat dibatalkan.`}
                                                             action={() => handleDelete(enrolment.id)}
                                                         />

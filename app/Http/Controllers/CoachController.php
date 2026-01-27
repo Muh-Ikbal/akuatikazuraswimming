@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules\Password;
 use App\Models\ClassSession;
+use App\Models\Schedule;
 
 class CoachController extends Controller
 {
@@ -241,9 +242,10 @@ class CoachController extends Controller
     {
         $coach = Coach::findOrFail($id);
 
-        $class_coaches = ClassSession::where('coach_id', $coach->id)->get();
-        if($class_coaches->count() > 0){
-            return redirect('/management-coach')->with('error', 'Coach gagal dihapus, masih ada data yang terkait dengan coach ini');
+        // Check if coach has any schedules assigned
+        $scheduleCount = Schedule::where('coach_id', $coach->id)->count();
+        if($scheduleCount > 0){
+            return redirect('/management-coach')->with('error', 'Coach gagal dihapus, masih ada jadwal yang terkait dengan coach ini');
         }
         
         // Delete image

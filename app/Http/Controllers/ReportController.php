@@ -80,8 +80,9 @@ class ReportController extends Controller
         
         // Income by Course
         $incomeBySource = Course::select('courses.id', 'courses.title')
-            ->leftJoin('class_sessions', 'courses.id', '=', 'class_sessions.course_id')
-            ->leftJoin('enrolment_courses', 'class_sessions.id', '=', 'enrolment_courses.class_session_id')
+            // ->leftJoin('class_sessions', 'courses.id', '=', 'class_sessions.course_id')
+            ->leftJoin('enrolment_courses', 'courses.id', '=', 'enrolment_courses.course_id')
+            ->leftJoin('class_sessions', 'enrolment_courses.class_session_id', '=', 'class_sessions.id')
             ->leftJoin('payments', 'enrolment_courses.id', '=', 'payments.enrolment_course_id')
             ->whereIn('payments.state', ['paid', 'partial_paid'])
             ->whereBetween('payments.created_at', [$startDate, $endDate])

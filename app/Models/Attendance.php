@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
 use App\Models\ClassSession;
 use App\Models\EnrolmentCourse;
+use App\Models\Schedule;
 
 class Attendance extends Model
 {
@@ -15,6 +16,7 @@ class Attendance extends Model
         'class_session_id',
         'scan_time',
         'enrolment_course_id',
+        'schedule_id',
     ];
 
     public function user()
@@ -30,5 +32,10 @@ class Attendance extends Model
     public function enrolmentCourse()
     {
         return $this->belongsTo(EnrolmentCourse::class);
+    }
+
+    public function schedule()
+    {
+        return $this->belongsTo(Schedule::class);
     }
 }

@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\User;
 use App\Models\ClassSession;
 use App\Models\CertificateCoach;
+use App\Models\Schedule;
 
 use Illuminate\Database\Eloquent\Model;
 
@@ -31,5 +32,9 @@ class Coach extends Model
 
     public function certificate_coaches(){
         return $this->hasMany(CertificateCoach::class);
+    }
+
+    public function schedules(){
+        return $this->hasMany(Schedule::class);
     }
 }

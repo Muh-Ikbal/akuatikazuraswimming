@@ -6,11 +6,10 @@ import { Head } from '@inertiajs/react';
 import {
     Calendar,
     CheckCircle,
-    XCircle,
     Clock,
-    MapPin,
-    TrendingUp,
-    AlertCircle
+    LogIn,
+    LogOut,
+    AlertTriangle
 } from 'lucide-react';
 import {
     Table,
@@ -31,19 +30,16 @@ const breadcrumbs: BreadcrumbItem[] = [
 interface AttendanceRecord {
     id: number;
     date: string;
-    time: string;
-    location: string;
-    class_title: string;
-    course_title: string;
-    status: 'present' | 'absent' | 'cancelled';
-    scan_time: string | null;
+    check_in_time: string;
+    check_out_time: string | null;
+    state: 'present' | 'late';
+    status: string;
 }
 
 interface Stats {
     total_present: number;
-    total_absent: number;
-    total_schedules: number;
-    attendance_rate: number;
+    total_late: number;
+    total_records: number;
 }
 
 interface Props {
@@ -62,36 +58,21 @@ export default function RiwayatAbsensiCoach({ attendanceRecords, stats }: Props)
         return `${dayNames[date.getDay()]}, ${date.getDate()} ${monthNames[date.getMonth()]} ${date.getFullYear()}`;
     };
 
-    const formatTime = (timeStr: string) => {
-        const [hours, minutes] = timeStr.split(':');
-        return `${hours}:${minutes}`;
-    };
-
-    const getStatusBadge = (status: string) => {
-        switch (status) {
-            case 'present':
-                return (
-                    <Badge className="bg-green-100 text-green-700 border-green-200 hover:bg-green-100">
-                        <CheckCircle className="w-3 h-3 mr-1" />
-                        Hadir
-                    </Badge>
-                );
-            case 'absent':
-                return (
-                    <Badge className="bg-red-100 text-red-700 border-red-200 hover:bg-red-100">
-                        <XCircle className="w-3 h-3 mr-1" />
-                        Tidak Hadir
-                    </Badge>
-                );
-            case 'cancelled':
-                return (
-                    <Badge variant="secondary">
-                        <AlertCircle className="w-3 h-3 mr-1" />
-                        Dibatalkan
-                    </Badge>
-                );
-            default:
-                return null;
+    const getStatusBadge = (state: string) => {
+        if (state === 'present') {
+            return (
+                <Badge className="bg-green-100 text-green-700 border-green-200 hover:bg-green-100">
+                    <CheckCircle className="w-3 h-3 mr-1" />
+                    Tepat Waktu
+                </Badge>
+            );
+        } else {
+            return (
+                <Badge className="bg-yellow-100 text-yellow-700 border-yellow-200 hover:bg-yellow-100">
+                    <AlertTriangle className="w-3 h-3 mr-1" />
+                    Terlambat
+                </Badge>
+            );
         }
     };
 
@@ -106,56 +87,43 @@ export default function RiwayatAbsensiCoach({ attendanceRecords, stats }: Props)
                 </div>
 
                 {/* Stats Cards */}
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="grid gap-4 sm:grid-cols-3">
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Total Hadir</CardTitle>
+                            <CardTitle className="text-sm font-medium">Tepat Waktu</CardTitle>
                             <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-green-100">
                                 <CheckCircle className="h-5 w-5 text-green-600" />
                             </div>
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold text-green-600">{stats.total_present}</div>
-                            <p className="text-xs text-muted-foreground">sesi dihadiri</p>
+                            <p className="text-xs text-muted-foreground">kehadiran tepat waktu</p>
                         </CardContent>
                     </Card>
 
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Total Tidak Hadir</CardTitle>
-                            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-red-100">
-                                <XCircle className="h-5 w-5 text-red-600" />
+                            <CardTitle className="text-sm font-medium">Terlambat</CardTitle>
+                            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-yellow-100">
+                                <AlertTriangle className="h-5 w-5 text-yellow-600" />
                             </div>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold text-red-600">{stats.total_absent}</div>
-                            <p className="text-xs text-muted-foreground">sesi tidak hadir</p>
+                            <div className="text-2xl font-bold text-yellow-600">{stats.total_late}</div>
+                            <p className="text-xs text-muted-foreground">kehadiran terlambat</p>
                         </CardContent>
                     </Card>
 
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Total Jadwal</CardTitle>
+                            <CardTitle className="text-sm font-medium">Total Absensi</CardTitle>
                             <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-100">
                                 <Calendar className="h-5 w-5 text-blue-600" />
                             </div>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">{stats.total_schedules}</div>
-                            <p className="text-xs text-muted-foreground">total sesi terlaksana</p>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Tingkat Kehadiran</CardTitle>
-                            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10">
-                                <TrendingUp className="h-5 w-5 text-primary" />
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{stats.attendance_rate}%</div>
-                            <p className="text-xs text-muted-foreground">persentase kehadiran</p>
+                            <div className="text-2xl font-bold">{stats.total_records}</div>
+                            <p className="text-xs text-muted-foreground">total scan absensi</p>
                         </CardContent>
                     </Card>
                 </div>
@@ -172,46 +140,35 @@ export default function RiwayatAbsensiCoach({ attendanceRecords, stats }: Props)
                                     <TableHeader>
                                         <TableRow>
                                             <TableHead>Tanggal</TableHead>
-                                            <TableHead>Waktu</TableHead>
-                                            <TableHead>Kelas</TableHead>
-                                            <TableHead>Lokasi</TableHead>
+                                            <TableHead>Jam Masuk</TableHead>
+                                            <TableHead>Jam Pulang</TableHead>
                                             <TableHead>Status</TableHead>
-                                            <TableHead>Waktu Scan</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {attendanceRecords.map((record) => (
-                                            <TableRow key={`${record.id}-${record.date}`}>
+                                            <TableRow key={record.id}>
                                                 <TableCell className="font-medium">
                                                     {formatDate(record.date)}
                                                 </TableCell>
                                                 <TableCell>
-                                                    <div className="flex items-center gap-1 text-muted-foreground">
-                                                        <Clock className="h-3 w-3" />
-                                                        {formatTime(record.time)}
+                                                    <div className="flex items-center gap-2 text-green-600">
+                                                        <LogIn className="h-4 w-4" />
+                                                        {record.check_in_time}
                                                     </div>
                                                 </TableCell>
                                                 <TableCell>
-                                                    <div>
-                                                        <div className="font-medium">{record.class_title}</div>
-                                                        <div className="text-xs text-muted-foreground">{record.course_title}</div>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <div className="flex items-center gap-1 text-muted-foreground">
-                                                        <MapPin className="h-3 w-3" />
-                                                        {record.location}
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell>
-                                                    {getStatusBadge(record.status)}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {record.scan_time ? (
-                                                        <span className="text-sm text-muted-foreground">{record.scan_time}</span>
+                                                    {record.check_out_time ? (
+                                                        <div className="flex items-center gap-2 text-blue-600">
+                                                            <LogOut className="h-4 w-4" />
+                                                            {record.check_out_time}
+                                                        </div>
                                                     ) : (
-                                                        <span className="text-sm text-muted-foreground">-</span>
+                                                        <span className="text-muted-foreground">-</span>
                                                     )}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {getStatusBadge(record.state)}
                                                 </TableCell>
                                             </TableRow>
                                         ))}
@@ -223,7 +180,7 @@ export default function RiwayatAbsensiCoach({ attendanceRecords, stats }: Props)
                                 <Calendar className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
                                 <h3 className="text-lg font-medium text-foreground mb-1">Belum Ada Riwayat</h3>
                                 <p className="text-sm text-muted-foreground">
-                                    Riwayat absensi akan muncul setelah Anda mengajar
+                                    Riwayat absensi akan muncul setelah Anda melakukan scan kehadiran
                                 </p>
                             </div>
                         )}

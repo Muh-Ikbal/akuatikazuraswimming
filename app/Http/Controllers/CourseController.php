@@ -51,13 +51,14 @@ class CourseController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'total_meeting' => 'required|integer|min:1',
+            'image' => 'nullable|image|max:2048',
             'weekly_meeting_count' => 'required|integer|min:1|max:7',
             'price' => 'required|numeric|min:0',
             'state' => 'required|in:active,inactive',
         ]);
         $course = Course::findOrFail($id);
+        $validated['image'] = $course->image;
         if ($request->hasFile('image')){
             if ($course->image){
                 Storage::disk('public')->delete($course->image);

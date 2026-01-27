@@ -37,6 +37,7 @@ interface Enrolment {
     member_id: number;
     class_session_id: number;
     course_id: number;
+    meeting_count: number;
     state: string;
 }
 
@@ -67,6 +68,7 @@ export default function CreateEnrolment({ enrolment, members, class_sessions = [
         member_id: enrolment?.member_id || '',
         class_session_id: enrolment?.class_session_id || '',
         course_id: enrolment?.course_id || '',
+        meeting_count: enrolment?.meeting_count || '',
         state: enrolment?.state || 'on_progress',
     });
 
@@ -88,7 +90,6 @@ export default function CreateEnrolment({ enrolment, members, class_sessions = [
         }
     };
 
-    const filteredClassSession = class_sessions.filter((classSession) => classSession.course_id === Number(selectedCourse));
 
 
     return (
@@ -150,7 +151,7 @@ export default function CreateEnrolment({ enrolment, members, class_sessions = [
                                 {/* Course */}
                                 <div className="space-y-2">
                                     <Label htmlFor="course_id" className="text-sm">
-                                        Course <span className="text-destructive">*</span>
+                                        Kursus <span className="text-destructive">*</span>
                                     </Label>
                                     <div className="relative">
                                         <BookOpen className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -161,12 +162,10 @@ export default function CreateEnrolment({ enrolment, members, class_sessions = [
                                             onChange={(e) => {
                                                 const value = e.target.value;
                                                 setSelectedCourse(value ? Number(value) : '');
-                                                setSelectedClassSession('');
                                                 setData('course_id', value);
-                                                setData('class_session_id', '');
                                             }}
                                         >
-                                            <option value="">-- Pilih Course --</option>
+                                            <option value="">-- Pilih Kursus --</option>
                                             {courses.map((course) => (
                                                 <option key={course.id} value={course.id}>
                                                     {course.title} - Rp {course.price.toLocaleString('id-ID')}
@@ -188,7 +187,6 @@ export default function CreateEnrolment({ enrolment, members, class_sessions = [
                                             id="class_session_id"
                                             className={`w-full h-10 sm:h-11 pl-10 pr-3 border rounded-md bg-background text-sm ${errors.class_session_id ? 'border-destructive' : 'border-input'}`}
                                             value={selectedClassSession}
-                                            disabled={!selectedCourse}
                                             onChange={(e) => {
                                                 const value = e.target.value;
                                                 setSelectedClassSession(value ? Number(value) : '');
@@ -196,14 +194,29 @@ export default function CreateEnrolment({ enrolment, members, class_sessions = [
                                             }}
                                         >
                                             <option value="">-- Pilih Kelas --</option>
-                                            {filteredClassSession.map((session) => (
+                                            {class_sessions.map((session) => (
                                                 <option key={session.id} value={session.id}>
-                                                    {session.title} - {session.course?.title} ({session.coach?.name})
+                                                    {session.title}
                                                 </option>
                                             ))}
                                         </select>
                                     </div>
                                     {errors.class_session_id && <p className="text-sm text-destructive">{errors.class_session_id}</p>}
+                                </div>
+
+                                {/* Meeting Count */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="meeting_count" className="text-sm">
+                                        Jumlah Pertemuan <span className="text-destructive">*</span>
+                                    </Label>
+                                    <input
+                                        type="number"
+                                        id="meeting_count"
+                                        className={`w-full h-10 sm:h-11 px-3 border rounded-md bg-background text-sm ${errors.meeting_count ? 'border-destructive' : 'border-input'}`}
+                                        value={data.meeting_count}
+                                        onChange={(e) => setData('meeting_count', parseInt(e.target.value))}
+                                    />
+                                    {errors.meeting_count && <p className="text-sm text-destructive">{errors.meeting_count}</p>}
                                 </div>
 
                                 {/* State */}
@@ -225,6 +238,7 @@ export default function CreateEnrolment({ enrolment, members, class_sessions = [
                                 </div>
                             </CardContent>
                         </Card>
+
 
                         {/* Actions */}
                         <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">

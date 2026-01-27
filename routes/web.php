@@ -183,8 +183,12 @@ Route::middleware(['auth', 'verified','role:member'])->group(function () {
 });
 
 Route::middleware(['auth', 'verified','role:operator'])->group(function () {
-    Route::get('scan-qr', [\App\Http\Controllers\ScanQRController::class,'index'])->name('scan-qr-member');
+    Route::get('scan-qr-member', [\App\Http\Controllers\ScanQRController::class,'index'])->name('scan-qr-member');
     Route::post('scan-qr-member/verify', [\App\Http\Controllers\ScanQRController::class,'verify'])->name('scan-qr-member.verify');
+    
+    // Scan QR Pegawai
+    Route::get('scan-qr-pegawai', [\App\Http\Controllers\AttandanceEmployeeController::class,'index'])->name('scan-qr-pegawai');
+    Route::post('scan-qr-pegawai/verify', [\App\Http\Controllers\AttandanceEmployeeController::class,'verify'])->name('scan-qr-pegawai.verify');
 });
 
 Route::middleware(['auth', 'verified','role:coach'])->group(function () {

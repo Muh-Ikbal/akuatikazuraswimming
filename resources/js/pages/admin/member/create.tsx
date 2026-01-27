@@ -97,12 +97,6 @@ export default function CreateMember({ member, users = [], courses = [], classSe
         }
     };
 
-    const filteredClassSession = classSessions.filter((classSession) => classSession.course_id === Number(selectedCourse));
-    // const handleCreateUserToggle = (checked: boolean) => {
-    //     setCreateUser(checked);
-    //     setData('create_user', checked);
-    // };
-
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={isEdit ? "Edit Member" : "Tambah Member"} />
@@ -388,10 +382,10 @@ export default function CreateMember({ member, users = [], courses = [], classSe
                                             <div>
                                                 <CardTitle className="text-base sm:text-lg flex items-center gap-2">
                                                     <Book className="w-5 h-5" />
-                                                    Daftar Course
+                                                    Daftar Kursus
                                                 </CardTitle>
                                                 <CardDescription className="mt-1">
-                                                    Pilih course yang akan diikuti oleh member ini
+                                                    Pilih kursus yang akan diikuti oleh member ini
                                                 </CardDescription>
                                             </div>
 
@@ -403,7 +397,7 @@ export default function CreateMember({ member, users = [], courses = [], classSe
                                         <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
                                             <div className="space-y-2">
                                                 <Label htmlFor="course_id" className="text-sm">
-                                                    Course <span className="text-destructive">*</span>
+                                                    Kurus <span className="text-destructive">*</span>
                                                 </Label>
                                                 <select
                                                     id="course_id"
@@ -412,13 +406,11 @@ export default function CreateMember({ member, users = [], courses = [], classSe
                                                     onChange={(e) => {
                                                         const value = e.target.value;
                                                         setSelectedCourse(value ? Number(value) : '');
-                                                        setSelectedClassSession('');
                                                         setData('course_id', value);
-                                                        setData('class_session_id', '');
                                                     }}
 
                                                 >
-                                                    <option value="">-- Pilih Course --</option>
+                                                    <option value="">-- Pilih Kursus --</option>
                                                     {courses.map((course) => (
                                                         <option key={course.id} value={course.id}>
                                                             {course.title}
@@ -435,7 +427,6 @@ export default function CreateMember({ member, users = [], courses = [], classSe
                                                     id="class_session_id"
                                                     className="w-full h-10 sm:h-11 px-3 border border-input rounded-md bg-background text-sm"
                                                     value={selectedClassSession}
-                                                    disabled={!selectedCourse}
                                                     onChange={(e) => {
                                                         const value = e.target.value;
                                                         setSelectedClassSession(value ? Number(value) : '');
@@ -443,7 +434,7 @@ export default function CreateMember({ member, users = [], courses = [], classSe
                                                     }}
                                                 >
                                                     <option value="">-- Pilih Kelas --</option>
-                                                    {filteredClassSession.map((classSession) => (
+                                                    {classSessions.map((classSession) => (
                                                         <option key={classSession.id} value={classSession.id}>
                                                             {classSession.title}
                                                         </option>
@@ -478,7 +469,7 @@ export default function CreateMember({ member, users = [], courses = [], classSe
                                 <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
                                     <div className="space-y-2">
                                         <Label htmlFor="user_id" className="text-sm">
-                                            User Account
+                                            Akun Member
                                         </Label>
                                         <select
                                             id="user_id"

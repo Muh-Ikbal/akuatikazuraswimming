@@ -41,7 +41,7 @@ class MemberController extends Controller
     public function create()
     {
         $courses = Course::get(['id','title']);
-        $classSessions = ClassSession::get(['id','title','course_id']);
+        $classSessions = ClassSession::get(['id','title']);
         return Inertia::render('admin/member/create', [
             'courses' => $courses,
             'classSessions' => $classSessions,

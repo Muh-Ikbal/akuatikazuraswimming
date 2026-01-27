@@ -15,6 +15,7 @@ class EnrolmentCourse extends Model
         'member_id',
         'class_session_id',
         'course_id',
+        'meeting_count',
         'state'
     ];
 

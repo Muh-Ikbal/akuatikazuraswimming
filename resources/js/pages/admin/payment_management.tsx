@@ -147,7 +147,7 @@ export default function PaymentManagement({ payments, filters, totalIncome, pend
         switch (state) {
             case 'pending':
                 return {
-                    label: 'Pending',
+                    label: 'Tertunda',
                     icon: <Clock className="w-3 h-3" />,
                     className: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 '
                 };
@@ -200,7 +200,7 @@ export default function PaymentManagement({ payments, filters, totalIncome, pend
                         <Link href="/management-pembayaran/create">
                             <Button>
                                 <Plus className="w-4 h-4 mr-2" />
-                                Tambah Payment
+                                Tambah Pembayaran
                             </Button>
                         </Link>
                     </div>
@@ -281,7 +281,7 @@ export default function PaymentManagement({ payments, filters, totalIncome, pend
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead>Member</TableHead>
-                                        <TableHead className="hidden md:table-cell">Course</TableHead>
+                                        <TableHead className="hidden md:table-cell">Kursus</TableHead>
                                         <TableHead>Jumlah</TableHead>
                                         <TableHead className="hidden sm:table-cell">Terbayar</TableHead>
                                         <TableHead>Status</TableHead>

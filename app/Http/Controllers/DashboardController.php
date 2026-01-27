@@ -31,27 +31,28 @@ class DashboardController extends Controller
                 }
             ])->withCount('enrolment')->get();
             
-            // Revenue per course
-            $revenuePerCourse = Course::withSum(['class_sessions as total_revenue' => function($query) {
-                $query->join('enrolment_courses', 'class_sessions.id', '=', 'enrolment_courses.class_session_id')
-                    ->join('payments', 'enrolment_courses.id', '=', 'payments.enrolment_course_id')
-                    ->whereIn('payments.state', ['paid', 'partial_paid']);
-            }], 'payments.amount_paid')
-            ->withCount(['class_sessions as total_students' => function($query) {
-                $query->join('enrolment_courses', 'class_sessions.id', '=', 'enrolment_courses.class_session_id');
-            }])
-            ->get()
-            ->map(function($course) {
-                return [
-                    'id' => $course->id,
-                    'title' => $course->title,
-                    'total_revenue' => (float) ($course->total_revenue ?? 0),
-                    'total_students' => (int) ($course->total_students ?? 0),
-                ];
-            })
-            ->sortByDesc('total_revenue')
-            ->values()
-            ->take(5);
+           $revenuePerCourse = Course::withSum([
+                    'enrolmentCourses as total_revenue' => function ($query) {
+                        $query->join('payments', 'enrolment_courses.id', '=', 'payments.enrolment_course_id')
+                            ->whereIn('payments.state', ['paid', 'partial_paid']);
+                    }
+                ], 'payments.amount_paid')
+                ->withCount([
+                    'enrolmentCourses as total_students'
+                ])
+                ->get()
+                ->map(function ($course) {
+                    return [
+                        'id' => $course->id,
+                        'title' => $course->title,
+                        'total_revenue' => (float) ($course->total_revenue ?? 0),
+                        'total_students' => (int) ($course->total_students ?? 0),
+                    ];
+                })
+                ->sortByDesc('total_revenue')
+                ->take(5)
+                ->values();
+
             
             return Inertia::render('admin/dashboard',[
                 'members'=>$members,
@@ -64,28 +65,41 @@ class DashboardController extends Controller
         } else if($user->getRoleNames()->first() == 'member') {
             $member = $user->member;
             
-            if (!$member) {
-               $stats = [
-                   'total_attendance' => 0,
-                   'total_courses' => 0,
-               ];
-               $upcomingSchedules = [];
-            } else {
-                // Get enrolled courses
+            // Initialize default values
+            $stats = [
+                'total_attendance' => 0,
+                'total_courses' => 0,
+            ];
+            $upcomingSchedules = [];
+            $historyCourses = [];
+            $currentEnrolments = [];
+            
+            if ($member) {
+                // Get current enrolled courses (on_progress)
                 $enrolments = EnrolmentCourse::where('member_id', $member->id)
                     ->where('state', 'on_progress')
-                    ->with(['class_session.schedule', 'class_session.course'])
+                    ->with(['class_session.schedule', 'course'])
                     ->get();
                 
-                // 1. Total Courses
-                $stats['total_courses'] = $enrolments->count();
+                // Current enrolments for display
+                $currentEnrolments = $enrolments->map(function($enrolment) {
+                    return [
+                        'id' => $enrolment->id,
+                        'course_title' => $enrolment->course ? $enrolment->course->title : '-',
+                        'class_title' => $enrolment->class_session ? $enrolment->class_session->title : '-',
+                        'meeting_count' => $enrolment->meeting_count,
+                        'state' => $enrolment->state,
+                    ];
+                });
                 
-                // 2. Total Attendance (Count 'present' status in users attendance or verify manually if needed, 
-               
-                $userAttendances = \App\Models\Attendance::where('user_id', $user->id)->count();
-                $stats['total_attendance'] = $userAttendances;
+                // Stats
+                $stats['total_courses'] = $enrolments->count();
+                $userAttendances = EnrolmentCourse::where('member_id', $member->id)
+                    ->where('state', 'on_progress')
+                    ->sum('meeting_count');
+                $stats['total_attendance'] = $userAttendances > 0 ? $userAttendances : 0;
 
-                // 3. Upcoming Schedules
+                // Upcoming Schedules
                 $upcomingSchedules = collect();
                 foreach ($enrolments as $enrolment) {
                     if ($enrolment->class_session) {
@@ -99,22 +113,40 @@ class DashboardController extends Controller
                                     'time' => $schedule->time,
                                     'location' => $schedule->location,
                                     'class_title' => $enrolment->class_session->title,
-                                    'course_title' => $enrolment->class_session->course->title,
+                                    'course_title' => $enrolment->course ? $enrolment->course->title : '-',
                                 ]);
                             }
                         }
                     }
                 }
-                // Sort by date and time
+                
+                // History courses (completed)
+                $historyCourses = EnrolmentCourse::where('member_id', $member->id)
+                    ->where('state', 'completed')
+                    ->with(['class_session', 'course'])
+                    ->get()
+                    ->map(function($enrolment) {
+                        return [
+                            'id' => $enrolment->id,
+                            'course_title' => $enrolment->course ? $enrolment->course->title : '-',
+                            'class_title' => $enrolment->class_session ? $enrolment->class_session->title : '-',
+                            'meeting_count' => $enrolment->meeting_count,
+                            'state' => $enrolment->state,
+                        ];
+                    });
+                
+                // Sort upcoming schedules by date and time
                 $upcomingSchedules = $upcomingSchedules->sortBy([
                     ['date', 'asc'],
                     ['time', 'asc'],
-                ])->values()->take(5); // Limit to 5
+                ])->values()->take(5);
             }
 
             return Inertia::render('member/dashboard', [
                 'stats' => $stats,
-                'upcomingSchedules' => $upcomingSchedules
+                'upcomingSchedules' => $upcomingSchedules,
+                'historyCourses' => $historyCourses,
+                'currentEnrolments' => $currentEnrolments,
             ]);
         } else if($user->getRoleNames()->first() == 'coach') {
             $coach = Coach::where('user_id', $user->id)->first();
@@ -129,9 +161,15 @@ class DashboardController extends Controller
             $classesInfo = [];
             
             if ($coach) {
-                // Get all class sessions for this coach
-                $classSessions = ClassSession::where('coach_id', $coach->id)
-                    ->with(['course', 'schedule', 'enrolment'])
+                // Get all schedules for this coach (coach is now linked to schedules, not class_sessions)
+                $schedules = Schedule::where('coach_id', $coach->id)
+                    ->with(['class_session.course', 'class_session.enrolment'])
+                    ->get();
+                
+                // Get unique class sessions from schedules
+                $classSessionIds = $schedules->pluck('class_session_id')->unique()->filter();
+                $classSessions = ClassSession::whereIn('id', $classSessionIds)
+                    ->with(['course', 'enrolment'])
                     ->get();
                 
                 $stats['total_classes'] = $classSessions->count();
@@ -140,28 +178,30 @@ class DashboardController extends Controller
                 });
                 
                 // Count completed and upcoming schedules
-                foreach ($classSessions as $classSession) {
-                    foreach ($classSession->schedule as $schedule) {
-                        if ($schedule->status === 'completed') {
-                            $stats['completed_sessions']++;
-                        } elseif (\Carbon\Carbon::parse($schedule->date)->gte(today())) {
-                            $stats['upcoming_sessions']++;
-                        }
-                        
-                        // Get today's schedules
-                        if (\Carbon\Carbon::parse($schedule->date)->isToday()) {
-                            $todaySchedules->push([
-                                'id' => $schedule->id,
-                                'time' => $schedule->time,
-                                'location' => $schedule->location,
-                                'class_title' => $classSession->title,
-                                'course_title' => $classSession->course ? $classSession->course->title : '-',
-                                'total_students' => $classSession->enrolment->count(),
-                            ]);
-                        }
+                foreach ($schedules as $schedule) {
+                    if ($schedule->status === 'completed') {
+                        $stats['completed_sessions']++;
+                    } elseif (\Carbon\Carbon::parse($schedule->date)->gte(today())) {
+                        $stats['upcoming_sessions']++;
                     }
                     
-                    // Get class info
+                    // Get today's schedules
+                    if (\Carbon\Carbon::parse($schedule->date)->isToday()) {
+                        $classSession = $schedule->class_session;
+                        $todaySchedules->push([
+                            'id' => $schedule->id,
+                            'time' => $schedule->time,
+                            'end_time' => $schedule->end_time,
+                            'location' => $schedule->location,
+                            'class_title' => $classSession ? $classSession->title : '-',
+                            'course_title' => $classSession && $classSession->course ? $classSession->course->title : '-',
+                            'total_students' => $classSession ? $classSession->enrolment->count() : 0,
+                        ]);
+                    }
+                }
+                
+                // Get class info from unique class sessions
+                foreach ($classSessions as $classSession) {
                     if ($classSession->course) {
                         $classesInfo[] = [
                             'class_title' => $classSession->title,

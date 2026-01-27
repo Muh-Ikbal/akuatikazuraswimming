@@ -49,7 +49,7 @@ const adminNavItems: NavGroup[] = [
                 icon: ClipboardCheck,
             },
             {
-                title: 'Kehadiran Coach',
+                title: 'Kehadiran Pelatih',
                 href: '/kehadiran-coach',
                 icon: ClipboardList,
             },
@@ -59,7 +59,7 @@ const adminNavItems: NavGroup[] = [
         title: 'MASTER DATA',
         items: [
             {
-                title: 'Course',
+                title: 'Kursus',
                 href: '/management-course',
                 icon: BookOpen,
             },
@@ -69,7 +69,7 @@ const adminNavItems: NavGroup[] = [
                 icon: School,
             },
             {
-                title: 'Coach',
+                title: 'Pelatih',
                 href: '/management-coach',
                 icon: UserCog,
             },
@@ -79,7 +79,7 @@ const adminNavItems: NavGroup[] = [
                 icon: HandCoins,
             },
             {
-                title: 'User',
+                title: 'Pengguna',
                 href: '/management-user',
                 icon: Contact,
             },
@@ -162,11 +162,7 @@ const coachNavItems: NavGroup[] = [
                 href: dashboard(),
                 icon: LayoutGrid,
             },
-            {
-                title: 'Siswa',
-                href: '/siswa-coach',
-                icon: GraduationCap,
-            },
+
             {
                 title: 'Jadwal',
                 href: '/jadwal-coach',
@@ -198,9 +194,14 @@ const operatorNavItems: NavGroup[] = [
             },
             {
                 title: 'Scan QR',
-                href: '/scan-qr',
+                href: '/scan-qr-member',
                 icon: QrCode,
             },
+            {
+                title: 'Scan Qr Pegawai',
+                href: '/scan-qr-pegawai',
+                icon: QrCode,
+            }
         ]
     },
 

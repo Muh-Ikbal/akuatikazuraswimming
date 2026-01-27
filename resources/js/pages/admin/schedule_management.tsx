@@ -38,11 +38,18 @@ import {
 } from "@/components/ui/pagination";
 import AlertDelete from "@/components/alert-delete";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+
+
 interface Schedule {
     id: number;
     class_session_id: number;
+    coach_id: number;
+    coach?: {
+        name: string;
+    };
     date: string;
     time: string;
+    end_time?: string;
     location: string;
     status: 'published' | 'on_going' | 'completed' | 'cancelled';
     class_session?: {
@@ -266,6 +273,7 @@ export default function ScheduleManagement(props: { schedules: any }) {
                                         <TableHead>Kelas</TableHead>
                                         <TableHead>Tanggal & Waktu</TableHead>
                                         <TableHead className="hidden md:table-cell">Lokasi</TableHead>
+                                        <TableHead>Pelatih</TableHead>
                                         <TableHead>Status</TableHead>
                                         <TableHead className="text-right">Aksi</TableHead>
                                     </TableRow>
@@ -296,14 +304,22 @@ export default function ScheduleManagement(props: { schedules: any }) {
                                                         </div>
                                                         <div className="flex items-center gap-2">
                                                             <Clock className="w-4 h-4 text-muted-foreground" />
-                                                            <span className="text-sm">{formatTime(schedule.time)}</span>
+                                                            <span className="text-sm">
+                                                                {formatTime(schedule.time)}
+                                                                {schedule.end_time && ` - ${formatTime(schedule.end_time)}`}
+                                                            </span>
                                                         </div>
                                                     </div>
                                                 </TableCell>
-                                                <TableCell className="hidden md:table-cell">
+                                                <TableCell className="table-cell">
                                                     <div className="flex items-center gap-2">
                                                         <MapPin className="w-4 h-4 text-muted-foreground" />
                                                         <span className="text-sm">{schedule.location}</span>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell className="table-cell">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-sm">{schedule.coach?.name}</span>
                                                     </div>
                                                 </TableCell>
                                                 <TableCell>

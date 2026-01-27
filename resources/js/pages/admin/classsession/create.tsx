@@ -8,32 +8,18 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Save, Building, BookOpen, Users, User } from 'lucide-react';
 
-interface Course {
-    id: number;
-    title: string;
-}
-
-interface Coach {
-    id: number;
-    name: string;
-}
 
 interface ClassSession {
     id: number;
     title: string;
-    course_id: number;
-    coach_id: number;
     capacity: number;
-    total_student: number;
 }
 
 interface Props {
     class_session?: ClassSession;
-    courses: Course[];
-    coaches: Coach[];
 }
 
-export default function CreateClassSession({ class_session, courses, coaches }: Props) {
+export default function CreateClassSession({ class_session }: Props) {
     const isEdit = !!class_session;
 
     const breadcrumbs: BreadcrumbItem[] = [
@@ -49,8 +35,6 @@ export default function CreateClassSession({ class_session, courses, coaches }: 
 
     const { data, setData, post, put, processing, errors } = useForm({
         title: class_session?.title || '',
-        course_id: class_session?.course_id || '',
-        coach_id: class_session?.coach_id || '',
         capacity: class_session?.capacity || 10,
     });
 
@@ -110,53 +94,6 @@ export default function CreateClassSession({ class_session, courses, coaches }: 
                                     {errors.title && <p className="text-sm text-destructive">{errors.title}</p>}
                                 </div>
 
-                                {/* Course */}
-                                <div className="space-y-2">
-                                    <Label htmlFor="course_id" className="text-sm">
-                                        Course <span className="text-destructive">*</span>
-                                    </Label>
-                                    <div className="relative">
-                                        <BookOpen className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                                        <select
-                                            id="course_id"
-                                            className={`w-full h-10 sm:h-11 pl-10 pr-3 border rounded-md bg-background text-sm ${errors.course_id ? 'border-destructive' : 'border-input'}`}
-                                            value={data.course_id}
-                                            onChange={(e) => setData('course_id', parseInt(e.target.value))}
-                                        >
-                                            <option value="">-- Pilih Course --</option>
-                                            {courses.map((course) => (
-                                                <option key={course.id} value={course.id}>
-                                                    {course.title}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    {errors.course_id && <p className="text-sm text-destructive">{errors.course_id}</p>}
-                                </div>
-
-                                {/* Coach */}
-                                <div className="space-y-2">
-                                    <Label htmlFor="coach_id" className="text-sm">
-                                        Coach <span className="text-destructive">*</span>
-                                    </Label>
-                                    <div className="relative">
-                                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                                        <select
-                                            id="coach_id"
-                                            className={`w-full h-10 sm:h-11 pl-10 pr-3 border rounded-md bg-background text-sm ${errors.coach_id ? 'border-destructive' : 'border-input'}`}
-                                            value={data.coach_id}
-                                            onChange={(e) => setData('coach_id', parseInt(e.target.value))}
-                                        >
-                                            <option value="">-- Pilih Coach --</option>
-                                            {coaches.map((coach) => (
-                                                <option key={coach.id} value={coach.id}>
-                                                    {coach.name}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    {errors.coach_id && <p className="text-sm text-destructive">{errors.coach_id}</p>}
-                                </div>
 
                                 {/* Kapasitas */}
                                 <div className="space-y-2">

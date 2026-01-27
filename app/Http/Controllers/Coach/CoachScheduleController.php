@@ -33,9 +33,15 @@ class CoachScheduleController extends Controller
         ];
         
         if ($coach) {
-            // Get all class sessions for this coach
-            $classSessions = ClassSession::where('coach_id', $coach->id)
-                ->with(['course', 'schedule', 'enrolment'])
+            // Get all schedules for this coach (coach is now linked to schedules, not class_sessions)
+            $coachSchedules = Schedule::where('coach_id', $coach->id)
+                ->with(['class_session.course', 'class_session.enrolment'])
+                ->get();
+            
+            // Get unique class sessions from schedules
+            $classSessionIds = $coachSchedules->pluck('class_session_id')->unique()->filter();
+            $classSessions = ClassSession::whereIn('id', $classSessionIds)
+                ->with(['course', 'enrolment'])
                 ->get();
             
             $stats['total_classes'] = $classSessions->count();
@@ -43,43 +49,48 @@ class CoachScheduleController extends Controller
             // Get all attendance records for this user (coach)
             $userAttendances = Attendance::where('user_id', $user->id)->get();
             
-            // Get all schedules from coach's class sessions
-            foreach ($classSessions as $classSession) {
-                foreach ($classSession->schedule as $schedule) {
-                    $attendanceStatus = $this->getAttendanceStatus($schedule, $userAttendances);
-                    
-                    $schedules->push([
-                        'id' => $schedule->id,
-                        'date' => $schedule->date,
-                        'time' => $schedule->time,
-                        'location' => $schedule->location,
-                        'status' => $schedule->status,
-                        'class_session' => [
-                            'id' => $classSession->id,
-                            'title' => $classSession->title,
-                        ],
-                        'course' => $classSession->course ? [
-                            'title' => $classSession->course->title,
-                            'total_meeting' => $classSession->course->total_meeting,
-                        ] : null,
-                        'total_students' => $classSession->enrolment->count(),
-                        'attendance_status' => $attendanceStatus,
-                    ]);
-                    
-                    // Count stats
-                    if ($schedule->status === 'completed') {
-                        $stats['completed']++;
-                    } elseif (Carbon::parse($schedule->date)->gte(today())) {
-                        $stats['upcoming']++;
-                    }
-                }
+            // Get all schedules from coach's schedules
+            foreach ($coachSchedules as $schedule) {
+                $classSession = $schedule->class_session;
+                $attendanceStatus = $this->getAttendanceStatus($schedule, $userAttendances);
                 
-                // Collect class info for sidebar
+                $schedules->push([
+                    'id' => $schedule->id,
+                    'date' => $schedule->date,
+                    'time' => $schedule->time,
+                    'end_time' => $schedule->end_time,
+                    'location' => $schedule->location,
+                    'status' => $schedule->status,
+                    'class_session' => $classSession ? [
+                        'id' => $classSession->id,
+                        'title' => $classSession->title,
+                    ] : null,
+                    'course' => $classSession && $classSession->course ? [
+                        'title' => $classSession->course->title,
+                        'total_meeting' => $classSession->course->total_meeting,
+                    ] : null,
+                    'total_students' => $classSession ? $classSession->enrolment->count() : 0,
+                    'attendance_status' => $attendanceStatus,
+                ]);
+                
+                // Count stats
+                if ($schedule->status === 'completed') {
+                    $stats['completed']++;
+                } elseif (Carbon::parse($schedule->date)->gte(today())) {
+                    $stats['upcoming']++;
+                }
+            }
+            
+            // Collect class info for sidebar from unique class sessions
+            foreach ($classSessions as $classSession) {
                 if ($classSession->course) {
-                    $scheduleDays = $this->getScheduleDays($classSession->schedule);
-                    $scheduleTime = $classSession->schedule->first() 
-                        ? Carbon::parse($classSession->schedule->first()->time)->format('H:i') . ' - ' . 
-                          Carbon::parse($classSession->schedule->first()->time)->addHour()->format('H:i')
+                    // Get schedules for this class session
+                    $classSchedules = $coachSchedules->where('class_session_id', $classSession->id);
+                    $scheduleDays = $this->getScheduleDays($classSchedules);
+                    $firstSchedule = $classSchedules->first();
+                    $scheduleTime = $firstSchedule 
+                        ? Carbon::parse($firstSchedule->time)->format('H:i') . ' - ' . 
+                          ($firstSchedule->end_time ? Carbon::parse($firstSchedule->end_time)->format('H:i') : Carbon::parse($firstSchedule->time)->addHour()->format('H:i'))
                         : '-';
                     
                     $classesInfo[] = [
@@ -89,9 +100,7 @@ class CoachScheduleController extends Controller
                         'capacity' => $classSession->capacity,
                         'schedule_days' => $scheduleDays,
                         'schedule_time' => $scheduleTime,
-                        'location' => $classSession->schedule->first() 
-                            ? $classSession->schedule->first()->location 
-                            : '-',
+                        'location' => $firstSchedule ? $firstSchedule->location : '-',
                     ];
                 }
             }

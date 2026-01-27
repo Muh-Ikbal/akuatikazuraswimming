@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
@@ -7,38 +7,42 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Save, Image, Upload } from 'lucide-react';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Course Management',
-        href: '/management-course',
-    },
-    {
-        title: 'Tambah Course',
-        href: '/management-course/create',
-    },
-];
+import { ArrowLeft, Save, Image, Upload, X } from 'lucide-react';
 
 interface CourseFormData {
     id: number,
     title: string;
     description: string;
-    image: File | null;
+    image: File | null | string;
     total_meeting: number;
     weekly_meeting_count: number;
     price: number;
     state: "active" | "inactive";
 }
 
-export default function CreateCourse({ course }: { course: CourseFormData }) {
-    const [imagePreview, setImagePreview] = useState<string | null>(null);
+export default function CreateCourse({ course }: { course?: CourseFormData & { image?: string } }) {
+    const isEdit = !!course;
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [imagePreview, setImagePreview] = useState<string | null>(
+        course?.image ? `/storage/${course.image}` : null
+    );
 
-    const { data, setData, post, put, processing, errors } = useForm<CourseFormData>({
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: 'Course Management',
+            href: '/management-course',
+        },
+        {
+            title: isEdit ? 'Edit Course' : 'Tambah Course',
+            href: isEdit ? `/management-course/edit/${course?.id}` : '/management-course/create',
+        },
+    ];
+
+    const { data, setData, post, put, processing, errors } = useForm({
         id: course?.id || 0,
         title: course?.title || '',
         description: course?.description || '',
-        image: null,
+        image: null as File | null,
         total_meeting: course?.total_meeting || 12,
         weekly_meeting_count: course?.weekly_meeting_count || 2,
         price: course?.price || 0,
@@ -54,6 +58,14 @@ export default function CreateCourse({ course }: { course: CourseFormData }) {
                 setImagePreview(reader.result as string);
             };
             reader.readAsDataURL(file);
+        }
+    };
+
+    const removeImage = () => {
+        setData('image', null);
+        setImagePreview(null);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
         }
     };
 
@@ -77,7 +89,7 @@ export default function CreateCourse({ course }: { course: CourseFormData }) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Tambah Course" />
+            <Head title={isEdit ? "Edit Course" : "Tambah Course"} />
             <div className="p-4 sm:p-6">
                 {/* Header */}
                 <div className="flex items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
@@ -87,8 +99,12 @@ export default function CreateCourse({ course }: { course: CourseFormData }) {
                         </Button>
                     </Link>
                     <div className="min-w-0">
-                        <h1 className="text-xl sm:text-2xl font-bold text-foreground truncate">Tambah Course Baru</h1>
-                        <p className="text-sm sm:text-base text-muted-foreground">Lengkapi form berikut untuk menambahkan course baru</p>
+                        <h1 className="text-xl sm:text-2xl font-bold text-foreground truncate">
+                            {isEdit ? 'Edit Course' : 'Tambah Course Baru'}
+                        </h1>
+                        <p className="text-sm sm:text-base text-muted-foreground">
+                            {isEdit ? 'Perbarui data course' : 'Lengkapi form berikut untuk menambahkan course baru'}
+                        </p>
                     </div>
                 </div>
 
@@ -130,35 +146,46 @@ export default function CreateCourse({ course }: { course: CourseFormData }) {
                                 {/* Image Upload */}
                                 <div className="space-y-2">
                                     <Label className="text-sm">Gambar Course</Label>
-                                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                                        <div className="w-full sm:w-40 h-32 sm:h-28 rounded-lg border-2 border-dashed border-border flex items-center justify-center bg-muted/50 overflow-hidden shrink-0">
+                                    <div className="flex items-start gap-4">
+                                        <div className="relative">
                                             {imagePreview ? (
-                                                <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                                                <div className="relative">
+                                                    <img
+                                                        src={imagePreview}
+                                                        alt="Preview"
+                                                        className="w-32 h-32 rounded-lg object-cover"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={removeImage}
+                                                        className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center"
+                                                    >
+                                                        <X className="w-4 h-4" />
+                                                    </button>
+                                                </div>
                                             ) : (
-                                                <div className="flex flex-col items-center gap-2">
+                                                <div
+                                                    onClick={() => fileInputRef.current?.click()}
+                                                    className="w-32 h-32 rounded-lg border-2 border-dashed border-input flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-colors"
+                                                >
                                                     <Image className="w-8 h-8 text-muted-foreground" />
-                                                    <span className="text-xs text-muted-foreground sm:hidden">Tap untuk upload</span>
+                                                    <span className="text-xs text-muted-foreground mt-1">Upload</span>
                                                 </div>
                                             )}
                                         </div>
-                                        <div className="flex-1">
-                                            <label className="cursor-pointer">
-                                                <div className="flex items-center justify-center sm:justify-start gap-2 px-4 py-3 sm:py-2 border border-input rounded-md bg-background hover:bg-muted active:bg-muted transition-colors w-full sm:w-fit">
-                                                    <Upload className="w-4 h-4" />
-                                                    <span className="text-sm">Upload Gambar</span>
-                                                </div>
-                                                <input
-                                                    type="file"
-                                                    accept="image/*"
-                                                    className="hidden"
-                                                    onChange={handleImageChange}
-                                                />
-                                            </label>
-                                            <p className="text-xs text-muted-foreground mt-2 text-center sm:text-left">
-                                                Format: JPG, PNG. Maksimal 2MB.
-                                            </p>
+                                        <input
+                                            ref={fileInputRef}
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleImageChange}
+                                            className="hidden"
+                                        />
+                                        <div className="text-sm text-muted-foreground">
+                                            <p>Upload gambar course</p>
+                                            <p className="text-xs">JPG, PNG max 2MB</p>
                                         </div>
                                     </div>
+                                    {errors.image && <p className="text-sm text-destructive">{errors.image}</p>}
                                 </div>
                             </CardContent>
                         </Card>
@@ -246,7 +273,7 @@ export default function CreateCourse({ course }: { course: CourseFormData }) {
                             </Link>
                             <Button type="submit" disabled={processing} className="w-full sm:w-auto h-11">
                                 <Save className="w-4 h-4 mr-2" />
-                                {processing ? 'Menyimpan...' : 'Simpan Course'}
+                                {processing ? 'Menyimpan...' : (isEdit ? 'Update Course' : 'Simpan Course')}
                             </Button>
                         </div>
                     </div>

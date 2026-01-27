@@ -40,16 +40,6 @@ import { AlerInformation } from "@/components/alert-information";
 interface ClassSession {
     id: number;
     title: string;
-    course_id: number;
-    course?: {
-        id: number,
-        title: string,
-    };
-    coach_id: number
-    coach?: {
-        id: number,
-        name: string,
-    };
     capacity: number;
     created_at: string;
 }
@@ -85,8 +75,7 @@ export default function CoachManagement(props: { class_session: any, total_stude
 
     const filteredClassSessions = class_sessions.filter((c) => {
         const matchesSearch =
-            c.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            c.course?.title.toLowerCase().includes(searchQuery.toLowerCase());
+            c.title.toLowerCase().includes(searchQuery.toLowerCase());
 
         return matchesSearch;
     });
@@ -201,8 +190,6 @@ export default function CoachManagement(props: { class_session: any, total_stude
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead>Kelas</TableHead>
-                                        <TableHead className="hidden md:table-cell">Course</TableHead>
-                                        <TableHead>Coach</TableHead>
                                         <TableHead className="hidden sm:table-cell">Kapasitas</TableHead>
                                         <TableHead className="text-right">Aksi</TableHead>
                                     </TableRow>
@@ -218,17 +205,6 @@ export default function CoachManagement(props: { class_session: any, total_stude
                                                             {total_student.filter((s) => s.class_session_id === class_session.id).length}/{class_session.capacity}
                                                         </p>
                                                     </div>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell className="hidden md:table-cell">
-                                                <div className="flex items-center gap-1 text-sm">
-                                                    <p className="font-medium">{class_session.course?.title}</p>
-                                                </div>
-                                            </TableCell>
-
-                                            <TableCell>
-                                                <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                                    {class_session.coach?.name}
                                                 </div>
                                             </TableCell>
                                             <TableCell className="hidden sm:table-cell">
