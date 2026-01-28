@@ -127,6 +127,7 @@ Route::middleware(['auth', 'verified','role:admin'])->group(function () {
     Route::delete('management-pembayaran/{id}', [PaymentController::class,'destroy'])->name('management-pembayaran.destroy');
     Route::put('management-pembayaran/bayar/{id}', [PaymentController::class,'pay'])->name('management-pembayaran.bayar');
     Route::put('management-pembayaran/fail/{id}', [PaymentController::class,'fail'])->name('management-pembayaran.fail');
+    Route::get('management-pembayaran/invoice/{id}', [PaymentController::class,'invoice'])->name('management-pembayaran.invoice');
 
     // kategori pengeluaran
     Route::get('kategori-pengeluaran', [ExpenseCategoryController::class,'index'])->name('kategori-pengeluaran');

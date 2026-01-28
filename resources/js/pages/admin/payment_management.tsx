@@ -16,7 +16,8 @@ import {
     CheckCircle,
     XCircle,
     TrendingUp,
-    Wallet
+    Wallet,
+    FileText
 } from 'lucide-react';
 import {
     Table,
@@ -358,6 +359,13 @@ export default function PaymentManagement({ payments, filters, totalIncome, pend
                                                             <Link href={`/management-pembayaran/edit/${payment.id}`}>
                                                                 <Button variant="ghost" size="icon" className="h-8 w-8">
                                                                     <Edit className="w-4 h-4" />
+                                                                </Button>
+                                                            </Link>
+                                                        )}
+                                                        {payment.state === 'paid' && (
+                                                            <Link href={`/management-pembayaran/invoice/${payment.id}`}>
+                                                                <Button variant="ghost" size="icon" className="h-8 w-8" title="Lihat Invoice">
+                                                                    <FileText className="w-4 h-4 text-primary" />
                                                                 </Button>
                                                             </Link>
                                                         )}

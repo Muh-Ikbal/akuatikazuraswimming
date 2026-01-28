@@ -84,6 +84,21 @@ class PaymentController extends Controller
         ]);
     }
 
+    public function invoice($id)
+    {
+        $payment = Payment::with(['enrolment_course.member', 'enrolment_course.course', 'enrolment_course.class_session'])
+            ->where('state', 'paid')
+            ->findOrFail($id);
+        
+        // Generate invoice number
+        $invoiceNumber = 'INV-' . str_pad($payment->id, 6, '0', STR_PAD_LEFT);
+        
+        return Inertia::render('admin/payment/invoice', [
+            'payment' => $payment,
+            'invoiceNumber' => $invoiceNumber,
+        ]);
+    }
+
     public function edit($id)
     {
         $payment = Payment::with(['enrolment_course.member', 'enrolment_course.course'])->findOrFail($id);
