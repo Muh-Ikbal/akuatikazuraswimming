@@ -18,16 +18,12 @@ import { useState } from 'react';
 
 interface Attendance {
     id: number;
-    coach_name: string;
+    employee_name: string;
+    role: string;
     class_session: string;
-    course: string;
     scan_time: string;
     date: string;
-}
-
-interface ClassSession {
-    id: number;
-    title: string;
+    state: string;
 }
 
 interface Props {
@@ -38,7 +34,6 @@ interface Props {
         per_page: number;
         total: number;
     };
-    class_sessions: ClassSession[];
     stats: {
         total: number;
         today: number;
@@ -48,20 +43,18 @@ interface Props {
         search: string;
         start_date: string;
         end_date: string;
-        class_session_id: string;
     };
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Kehadiran Coach', href: '/kehadiran-coach' },
+    { title: 'Kehadiran Pegawai', href: '/kehadiran-coach' },
 ];
 
-export default function KehadiranCoach({ attendances, class_sessions, stats, filters }: Props) {
+export default function KehadiranPegawai({ attendances, stats, filters }: Props) {
     const [search, setSearch] = useState(filters.search);
     const [startDate, setStartDate] = useState(filters.start_date);
     const [endDate, setEndDate] = useState(filters.end_date);
-    const [classSessionId, setClassSessionId] = useState(filters.class_session_id);
     const [showFilters, setShowFilters] = useState(false);
 
     const handleFilter = () => {
@@ -69,7 +62,6 @@ export default function KehadiranCoach({ attendances, class_sessions, stats, fil
             search,
             start_date: startDate,
             end_date: endDate,
-            class_session_id: classSessionId,
         }, {
             preserveState: true,
             preserveScroll: true,
@@ -80,7 +72,6 @@ export default function KehadiranCoach({ attendances, class_sessions, stats, fil
         setSearch('');
         setStartDate('');
         setEndDate('');
-        setClassSessionId('');
         router.get('/kehadiran-coach');
     };
 
@@ -109,10 +100,10 @@ export default function KehadiranCoach({ attendances, class_sessions, stats, fil
                     <div>
                         <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
                             <ClipboardList className="w-6 h-6 text-primary" />
-                            Kehadiran Coach
+                            Kehadiran Pegawai
                         </h1>
                         <p className="text-muted-foreground">
-                            Kelola data kehadiran coach
+                            Kelola data kehadiran pegawai
                         </p>
                     </div>
                 </div>
@@ -173,11 +164,11 @@ export default function KehadiranCoach({ attendances, class_sessions, stats, fil
                     </CardHeader>
                     {showFilters && (
                         <CardContent className="p-4 pt-4">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                                 <div className="relative">
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                                     <Input
-                                        placeholder="Cari nama coach..."
+                                        placeholder="Cari nama pegawai..."
                                         value={search}
                                         onChange={(e) => setSearch(e.target.value)}
                                         className="pl-10"
@@ -195,18 +186,6 @@ export default function KehadiranCoach({ attendances, class_sessions, stats, fil
                                     onChange={(e) => setEndDate(e.target.value)}
                                     placeholder="Tanggal Akhir"
                                 />
-                                <select
-                                    className="h-10 px-3 border rounded-md bg-background text-sm border-input"
-                                    value={classSessionId}
-                                    onChange={(e) => setClassSessionId(e.target.value)}
-                                >
-                                    <option value="">Semua Kelas</option>
-                                    {class_sessions.map((session) => (
-                                        <option key={session.id} value={session.id}>
-                                            {session.title}
-                                        </option>
-                                    ))}
-                                </select>
                                 <div className="flex gap-2">
                                     <Button onClick={handleFilter} className="flex-1">
                                         <Search className="w-4 h-4 mr-2" />
@@ -228,9 +207,10 @@ export default function KehadiranCoach({ attendances, class_sessions, stats, fil
                             <table className="w-full">
                                 <thead className="bg-muted/50">
                                     <tr>
-                                        <th className="text-left p-4 font-medium text-sm">Coach</th>
+                                        <th className="text-left p-4 font-medium text-sm">Nama Pegawai</th>
+                                        <th className="text-left p-4 font-medium text-sm">Role</th>
                                         <th className="text-left p-4 font-medium text-sm">Kelas</th>
-                                        <th className="text-left p-4 font-medium text-sm">Course</th>
+                                        <th className="text-left p-4 font-medium text-sm">Status</th>
                                         <th className="text-left p-4 font-medium text-sm">Waktu Scan</th>
                                         <th className="text-center p-4 font-medium text-sm">Aksi</th>
                                     </tr>
@@ -240,12 +220,24 @@ export default function KehadiranCoach({ attendances, class_sessions, stats, fil
                                         attendances.data.map((attendance) => (
                                             <tr key={attendance.id} className="hover:bg-muted/30">
                                                 <td className="p-4">
-                                                    <span className="font-medium">{attendance.coach_name}</span>
+                                                    <span className="font-medium">{attendance.employee_name}</span>
+                                                </td>
+                                                <td className="p-4">
+                                                    <span className="inline-flex items-center px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-900 text-xs font-medium capitalize">
+                                                        {attendance.role == 'coach' ? 'Pelatih' : attendance.role}
+                                                    </span>
                                                 </td>
                                                 <td className="p-4 text-muted-foreground">{attendance.class_session}</td>
-                                                <td className="p-4 text-muted-foreground">{attendance.course}</td>
                                                 <td className="p-4">
-                                                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-medium">
+                                                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${attendance.state === 'present'
+                                                        ? 'bg-green-100 text-green-900'
+                                                        : 'bg-red-100 text-red-900'
+                                                        }`}>
+                                                        {attendance.state === 'present' ? 'Hadir' : 'Terlambat'}
+                                                    </span>
+                                                </td>
+                                                <td className="p-4">
+                                                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs font-medium">
                                                         <CalendarCheck className="w-3 h-3" />
                                                         {attendance.scan_time}
                                                     </span>
@@ -264,7 +256,7 @@ export default function KehadiranCoach({ attendances, class_sessions, stats, fil
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan={5} className="p-8 text-center text-muted-foreground">
+                                            <td colSpan={6} className="p-8 text-center text-muted-foreground">
                                                 <ClipboardList className="w-12 h-12 mx-auto mb-2 opacity-30" />
                                                 <p>Tidak ada data kehadiran</p>
                                             </td>

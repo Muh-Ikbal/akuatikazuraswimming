@@ -8,7 +8,7 @@ use Inertia\Inertia;
 use App\Models\Coach;
 use App\Models\ClassSession;
 use App\Models\Schedule;
-use App\Models\Attendance;
+use App\Models\AttandanceEmployee;
 use Carbon\Carbon;
 
 class CoachScheduleController extends Controller
@@ -35,19 +35,21 @@ class CoachScheduleController extends Controller
         if ($coach) {
             // Get all schedules for this coach (coach is now linked to schedules, not class_sessions)
             $coachSchedules = Schedule::where('coach_id', $coach->id)
-                ->with(['class_session.course', 'class_session.enrolment'])
+                ->with(['class_session.enrolment'])
                 ->get();
             
             // Get unique class sessions from schedules
             $classSessionIds = $coachSchedules->pluck('class_session_id')->unique()->filter();
             $classSessions = ClassSession::whereIn('id', $classSessionIds)
-                ->with(['course', 'enrolment'])
+                ->with(['enrolment'])
                 ->get();
             
             $stats['total_classes'] = $classSessions->count();
              
-            // Get all attendance records for this user (coach)
-            $userAttendances = Attendance::where('user_id', $user->id)->get();
+            // Get all attendance records for this user (coach) using AttandanceEmployee
+            $userAttendances = AttandanceEmployee::where('user_id', $user->id)
+                ->whereIn('schedule_id', $coachSchedules->pluck('id'))
+                ->get();
             
             // Get all schedules from coach's schedules
             foreach ($coachSchedules as $schedule) {
@@ -65,10 +67,6 @@ class CoachScheduleController extends Controller
                         'id' => $classSession->id,
                         'title' => $classSession->title,
                     ] : null,
-                    'course' => $classSession && $classSession->course ? [
-                        'title' => $classSession->course->title,
-                        'total_meeting' => $classSession->course->total_meeting,
-                    ] : null,
                     'total_students' => $classSession ? $classSession->enrolment->count() : 0,
                     'attendance_status' => $attendanceStatus,
                 ]);
@@ -83,26 +81,23 @@ class CoachScheduleController extends Controller
             
             // Collect class info for sidebar from unique class sessions
             foreach ($classSessions as $classSession) {
-                if ($classSession->course) {
-                    // Get schedules for this class session
-                    $classSchedules = $coachSchedules->where('class_session_id', $classSession->id);
-                    $scheduleDays = $this->getScheduleDays($classSchedules);
-                    $firstSchedule = $classSchedules->first();
-                    $scheduleTime = $firstSchedule 
-                        ? Carbon::parse($firstSchedule->time)->format('H:i') . ' - ' . 
-                          ($firstSchedule->end_time ? Carbon::parse($firstSchedule->end_time)->format('H:i') : Carbon::parse($firstSchedule->time)->addHour()->format('H:i'))
-                        : '-';
-                    
-                    $classesInfo[] = [
-                        'class_title' => $classSession->title,
-                        'course_title' => $classSession->course->title,
-                        'total_students' => $classSession->enrolment->count(),
-                        'capacity' => $classSession->capacity,
-                        'schedule_days' => $scheduleDays,
-                        'schedule_time' => $scheduleTime,
-                        'location' => $firstSchedule ? $firstSchedule->location : '-',
-                    ];
-                }
+                // Get schedules for this class session
+                $classSchedules = $coachSchedules->where('class_session_id', $classSession->id);
+                $scheduleDays = $this->getScheduleDays($classSchedules);
+                $firstSchedule = $classSchedules->first();
+                $scheduleTime = $firstSchedule 
+                    ? Carbon::parse($firstSchedule->time)->format('H:i') . ' - ' . 
+                      ($firstSchedule->end_time ? Carbon::parse($firstSchedule->end_time)->format('H:i') : Carbon::parse($firstSchedule->time)->addHour()->format('H:i'))
+                    : '-';
+                
+                $classesInfo[] = [
+                    'class_title' => $classSession->title,
+                    'total_students' => $classSession->enrolment->count(),
+                    'capacity' => $classSession->capacity,
+                    'schedule_days' => $scheduleDays,
+                    'schedule_time' => $scheduleTime,
+                    'location' => $firstSchedule ? $firstSchedule->location : '-',
+                ];
             }
             
             $stats['total_schedules'] = $schedules->count();
@@ -110,7 +105,8 @@ class CoachScheduleController extends Controller
             // Get upcoming schedules (from today onwards)
             $upcomingSchedules = $schedules
                 ->filter(function ($schedule) {
-                    return Carbon::parse($schedule['date'])->gte(today());
+                    return Carbon::parse($schedule['date'])->gte(today()) 
+                        && in_array($schedule['status'], ['published', 'on_going']);
                 })
                 ->sortBy('date')
                 ->take(5)
@@ -132,20 +128,19 @@ class CoachScheduleController extends Controller
     
     /**
      * Get real attendance status for a schedule
-     * Coach attendance is NOT tied to class - just check if they scanned on that date
+     * Matches AttandanceEmployee record by schedule_id
      */
     private function getAttendanceStatus($schedule, $userAttendances)
     {
         $scheduleDate = Carbon::parse($schedule->date);
-        
-        // Check if coach has any attendance record on this date (not tied to specific class)
-        $hasAttendance = $userAttendances->first(function ($attendance) use ($scheduleDate) {
-            $scanDate = Carbon::parse($attendance->scan_time)->toDateString();
-            return $scanDate == $scheduleDate->toDateString();
+
+        // Check if coach has an attendance record for this specific schedule
+        $hasAttendance = $userAttendances->first(function ($attendance) use ($schedule) {
+            return $attendance->schedule_id == $schedule->id;
         });
         
         if ($hasAttendance) {
-            return 'present';
+            return $hasAttendance->state;
         }
         
         if ($schedule->status === 'completed') {

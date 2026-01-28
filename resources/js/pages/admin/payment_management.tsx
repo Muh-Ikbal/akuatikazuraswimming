@@ -397,19 +397,19 @@ export default function PaymentManagement({ payments, filters, totalIncome, pend
                             <PaginationContent className="flex-wrap justify-center gap-1">
                                 <PaginationItem>
                                     <PaginationPrevious
-                                        href={payments.prev_page_url || '#'}
-                                        className={!payments.prev_page_url ? 'pointer-events-none opacity-50' : ''}
+                                        onClick={() => payments.prev_page_url && setPage(page - 1)}
+                                        className={!payments.prev_page_url ? 'pointer-events-none opacity-50 cursor-not-allowed' : 'cursor-pointer'}
                                     />
                                 </PaginationItem>
                                 <PaginationItem>
-                                    <PaginationLink href="#" isActive>
+                                    <PaginationLink isActive>
                                         {payments.current_page}
                                     </PaginationLink>
                                 </PaginationItem>
                                 <PaginationItem>
                                     <PaginationNext
-                                        href={payments.next_page_url || '#'}
-                                        className={!payments.next_page_url ? 'pointer-events-none opacity-50' : ''}
+                                        onClick={() => payments.next_page_url && setPage(page + 1)}
+                                        className={!payments.next_page_url ? 'pointer-events-none opacity-50 cursor-not-allowed' : 'cursor-pointer'}
                                     />
                                 </PaginationItem>
                             </PaginationContent>

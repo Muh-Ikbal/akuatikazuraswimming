@@ -63,22 +63,20 @@ class ScanQRController extends Controller
                 'attendanceToday' => $attendanceToday,
             ]);
         }
-
         
 
-        
-
-        
-
-        $classSessions = ClassSession::whereHas('enrolment.member', function ($query) use ($user) {
-            $query->where('user_id', $user->id);
+        // Ambil class session hanya dari enrolment yang masih aktif (on_progress)
+        $classSessions = ClassSession::whereHas('enrolment', function ($query) use ($user) {
+            $query->whereHas('member', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            })->where('state', 'on_progress');
         })
         ->first();
 
         if(!$classSessions ){
             return back()->with('scan_result', [
                 'success' => false,
-                'message' => 'Anda tidak terdaftar di kelas mana pun',
+                'message' => 'Anda tidak memiliki kelas aktif saat ini',
                 'member' => $user->name,
                 'attendanceToday' => $attendanceToday,
             ]);
@@ -90,10 +88,6 @@ class ScanQRController extends Controller
             ->whereTime('time', '<=', now())
             ->whereTime('end_time', '>=', now())
             ->first();
-
-
-
-
 
         if(!$todaySchedule ){
             return back()->with('scan_result', [
@@ -114,31 +108,29 @@ class ScanQRController extends Controller
         if ($alreadyAttend) {
             return back()->with('scan_result', [
                 'success' => false,
-                'message' => 'Anda sudah melakukan absensi hari ini',
+                'message' => 'Anda sudah melakukan absensi pada sesi ini',
                 'member' => $user->name,
                 'attendanceToday' => $attendanceToday,
             ]);
         }
-        // else if($role[0] == 'coach'){
-        //     $classSessions = ClassSession::whereHas('coach', function ($query) use ($user) {
-        //     $query->where('user_id', $user->id);
-        // })
-        // ->first();
 
-        //     if(!$classSessions ){
-        //         return back()->with('scan_result', [
-        //             'success' => false,
-        //             'message' => 'Anda tidak terdaftar di kelas mana pun',
-        //             'member' => $user->name,
-        //             'attendanceToday' => $attendanceToday,
-        //         ]);
-        //     }
-        // }
-
+        // Ambil enrolment berdasarkan class session yang sedang dihadiri
         $enrolmentCourse = EnrolmentCourse::whereHas('member', function ($query) use ($user) {
             $query->where('user_id', $user->id);
         })
+            ->where('class_session_id', $classSessions->id)
+            ->where('state', 'on_progress')
             ->first();
+
+        // Validasi enrolment
+        if (!$enrolmentCourse) {
+            return back()->with('scan_result', [
+                'success' => false,
+                'message' => 'Anda tidak memiliki pendaftaran kursus aktif untuk kelas ini',
+                'member' => $user->name,
+                'attendanceToday' => $attendanceToday,
+            ]);
+        }
 
         $enrolmentCourse->update([
             'meeting_count' => $enrolmentCourse->meeting_count + 1,

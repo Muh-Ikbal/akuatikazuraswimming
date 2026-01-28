@@ -328,11 +328,11 @@ export default function MemberManagement(props: Props) {
                                             </TableCell>
                                             <TableCell className="hidden xl:table-cell">
                                                 {member.user ? (
-                                                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                                                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-900">
                                                         Aktif
                                                     </span>
                                                 ) : (
-                                                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+                                                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-900">
                                                         Tidak Ada
                                                     </span>
                                                 )}

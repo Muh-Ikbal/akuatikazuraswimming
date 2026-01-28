@@ -7,8 +7,6 @@ import {
     Calendar,
     CheckCircle,
     Clock,
-    LogIn,
-    LogOut,
     AlertTriangle
 } from 'lucide-react';
 import {
@@ -140,8 +138,7 @@ export default function RiwayatAbsensiCoach({ attendanceRecords, stats }: Props)
                                     <TableHeader>
                                         <TableRow>
                                             <TableHead>Tanggal</TableHead>
-                                            <TableHead>Jam Masuk</TableHead>
-                                            <TableHead>Jam Pulang</TableHead>
+                                            <TableHead>Jam Absen</TableHead>
                                             <TableHead>Status</TableHead>
                                         </TableRow>
                                     </TableHeader>
@@ -152,20 +149,10 @@ export default function RiwayatAbsensiCoach({ attendanceRecords, stats }: Props)
                                                     {formatDate(record.date)}
                                                 </TableCell>
                                                 <TableCell>
-                                                    <div className="flex items-center gap-2 text-green-600">
-                                                        <LogIn className="h-4 w-4" />
+                                                    <div className="flex items-center gap-2 text-blue-600">
+                                                        <Clock className="h-4 w-4" />
                                                         {record.check_in_time}
                                                     </div>
-                                                </TableCell>
-                                                <TableCell>
-                                                    {record.check_out_time ? (
-                                                        <div className="flex items-center gap-2 text-blue-600">
-                                                            <LogOut className="h-4 w-4" />
-                                                            {record.check_out_time}
-                                                        </div>
-                                                    ) : (
-                                                        <span className="text-muted-foreground">-</span>
-                                                    )}
                                                 </TableCell>
                                                 <TableCell>
                                                     {getStatusBadge(record.state)}

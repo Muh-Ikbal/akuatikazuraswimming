@@ -120,25 +120,25 @@ export default function ScheduleManagement(props: { schedules: any }) {
                 return {
                     label: 'Dijadwalkan',
                     icon: <FileText className="w-3 h-3" />,
-                    className: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                    className: 'bg-blue-100 text-blue-900'
                 };
             case 'on_going':
                 return {
                     label: 'Berlangsung',
                     icon: <PlayCircle className="w-3 h-3" />,
-                    className: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                    className: 'bg-yellow-100 text-yellow-900'
                 };
             case 'completed':
                 return {
                     label: 'Selesai',
                     icon: <CheckCircle className="w-3 h-3" />,
-                    className: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                    className: 'bg-green-100 text-green-900'
                 };
             case 'cancelled':
                 return {
                     label: 'Dibatalkan',
                     icon: <XCircle className="w-3 h-3" />,
-                    className: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                    className: 'bg-red-100 text-red-900'
                 };
             default:
                 return {

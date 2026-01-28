@@ -56,7 +56,7 @@ interface Coach {
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Coach Management',
+        title: 'Management Pelatih',
         href: '/management-coach',
     },
 ];
@@ -149,14 +149,14 @@ export default function CoachManagement(props: { coaches: any, coachStats: any, 
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Coach Management" />
+            <Head title="Management Kursus" />
             <div className="p-6 space-y-6">
                 {/* Header */}
                 <AlerInformation flash={flash} />
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
                         <h1 className="text-2xl font-bold text-foreground">
-                            Manajemen Coach
+                            Manajemen Pelatih
                         </h1>
                         <p className="text-muted-foreground">
                             Kelola data pelatih renang
@@ -167,7 +167,7 @@ export default function CoachManagement(props: { coaches: any, coachStats: any, 
                         <Link href="/management-coach/create">
                             <Button>
                                 <Plus className="w-4 h-4 mr-2" />
-                                Tambah Coach
+                                Tambah Pelatih
                             </Button>
                         </Link>
                     </div>
@@ -182,7 +182,7 @@ export default function CoachManagement(props: { coaches: any, coachStats: any, 
                             </div>
                             <div>
                                 <div className="text-2xl font-bold">{coachStats.length}</div>
-                                <div className="text-sm text-muted-foreground">Total Coach</div>
+                                <div className="text-sm text-muted-foreground">Total Pelatih</div>
                             </div>
                         </CardContent>
                     </Card>
@@ -220,7 +220,7 @@ export default function CoachManagement(props: { coaches: any, coachStats: any, 
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                                     <Input
                                         id="search"
-                                        placeholder="Cari coach..."
+                                        placeholder="Cari pelatih..."
                                         className="pl-10"
                                         value={searchQuery}
                                         onChange={onSearchChange}
@@ -252,7 +252,7 @@ export default function CoachManagement(props: { coaches: any, coachStats: any, 
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead>Coach</TableHead>
+                                        <TableHead>Pelatih</TableHead>
                                         <TableHead className="hidden md:table-cell">Umur</TableHead>
                                         <TableHead>Gender</TableHead>
                                         <TableHead className="hidden sm:table-cell">No HP</TableHead>

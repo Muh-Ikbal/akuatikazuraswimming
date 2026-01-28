@@ -33,22 +33,14 @@ class CoachAttendanceHistoryController extends Controller
             $stats['total_present'] = $attendances->where('state', 'present')->count();
             $stats['total_late'] = $attendances->where('state', 'late')->count();
             
-            // Group by date to show check-in and check-out
-            $groupedByDate = $attendances->groupBy(function ($attendance) {
-                return Carbon::parse($attendance->scan_time)->toDateString();
-            });
-            
-            foreach ($groupedByDate as $date => $records) {
-                $checkIn = $records->first(); // First scan = check-in
-                $checkOut = $records->count() > 1 ? $records->last() : null; // Second scan = check-out
-                
+            // Each record is a separate attendance entry
+            foreach ($attendances as $attendance) {
                 $attendanceRecords->push([
-                    'id' => $checkIn->id,
-                    'date' => $date,
-                    'check_in_time' => Carbon::parse($checkIn->scan_time)->format('H:i:s'),
-                    'check_out_time' => $checkOut ? Carbon::parse($checkOut->scan_time)->format('H:i:s') : null,
-                    'state' => $checkIn->state,
-                    'status' => $checkIn->state === 'present' ? 'Tepat Waktu' : 'Terlambat',
+                    'id' => $attendance->id,
+                    'date' => Carbon::parse($attendance->scan_time)->toDateString(),
+                    'check_in_time' => Carbon::parse($attendance->scan_time)->format('H:i:s'),
+                    'state' => $attendance->state,
+                    'status' => $attendance->state === 'present' ? 'Tepat Waktu' : 'Terlambat',
                 ]);
             }
         }

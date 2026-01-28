@@ -397,11 +397,11 @@ export default function ScanQREmployee({ attendanceToday: initialAttendance }: P
                                     </li>
                                     <li className="flex items-start gap-2">
                                         <span className="text-orange-500">•</span>
-                                        Maksimal 2x scan per hari (masuk & pulang)
+                                        Maksimal 2x scan per hari (pagi & sore)
                                     </li>
                                     <li className="flex items-start gap-2">
                                         <span className="text-orange-500">•</span>
-                                        Absen setelah 08:30 akan tercatat terlambat
+                                        Absen setelah 07:40 dan 15:40 akan tercatat terlambat
                                     </li>
                                 </ul>
                             </CardContent>

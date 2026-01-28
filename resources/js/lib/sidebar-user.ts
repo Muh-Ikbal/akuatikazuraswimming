@@ -1,4 +1,4 @@
-import { LayoutGrid, UserCheck, UserCog, Users, BookOpen, Calendar, School, Banknote, Contact, HandCoins, PiggyBank, Landmark, QrCode, GraduationCap, Home, Star, Phone, ClipboardCheck, ClipboardList } from 'lucide-react';
+import { LayoutGrid, UserCheck, UserCog, Users, BookOpen, Calendar, School, Banknote, Contact, HandCoins, PiggyBank, Landmark, QrCode, GraduationCap, Home, Star, Phone, ClipboardCheck, ClipboardList, Percent, ScanBarcode, ScanLine } from 'lucide-react';
 import { type NavGroup } from '@/types';
 import { dashboard } from '@/routes';
 
@@ -49,7 +49,7 @@ const adminNavItems: NavGroup[] = [
                 icon: ClipboardCheck,
             },
             {
-                title: 'Kehadiran Pelatih',
+                title: 'Kehadiran Pegawai',
                 href: '/kehadiran-coach',
                 icon: ClipboardList,
             },
@@ -77,6 +77,11 @@ const adminNavItems: NavGroup[] = [
                 title: 'Kategori Pengeluaran',
                 href: '/kategori-pengeluaran',
                 icon: HandCoins,
+            },
+            {
+                title: 'Promo',
+                href: '/management-promo',
+                icon: Percent,
             },
             {
                 title: 'Pengguna',
@@ -193,14 +198,19 @@ const operatorNavItems: NavGroup[] = [
                 icon: LayoutGrid,
             },
             {
-                title: 'Scan QR',
-                href: '/scan-qr-member',
+                title: 'QR Code',
+                href: '/qr-code',
                 icon: QrCode,
             },
             {
-                title: 'Scan Qr Pegawai',
+                title: 'Scan QR Member',
+                href: '/scan-qr-member',
+                icon: ScanBarcode,
+            },
+            {
+                title: 'Scan QR Pegawai',
                 href: '/scan-qr-pegawai',
-                icon: QrCode,
+                icon: ScanLine,
             }
         ]
     },

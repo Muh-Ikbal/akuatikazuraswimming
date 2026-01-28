@@ -12,9 +12,25 @@ use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::with('roles')->paginate(10);
+        $search = $request->query('search');
+        $role = $request->query('role');
+        
+        $users = User::with('roles')
+            ->when($search, function($query, $search) {
+                $query->where(function($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%");
+                });
+            })
+            ->when($role && $role !== 'all', function($query) use ($role) {
+                $query->whereHas('roles', function($q) use ($role) {
+                    $q->where('name', $role);
+                });
+            })
+            ->paginate(10)
+            ->withQueryString();
         $roles = Role::all();
 
         $userStats = DB::table('users')
@@ -35,7 +51,11 @@ class UserController extends Controller
         return Inertia::render('admin/user_management', [
             'users' => $users,
             'roles' => $roles,
-            'stats' => $userStats
+            'stats' => $userStats,
+            'filters' => [
+                'search' => $search,
+                'role' => $role,
+            ],
         ]);
     }
 

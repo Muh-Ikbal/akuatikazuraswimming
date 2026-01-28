@@ -27,13 +27,21 @@ class MemberScheduleController extends Controller
         $schedules = collect();
         $courseInfo = null;
         $upcomingSchedules = collect();
-        
-        // Get all attendance records for this user
-        $userAttendances = Attendance::where('user_id', $user->id)->get();
+        $userAttendances = collect();
         
         if ($member) {
+            // Only get enrolments that are currently on_progress
             $enrolments = EnrolmentCourse::where('member_id', $member->id)
-                ->with(['class_session.course', 'class_session.coach', 'class_session.schedule'])
+                ->where('state', 'on_progress')
+                ->with(['class_session.schedule.coach', 'course'])
+                ->get();
+            
+            // Get enrolment IDs that are on_progress
+            $onProgressEnrolmentIds = $enrolments->pluck('id')->toArray();
+            
+            // Get attendance records only for on_progress enrolments
+            $userAttendances = Attendance::where('user_id', $user->id)
+                ->whereIn('enrolment_course_id', $onProgressEnrolmentIds)
                 ->get();
             
             // Get all schedules from enrolled class sessions
@@ -49,8 +57,9 @@ class MemberScheduleController extends Controller
                             'status' => $schedule->status,
                             'class_session' => $enrolment->class_session,
                             'class_session_id' => $enrolment->class_session->id,
-                            'course' => $enrolment->class_session->course,
-                            'coach' => $enrolment->class_session->coach,
+                            'course' => $enrolment->course,
+                            'coach' => $schedule->coach,
+                            'enrolment_state' => $enrolment->state,
                             // Real attendance status from database
                             'attendance_status' => $this->getAttendanceStatus(
                                 $schedule, 
@@ -60,17 +69,18 @@ class MemberScheduleController extends Controller
                         ]);
                     }
                     
-                    // Get first enrolled course info for sidebar
-                    if (!$courseInfo && $enrolment->class_session->course) {
-                        $course = $enrolment->class_session->course;
-                        $coach = $enrolment->class_session->coach;
+                    // Get first enrolled course info for sidebar (only on_progress)
+                    if (!$courseInfo && $enrolment->course && $enrolment->state === 'on_progress') {
+                        $course = $enrolment->course;
                         $classSession = $enrolment->class_session;
+                        $firstSchedule = $classSession->schedule->first();
+                        $coach = $firstSchedule ? $firstSchedule->coach : null;
                         
                         // Get schedule days (e.g., "Selasa & Kamis")
                         $scheduleDays = $this->getScheduleDays($classSession->schedule);
-                        $scheduleTime = $classSession->schedule->first() 
-                            ? Carbon::parse($classSession->schedule->first()->time)->format('H:i') . ' - ' . 
-                              Carbon::parse($classSession->schedule->first()->time)->addHour()->format('H:i')
+                        $scheduleTime = $firstSchedule 
+                            ? Carbon::parse($firstSchedule->time)->format('H:i') . ' - ' . 
+                              Carbon::parse($firstSchedule->time)->addHour()->format('H:i')
                             : '-';
                         
                         $courseInfo = [
@@ -79,8 +89,8 @@ class MemberScheduleController extends Controller
                             'coach_name' => $coach ? $coach->name : '-',
                             'schedule_days' => $scheduleDays,
                             'schedule_time' => $scheduleTime,
-                            'location' => $classSession->schedule->first() 
-                                ? $classSession->schedule->first()->location 
+                            'location' => $firstSchedule 
+                                ? $firstSchedule->location 
                                 : '-',
                             'total_meeting' => $course->total_meeting,
                             'class_title' => $classSession->title,
@@ -89,18 +99,21 @@ class MemberScheduleController extends Controller
                 }
             }
             
-            // Get upcoming schedules (from today onwards)
+            
+            // Get upcoming schedules (from today onwards, exclude completed/cancelled)
             $upcomingSchedules = $schedules
                 ->filter(function ($schedule) {
-                    return Carbon::parse($schedule['date'])->gte(today());
+                    return Carbon::parse($schedule['date'])->gte(today()) 
+                        && in_array($schedule['status'], ['published', 'on_going']);
                 })
+                ->unique('id')
                 ->sortBy('date')
                 ->take(5)
                 ->values();
         }
-        
-        // Group schedules by date for calendar
-        $schedulesByDate = $schedules->groupBy('date');
+            
+        // Group schedules by date for calendar (remove duplicates first)
+        $schedulesByDate = $schedules->unique('id')->groupBy('date');
         
         return Inertia::render('member/jadwal', [
             'schedulesByDate' => $schedulesByDate,
@@ -118,14 +131,12 @@ class MemberScheduleController extends Controller
      */
     private function getAttendanceStatus($schedule, $classSessionId, $userAttendances)
     {
-        // Check if user has attendance record for this class session on this date
-        $scheduleDateString = Carbon::parse($schedule->date)->format('Y-m-d');
         $scheduleDate = Carbon::parse($schedule->date)->startOfDay();
         $today = Carbon::today();
         
-        $hasAttendance = $userAttendances->first(function ($attendance) use ($classSessionId, $scheduleDateString) {
-            $scanDateString = Carbon::parse($attendance->scan_time)->format('Y-m-d');
-            return $attendance->class_session_id == $classSessionId && $scanDateString === $scheduleDateString;
+        // Check attendance by schedule_id (more accurate)
+        $hasAttendance = $userAttendances->first(function ($attendance) use ($schedule) {
+            return $attendance->schedule_id == $schedule->id;
         });
         
         // If has attendance record → present (green)

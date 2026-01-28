@@ -63,11 +63,11 @@ export default function CreateCoach({ coach, users = [] }: Props) {
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
-            title: 'Coach Management',
+            title: 'Management Pelatih',
             href: '/management-coach',
         },
         {
-            title: isEdit ? 'Edit Coach' : 'Tambah Coach',
+            title: isEdit ? 'Edit Pelatih' : 'Tambah Pelatih',
             href: isEdit ? `/management-coach/edit/${coach?.id}` : '/management-coach/create',
         },
     ];
@@ -203,7 +203,7 @@ export default function CreateCoach({ coach, users = [] }: Props) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={isEdit ? "Edit Coach" : "Tambah Coach"} />
+            <Head title={isEdit ? "Edit Pelatih" : "Tambah Pelatih"} />
             <div className="p-4 sm:p-6">
                 {/* Header */}
                 <div className="flex items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
@@ -214,22 +214,22 @@ export default function CreateCoach({ coach, users = [] }: Props) {
                     </Link>
                     <div className="min-w-0">
                         <h1 className="text-xl sm:text-2xl font-bold text-foreground truncate">
-                            {isEdit ? 'Edit Coach' : 'Tambah Coach Baru'}
+                            {isEdit ? 'Edit Pelatih' : 'Tambah Pelatih Baru'}
                         </h1>
                         <p className="text-sm sm:text-base text-muted-foreground">
-                            {isEdit ? 'Perbarui data coach' : 'Lengkapi form berikut untuk mendaftarkan coach baru'}
+                            {isEdit ? 'Perbarui data pelatih' : 'Lengkapi form berikut untuk mendaftarkan pelatih baru'}
                         </p>
                     </div>
                 </div>
 
                 <form onSubmit={handleSubmit}>
                     <div className="grid gap-4 sm:gap-6">
-                        {/* Data Coach */}
+                        {/* Data Pelatih */}
                         <Card>
                             <CardHeader className="p-4 sm:p-6">
                                 <CardTitle className="text-base sm:text-lg flex items-center gap-2">
                                     <User className="w-5 h-5" />
-                                    Data Coach
+                                    Data Pelatih
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0 space-y-4">
@@ -271,7 +271,7 @@ export default function CreateCoach({ coach, users = [] }: Props) {
                                             className="hidden"
                                         />
                                         <div className="text-sm text-muted-foreground">
-                                            <p>Upload foto coach</p>
+                                            <p>Upload foto pelatih</p>
                                             <p className="text-xs">JPG, PNG max 2MB</p>
                                         </div>
                                     </div>
@@ -388,7 +388,7 @@ export default function CreateCoach({ coach, users = [] }: Props) {
                                         Akun Login
                                     </CardTitle>
                                     <CardDescription className="mt-1">
-                                        Buat akun login untuk coach ini
+                                        Buat akun login untuk pelatih ini
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0 space-y-4">
@@ -450,7 +450,7 @@ export default function CreateCoach({ coach, users = [] }: Props) {
                                     </div>
 
                                     <p className="text-xs text-muted-foreground">
-                                        Akun akan dibuat dengan role <strong>coach</strong>
+                                        Akun akan dibuat dengan role <strong>pelatih</strong>
                                     </p>
                                 </CardContent>
                             </Card>

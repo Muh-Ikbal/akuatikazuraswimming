@@ -138,25 +138,25 @@ export default function EnrolmentManagement(props: props) {
                 return {
                     label: 'Berlangsung',
                     icon: <Clock className="w-3 h-3" />,
-                    className: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                    className: 'bg-blue-100 text-blue-900'
                 };
             case 'completed':
                 return {
                     label: 'Selesai',
                     icon: <CheckCircle className="w-3 h-3" />,
-                    className: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                    className: 'bg-green-100 text-green-900'
                 };
             case 'cancelled':
                 return {
                     label: 'Dibatalkan',
                     icon: <XCircle className="w-3 h-3" />,
-                    className: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                    className: 'bg-red-100 text-red-900'
                 };
             default:
                 return {
                     label: state,
                     icon: <AlertCircle className="w-3 h-3" />,
-                    className: 'bg-gray-100 text-gray-700'
+                    className: 'bg-gray-100 text-gray-900'
                 };
         }
     };

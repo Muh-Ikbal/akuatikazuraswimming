@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
@@ -63,6 +63,16 @@ interface Role {
     name: string;
 }
 
+interface Props {
+    users: any;
+    roles: Role[];
+    stats: any;
+    filters?: {
+        search?: string;
+        role?: string;
+    };
+}
+
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Management User',
@@ -77,21 +87,35 @@ const roleColors: Record<string, string> = {
     operator: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
 };
 
-export default function UserManagement(props: { users: any; roles: Role[], stats: any }) {
-    const [searchQuery, setSearchQuery] = useState("");
-    const [filterRole, setFilterRole] = useState<string>("all");
+export default function UserManagement({ users, roles, stats, filters }: Props) {
+    const [searchQuery, setSearchQuery] = useState(filters?.search || "");
+    const [filterRole, setFilterRole] = useState<string>(filters?.role || "all");
     const [viewMode, setViewMode] = useState<"card" | "table">("table");
+    const [isInitialMount, setIsInitialMount] = useState(true);
 
-    const users: User[] = props.users.data;
+    const userList: User[] = users.data;
 
-    const filteredUsers = users.filter((u) => {
-        const matchesSearch =
-            u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            u.email.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesRole =
-            filterRole === "all" || u.roles.some(r => r.name === filterRole);
-        return matchesSearch && matchesRole;
-    });
+    // Server-side search with debounce
+    useEffect(() => {
+        // Skip on initial mount
+        if (isInitialMount) {
+            setIsInitialMount(false);
+            return;
+        }
+
+        const delayDebounceFn = setTimeout(() => {
+            router.get('/management-user', {
+                search: searchQuery || undefined,
+                role: filterRole !== 'all' ? filterRole : undefined,
+            }, {
+                preserveState: true,
+                preserveScroll: true,
+                replace: true,
+            });
+        }, 300);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [searchQuery, filterRole]);
 
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('id-ID', {
@@ -115,7 +139,7 @@ export default function UserManagement(props: { users: any; roles: Role[], stats
     };
 
     // Count users by role
-    // const roleStats = props.stats.map(role => ({
+    // const roleStats = stats.map(role => ({
     //     name: role.name,
     //     count: users.filter(u => u.roles.some(r => r.name === role.name)).length
     // }));
@@ -153,7 +177,7 @@ export default function UserManagement(props: { users: any; roles: Role[], stats
                                 <Users className="w-6 h-6 text-primary" />
                             </div>
                             <div>
-                                <div className="text-2xl font-bold">{props.stats.total}</div>
+                                <div className="text-2xl font-bold">{stats.total}</div>
                                 <div className="text-sm text-muted-foreground">Total User</div>
                             </div>
                         </CardContent>
@@ -164,7 +188,7 @@ export default function UserManagement(props: { users: any; roles: Role[], stats
                                 <Shield className="w-6 h-6 text-red-700 " />
                             </div>
                             <div>
-                                <div className="text-2xl font-bold">{props.stats.admin_count}</div>
+                                <div className="text-2xl font-bold">{stats.admin_count}</div>
                                 <div className="text-sm text-muted-foreground">Admin</div>
                             </div>
                         </CardContent>
@@ -175,8 +199,8 @@ export default function UserManagement(props: { users: any; roles: Role[], stats
                                 <Shield className="w-6 h-6 text-blue-700" />
                             </div>
                             <div>
-                                <div className="text-2xl font-bold">{props.stats.coach_count}</div>
-                                <div className="text-sm text-muted-foreground">Coach</div>
+                                <div className="text-2xl font-bold">{stats.coach_count}</div>
+                                <div className="text-sm text-muted-foreground">Pelatih</div>
                             </div>
                         </CardContent>
                     </Card>
@@ -186,7 +210,7 @@ export default function UserManagement(props: { users: any; roles: Role[], stats
                                 <Shield className="w-6 h-6 text-green-700" />
                             </div>
                             <div>
-                                <div className="text-2xl font-bold">{props.stats.member_count}</div>
+                                <div className="text-2xl font-bold">{stats.member_count}</div>
                                 <div className="text-sm text-muted-foreground">Member</div>
                             </div>
                         </CardContent>
@@ -197,7 +221,7 @@ export default function UserManagement(props: { users: any; roles: Role[], stats
                                 <Shield className="w-6 h-6 text-purple-700" />
                             </div>
                             <div>
-                                <div className="text-2xl font-bold">{props.stats.operator_count}</div>
+                                <div className="text-2xl font-bold">{stats.operator_count}</div>
                                 <div className="text-sm text-muted-foreground">Operator</div>
                             </div>
                         </CardContent>
@@ -245,7 +269,7 @@ export default function UserManagement(props: { users: any; roles: Role[], stats
                                     onChange={(e) => setFilterRole(e.target.value)}
                                 >
                                     <option value="all">Semua Role</option>
-                                    {props.roles.map((role) => (
+                                    {roles.map((role) => (
                                         <option key={role.id} value={role.name} className="capitalize">
                                             {role.name}
                                         </option>
@@ -280,7 +304,7 @@ export default function UserManagement(props: { users: any; roles: Role[], stats
                 {/* Card View */}
                 {viewMode === "card" && (
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {filteredUsers.map((user) => (
+                        {userList.map((user) => (
                             <Card key={user.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                                 <CardContent className="p-5">
                                     {/* User Avatar & Name */}
@@ -302,7 +326,7 @@ export default function UserManagement(props: { users: any; roles: Role[], stats
                                         <div className="flex flex-wrap gap-2">
                                             {user.roles.map((role) => (
                                                 <span key={role.id}>
-                                                    {getRoleBadge(role.name)}
+                                                    {getRoleBadge(role.name == 'coach' ? 'Pelatih' : role.name)}
                                                 </span>
                                             ))}
                                             {user.roles.length === 0 && (
@@ -352,7 +376,7 @@ export default function UserManagement(props: { users: any; roles: Role[], stats
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {filteredUsers.map((user) => (
+                                        {userList.map((user) => (
                                             <TableRow key={user.id}>
                                                 <TableCell>
                                                     <div className="flex items-center gap-3">
@@ -407,29 +431,29 @@ export default function UserManagement(props: { users: any; roles: Role[], stats
                 )}
 
                 {/* Pagination */}
-                {props.users.last_page > 1 && (
+                {users.last_page > 1 && (
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4">
                         <p className="text-sm text-muted-foreground order-2 sm:order-1">
-                            Menampilkan {props.users.from} - {props.users.to} dari {props.users.total} user
+                            Menampilkan {users.from} - {users.to} dari {users.total} user
                         </p>
                         <Pagination className="order-1 sm:order-2">
                             <PaginationContent className="flex-wrap justify-center gap-1">
                                 <PaginationItem>
                                     <PaginationPrevious
-                                        href={props.users.prev_page_url || '#'}
-                                        className={!props.users.prev_page_url ? 'pointer-events-none opacity-50' : ''}
+                                        href={users.prev_page_url || '#'}
+                                        className={!users.prev_page_url ? 'pointer-events-none opacity-50' : ''}
                                     />
                                 </PaginationItem>
 
                                 {/* First page */}
-                                {props.users.current_page > 2 && (
+                                {users.current_page > 2 && (
                                     <>
                                         <PaginationItem className="hidden sm:block">
                                             <PaginationLink href={`/management-user?page=1`}>
                                                 1
                                             </PaginationLink>
                                         </PaginationItem>
-                                        {props.users.current_page > 3 && (
+                                        {users.current_page > 3 && (
                                             <PaginationItem className="hidden sm:block">
                                                 <PaginationEllipsis />
                                             </PaginationItem>
@@ -438,10 +462,10 @@ export default function UserManagement(props: { users: any; roles: Role[], stats
                                 )}
 
                                 {/* Previous page */}
-                                {props.users.current_page > 1 && (
+                                {users.current_page > 1 && (
                                     <PaginationItem className="hidden sm:block">
-                                        <PaginationLink href={props.users.prev_page_url || '#'}>
-                                            {props.users.current_page - 1}
+                                        <PaginationLink href={users.prev_page_url || '#'}>
+                                            {users.current_page - 1}
                                         </PaginationLink>
                                     </PaginationItem>
                                 )}
@@ -449,30 +473,30 @@ export default function UserManagement(props: { users: any; roles: Role[], stats
                                 {/* Current page */}
                                 <PaginationItem>
                                     <PaginationLink href="#" isActive>
-                                        {props.users.current_page}
+                                        {users.current_page}
                                     </PaginationLink>
                                 </PaginationItem>
 
                                 {/* Next page */}
-                                {props.users.current_page < props.users.last_page && (
+                                {users.current_page < users.last_page && (
                                     <PaginationItem className="hidden sm:block">
-                                        <PaginationLink href={props.users.next_page_url || '#'}>
-                                            {props.users.current_page + 1}
+                                        <PaginationLink href={users.next_page_url || '#'}>
+                                            {users.current_page + 1}
                                         </PaginationLink>
                                     </PaginationItem>
                                 )}
 
                                 {/* Last page */}
-                                {props.users.current_page < props.users.last_page - 1 && (
+                                {users.current_page < users.last_page - 1 && (
                                     <>
-                                        {props.users.current_page < props.users.last_page - 2 && (
+                                        {users.current_page < users.last_page - 2 && (
                                             <PaginationItem className="hidden sm:block">
                                                 <PaginationEllipsis />
                                             </PaginationItem>
                                         )}
                                         <PaginationItem className="hidden sm:block">
-                                            <PaginationLink href={`/management-user?page=${props.users.last_page}`}>
-                                                {props.users.last_page}
+                                            <PaginationLink href={`/management-user?page=${users.last_page}`}>
+                                                {users.last_page}
                                             </PaginationLink>
                                         </PaginationItem>
                                     </>
@@ -480,8 +504,8 @@ export default function UserManagement(props: { users: any; roles: Role[], stats
 
                                 <PaginationItem>
                                     <PaginationNext
-                                        href={props.users.next_page_url || '#'}
-                                        className={!props.users.next_page_url ? 'pointer-events-none opacity-50' : ''}
+                                        href={users.next_page_url || '#'}
+                                        className={!users.next_page_url ? 'pointer-events-none opacity-50' : ''}
                                     />
                                 </PaginationItem>
                             </PaginationContent>

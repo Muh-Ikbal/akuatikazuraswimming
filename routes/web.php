@@ -175,6 +175,14 @@ Route::middleware(['auth', 'verified','role:admin'])->group(function () {
     Route::get('kehadiran-coach', [\App\Http\Controllers\AdminCoachAttendanceController::class, 'index'])->name('kehadiran-coach');
     Route::delete('kehadiran-coach/{id}', [\App\Http\Controllers\AdminCoachAttendanceController::class, 'destroy'])->name('kehadiran-coach.destroy');
 
+    // Management Promo
+    Route::get('management-promo', [\App\Http\Controllers\PromoController::class,'index'])->name('management-promo');
+    Route::get('management-promo/create', [\App\Http\Controllers\PromoController::class,'create'])->name('management-promo.create');
+    Route::post('management-promo', [\App\Http\Controllers\PromoController::class,'store'])->name('management-promo.store');
+    Route::get('management-promo/edit/{id}', [\App\Http\Controllers\PromoController::class,'edit'])->name('management-promo.edit');
+    Route::put('management-promo/update/{id}', [\App\Http\Controllers\PromoController::class,'update'])->name('management-promo.update');
+    Route::delete('management-promo/{id}', [\App\Http\Controllers\PromoController::class,'destroy'])->name('management-promo.destroy');
+
 });
 
 Route::middleware(['auth', 'verified','role:member'])->group(function () {

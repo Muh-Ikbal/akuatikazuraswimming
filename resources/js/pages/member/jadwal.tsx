@@ -91,20 +91,48 @@ export default function Jadwal({
         return days;
     }, [month, year]);
 
-    // Get schedule status for a specific date
+    // Get schedule status for a specific date (handles multiple sessions)
     const getDateInfo = (day: number) => {
         const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const schedules = schedulesByDate[dateStr] || [];
 
         if (schedules.length === 0) return null;
 
-        // Get the primary status (prioritize certain statuses)
-        const schedule = schedules[0];
+        // Count present sessions
+        const presentCount = schedules.filter((schedule: Schedule) =>
+            schedule.attendance_status === 'present'
+        ).length;
+
+        // Check if any session is on_going
+        const hasOnGoing = schedules.some((schedule: Schedule) =>
+            schedule.attendance_status === 'on_going'
+        );
+
+        // Check if all sessions are scheduled (future)
+        const allScheduled = schedules.every((schedule: Schedule) =>
+            schedule.attendance_status === 'scheduled'
+        );
+
+        // Determine overall status
+        let overallStatus: string;
+        if (presentCount > 0) {
+            // Member attended at least one session = present
+            overallStatus = 'present';
+        } else if (hasOnGoing) {
+            overallStatus = 'on_going';
+        } else if (allScheduled) {
+            overallStatus = 'scheduled';
+        } else {
+            // Past date without attendance - just show as completed (no absent indicator)
+            overallStatus = 'completed';
+        }
+
         return {
             hasSchedule: true,
-            status: schedule.attendance_status,
-            scheduleStatus: schedule.status,
+            status: overallStatus,
+            scheduleStatus: schedules[0].status,
             count: schedules.length,
+            presentCount: presentCount,
         };
     };
 
@@ -116,28 +144,37 @@ export default function Jadwal({
             year === today.getFullYear();
     };
 
-    // Get date text color based on status
-    const getDateColor = (dateInfo: ReturnType<typeof getDateInfo>, day: number) => {
-        if (!dateInfo) return 'text-foreground';
+    // Get date styling based on status (with dot indicators)
+    const getDateStyles = (dateInfo: ReturnType<typeof getDateInfo>, day: number) => {
+        let bgClass = '';
+        let textClass = 'text-foreground';
+        let dotColor = '';
+        let dotStyle: React.CSSProperties | undefined = undefined;
 
-        // If it's today, show blue
         if (isToday(day)) {
-            return 'text-blue-600 font-bold';
+            bgClass = 'bg-primary/10 ring-2 ring-primary';
+            textClass = 'text-primary font-bold';
         }
 
-        switch (dateInfo.status) {
-            case 'present':
-                return 'text-green-600 font-semibold';
-            case 'absent':
-            case 'cancelled':
-                return 'text-red-600 font-semibold';
-            case 'on_going':
-                return 'text-blue-600 font-semibold';
-            case 'scheduled':
-                return 'text-orange-500 font-semibold';
-            default:
-                return 'text-orange-500 font-semibold';
+        if (dateInfo) {
+            switch (dateInfo.status) {
+                case 'present':
+                    dotColor = 'bg-green-500';
+                    if (!isToday(day)) textClass = 'text-green-600 font-semibold';
+                    break;
+                case 'on_going':
+                    dotColor = 'bg-blue-500';
+                    break;
+                case 'scheduled':
+                    dotStyle = { backgroundColor: '#f59e0b' };
+                    break;
+                case 'completed':
+                    if (!isToday(day)) textClass = 'text-muted-foreground';
+                    break;
+            }
         }
+
+        return { bgClass, textClass, dotColor, dotStyle };
     };
 
     // Navigate months
@@ -236,21 +273,43 @@ export default function Jadwal({
                             <div className="grid grid-cols-7 gap-1">
                                 {calendarDays.map((day, index) => {
                                     const dateInfo = day ? getDateInfo(day) : null;
-                                    const dateColor = day ? getDateColor(dateInfo, day) : '';
+                                    const styles = day ? getDateStyles(dateInfo, day) : { bgClass: '', textClass: '', dotColor: '', dotStyle: undefined };
 
                                     return (
                                         <div
                                             key={index}
                                             className={`
-                                                aspect-square p-2 text-center relative flex items-center justify-center
-                                                ${day ? 'hover:bg-muted/50 cursor-pointer rounded-lg' : ''}
-                                                ${isToday(day ?? 0) ? 'bg-primary/10 rounded-lg ring-2 ring-primary' : ''}
+                                                aspect-square p-1 text-center relative flex flex-col items-center justify-center rounded-lg
+                                                ${day ? 'hover:bg-muted/50 cursor-pointer' : ''}
+                                                ${styles.bgClass}
                                             `}
                                         >
                                             {day && (
-                                                <span className={`text-sm ${dateColor}`}>
-                                                    {day}
-                                                </span>
+                                                <>
+                                                    <span className={`text-sm ${styles.textClass}`}>
+                                                        {day}
+                                                    </span>
+                                                    {dateInfo && (styles.dotColor || styles.dotStyle) && (
+                                                        <div className="flex gap-0.5 mt-1">
+                                                            {/* For present: show dots based on presentCount */}
+                                                            {/* For scheduled/on_going: show dots based on count */}
+                                                            {dateInfo.status === 'present' ? (
+                                                                <>
+                                                                    {Array.from({ length: dateInfo.presentCount || 1 }).map((_, i) => (
+                                                                        <span key={i} className={`w-1.5 h-1.5 rounded-full ${styles.dotColor}`} style={styles.dotStyle} />
+                                                                    ))}
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <span className={`w-1.5 h-1.5 rounded-full ${styles.dotColor}`} style={styles.dotStyle} />
+                                                                    {dateInfo.count > 1 && (
+                                                                        <span className={`w-1.5 h-1.5 rounded-full ${styles.dotColor}`} style={styles.dotStyle} />
+                                                                    )}
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </>
                                             )}
                                         </div>
                                     );
@@ -261,7 +320,7 @@ export default function Jadwal({
                             <div className="flex flex-wrap gap-4 mt-6 pt-4 border-t">
                                 <div className="flex items-center gap-2 text-sm">
                                     <span className="w-3 h-3 rounded-full bg-blue-500" />
-                                    <span className="text-muted-foreground">Hari ini / On Progress</span>
+                                    <span className="text-muted-foreground">Hari ini / Sedang Berlangsung</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-sm">
                                     <span className="w-3 h-3 rounded-full bg-green-500" />
@@ -270,10 +329,6 @@ export default function Jadwal({
                                 <div className="flex items-center gap-2 text-sm">
                                     <span className="w-3 h-3 rounded-full bg-orange-500" />
                                     <span className="text-muted-foreground">Terjadwal</span>
-                                </div>
-                                <div className="flex items-center gap-2 text-sm">
-                                    <span className="w-3 h-3 rounded-full bg-red-500" />
-                                    <span className="text-muted-foreground">Tidak Hadir</span>
                                 </div>
                             </div>
                         </CardContent>
@@ -297,19 +352,11 @@ export default function Jadwal({
 
                                     <div className="space-y-2 text-sm">
                                         <div className="flex items-center gap-2 text-muted-foreground">
-                                            <User className="h-4 w-4" />
-                                            <span>{courseInfo.coach_name}</span>
+                                            <Calendar className="h-4 w-4" />
+                                            <span>Kelas: {courseInfo.class_title}</span>
                                         </div>
                                         <div className="flex items-center gap-2 text-muted-foreground">
                                             <Clock className="h-4 w-4" />
-                                            <span>{courseInfo.schedule_days}, {courseInfo.schedule_time}</span>
-                                        </div>
-                                        <div className="flex items-center gap-2 text-muted-foreground">
-                                            <MapPin className="h-4 w-4" />
-                                            <span>{courseInfo.location}</span>
-                                        </div>
-                                        <div className="flex items-center gap-2 text-muted-foreground">
-                                            <Calendar className="h-4 w-4" />
                                             <span>{courseInfo.total_meeting} Pertemuan</span>
                                         </div>
                                     </div>
@@ -334,6 +381,10 @@ export default function Jadwal({
                                             </div>
                                             <div className="text-sm text-muted-foreground">
                                                 {formatTime(schedule.time)}
+                                            </div>
+                                            <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
+                                                <MapPin className="h-3 w-3" />
+                                                <span>{schedule.location}</span>
                                             </div>
                                             <Badge variant="outline" className="mt-2">
                                                 Pertemuan {getMeetingNumber(schedule, index)}

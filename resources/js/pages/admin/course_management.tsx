@@ -97,7 +97,7 @@ export default function CourseManagement(props: { courses: any }) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Course Management" />
+            <Head title="Kursus Management" />
             <div className="p-6 space-y-6">
                 <AlerInformation flash={flash} />
                 {/* Header */}
@@ -105,10 +105,10 @@ export default function CourseManagement(props: { courses: any }) {
 
                     <div>
                         <h1 className="text-2xl font-bold text-foreground">
-                            Manajemen Course
+                            Manajemen Kursus
                         </h1>
                         <p className="text-muted-foreground">
-                            Kelola kelas dan jadwal kursus renang
+                            Kelola kursus renang
                         </p>
                     </div>
                     <div className="flex gap-3">
@@ -116,7 +116,7 @@ export default function CourseManagement(props: { courses: any }) {
                         <Link href="/management-course/create">
                             <Button>
                                 <Plus className="w-4 h-4 mr-2" />
-                                Tambah Course
+                                Tambah Kursus
                             </Button>
                         </Link>
                     </div>
@@ -131,7 +131,7 @@ export default function CourseManagement(props: { courses: any }) {
                             </div>
                             <div>
                                 <div className="text-2xl font-bold">{courses.length}</div>
-                                <div className="text-sm text-muted-foreground">Total Course</div>
+                                <div className="text-sm text-muted-foreground">Total Kursus</div>
                             </div>
                         </CardContent>
                     </Card>
@@ -157,7 +157,7 @@ export default function CourseManagement(props: { courses: any }) {
                             <div className="relative flex-1">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                                 <Input
-                                    placeholder="Cari course..."
+                                    placeholder="Cari kursus..."
                                     className="pl-10"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}

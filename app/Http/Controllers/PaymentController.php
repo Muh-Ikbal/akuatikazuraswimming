@@ -38,10 +38,12 @@ class PaymentController extends Controller
 
     public function create()
     {
+        // Enrolment muncul jika:
+        // 1. Tidak punya payment sama sekali, ATAU
+        // 2. Tidak ada payment dengan status selain 'failed' (semua payment-nya failed)
         $enrolments = EnrolmentCourse::with(['member', 'course'])
-            ->whereDoesntHave('payment')
-            ->orWhereHas('payment', function($q) {
-                $q->where('state', 'failed');
+            ->whereDoesntHave('payment', function($q) {
+                $q->whereIn('state', ['pending', 'paid', 'partial_paid']);
             })
             ->get();
         

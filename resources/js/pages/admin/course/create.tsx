@@ -29,11 +29,11 @@ export default function CreateCourse({ course }: { course?: CourseFormData & { i
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
-            title: 'Course Management',
+            title: 'Kursus Management',
             href: '/management-course',
         },
         {
-            title: isEdit ? 'Edit Course' : 'Tambah Course',
+            title: isEdit ? 'Edit Kursus' : 'Tambah Kursus',
             href: isEdit ? `/management-course/edit/${course?.id}` : '/management-course/create',
         },
     ];
@@ -89,7 +89,7 @@ export default function CreateCourse({ course }: { course?: CourseFormData & { i
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={isEdit ? "Edit Course" : "Tambah Course"} />
+            <Head title={isEdit ? "Edit Kursus" : "Tambah Kursus"} />
             <div className="p-4 sm:p-6">
                 {/* Header */}
                 <div className="flex items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
@@ -100,10 +100,10 @@ export default function CreateCourse({ course }: { course?: CourseFormData & { i
                     </Link>
                     <div className="min-w-0">
                         <h1 className="text-xl sm:text-2xl font-bold text-foreground truncate">
-                            {isEdit ? 'Edit Course' : 'Tambah Course Baru'}
+                            {isEdit ? 'Edit Kursus' : 'Tambah Kursus Baru'}
                         </h1>
                         <p className="text-sm sm:text-base text-muted-foreground">
-                            {isEdit ? 'Perbarui data course' : 'Lengkapi form berikut untuk menambahkan course baru'}
+                            {isEdit ? 'Perbarui data kursus' : 'Lengkapi form berikut untuk menambahkan kursus baru'}
                         </p>
                     </div>
                 </div>
@@ -118,7 +118,7 @@ export default function CreateCourse({ course }: { course?: CourseFormData & { i
                             <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0 space-y-4">
                                 {/* Nama Course */}
                                 <div className="space-y-2">
-                                    <Label htmlFor="title" className="text-sm">Nama Course <span className="text-destructive">*</span></Label>
+                                    <Label htmlFor="title" className="text-sm">Nama Kursus <span className="text-destructive">*</span></Label>
                                     <Input
                                         id="title"
                                         placeholder="Contoh: Basic Swimming"
@@ -145,7 +145,7 @@ export default function CreateCourse({ course }: { course?: CourseFormData & { i
 
                                 {/* Image Upload */}
                                 <div className="space-y-2">
-                                    <Label className="text-sm">Gambar Course</Label>
+                                    <Label className="text-sm">Gambar Kursus</Label>
                                     <div className="flex items-start gap-4">
                                         <div className="relative">
                                             {imagePreview ? (

@@ -32,9 +32,17 @@ interface AttendanceDetail {
     course_title: string;
 }
 
+interface EnrolmentDetail {
+    course_title: string;
+    class_title: string;
+    meeting_count: number;
+    class_session_id: number | null;
+}
+
 interface Props {
     statistics: Statistics;
     detailedAttendance: AttendanceDetail[];
+    enrolmentDetails: EnrolmentDetail[];
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -44,7 +52,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function RiwayatAbsensi({ statistics, detailedAttendance }: Props) {
+export default function RiwayatAbsensi({ statistics, detailedAttendance, enrolmentDetails }: Props) {
     const [filterStatus, setFilterStatus] = useState<'all' | 'present' | 'absent' | 'scheduled' | 'today'>('all');
 
     // Format date to Indonesian format
@@ -129,123 +137,19 @@ export default function RiwayatAbsensi({ statistics, detailedAttendance }: Props
                     <p className="text-muted-foreground">Lihat rekap kehadiran kursus Anda</p>
                 </div>
 
-                {/* Statistics Cards */}
                 <div className="grid gap-4 md:grid-cols-4">
-                    <Card>
-                        <CardContent className="pt-6">
-                            <div className="text-center">
-                                <div className="text-3xl font-bold">{statistics.total}</div>
-                                <p className="text-sm text-muted-foreground mt-1">Total Pertemuan</p>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardContent className="pt-6">
-                            <div className="text-center">
-                                <div className="text-3xl font-bold text-green-600">{statistics.present}</div>
-                                <p className="text-sm text-muted-foreground mt-1">Hadir</p>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardContent className="pt-6">
-                            <div className="text-center">
-                                <div className="text-3xl font-bold text-red-600">{statistics.absent}</div>
-                                <p className="text-sm text-muted-foreground mt-1">Tidak Hadir</p>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardContent className="pt-6">
-                            <div className="text-center">
-                                <div className="text-3xl font-bold text-blue-600">{statistics.percentage}%</div>
-                                <p className="text-sm text-muted-foreground mt-1">Persentase</p>
-                            </div>
-                        </CardContent>
-                    </Card>
+                    {enrolmentDetails.map((detail, index) => (
+                        <Card key={index}>
+                            <CardContent className="pt-6">
+                                <div className="text-center">
+                                    <div className="text-3xl font-bold text-green-600">{detail.meeting_count}</div>
+                                    <p className="text-sm font-medium mt-1">{detail.course_title}</p>
+                                    <p className="text-xs text-muted-foreground">{detail.class_title}</p>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))}
                 </div>
-
-                {/* Combined Chart & Summary Card */}
-                <Card>
-                    <CardContent className="pt-6">
-                        <div className="flex flex-col md:flex-row gap-6 md:gap-12 items-center md:items-start">
-                            {/* Circular Progress */}
-                            <div className="flex-shrink-0">
-                                <div className="relative w-48 h-48">
-                                    <svg className="w-full h-full transform -rotate-90">
-                                        {/* Background circle */}
-                                        <circle
-                                            cx="96"
-                                            cy="96"
-                                            r="80"
-                                            stroke="#e5e7eb"
-                                            strokeWidth="16"
-                                            fill="none"
-                                        />
-                                        {/* Progress circle */}
-                                        <circle
-                                            cx="96"
-                                            cy="96"
-                                            r="80"
-                                            stroke="#3b82f6"
-                                            strokeWidth="16"
-                                            fill="none"
-                                            strokeDasharray={`${2 * Math.PI * 80}`}
-                                            strokeDashoffset={`${2 * Math.PI * 80 * (1 - statistics.percentage / 100)}`}
-                                            strokeLinecap="round"
-                                        />
-                                    </svg>
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                        <div className="text-center">
-                                            <div className="text-4xl font-bold">{statistics.percentage}%</div>
-                                            <div className="text-sm text-muted-foreground">Kehadiran</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Attendance Breakdown */}
-                            <div className="flex-1 space-y-4 w-full">
-                                <h3 className="font-semibold text-lg">Ringkasan Kehadiran</h3>
-
-                                <div className="space-y-3">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                            <span className="w-3 h-3 rounded-full bg-green-500" />
-                                            <span className="text-sm">Hadir</span>
-                                        </div>
-                                        <span className="font-semibold">{statistics.present} pertemuan</span>
-                                    </div>
-
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                            <span className="w-3 h-3 rounded-full bg-red-500" />
-                                            <span className="text-sm">Tidak Hadir</span>
-                                        </div>
-                                        <span className="font-semibold">{statistics.absent} pertemuan</span>
-                                    </div>
-
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                            <span className="w-3 h-3 rounded-full bg-gray-400" />
-                                            <span className="text-sm">Tersisa</span>
-                                        </div>
-                                        <span className="font-semibold">{statistics.remaining} pertemuan</span>
-                                    </div>
-                                </div>
-
-                                <div className="pt-4 border-t">
-                                    <p className="text-xs text-muted-foreground">
-                                        Catatan: Ketidakhadiran tidak dapat diganti
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
 
                 {/* Detailed Attendance List */}
                 <Card>
@@ -293,9 +197,7 @@ export default function RiwayatAbsensi({ statistics, detailedAttendance }: Props
                                         {/* Content */}
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center justify-between gap-2 mb-1">
-                                                <h4 className="font-medium">
-                                                    Pertemuan {attendance.meeting_number}
-                                                </h4>
+
                                                 <Badge className={getStatusStyle(attendance.status).bg}>
                                                     {getStatusStyle(attendance.status).label}
                                                 </Badge>

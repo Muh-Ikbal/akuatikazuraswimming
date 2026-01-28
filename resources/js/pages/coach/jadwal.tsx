@@ -13,7 +13,7 @@ interface Schedule {
     time: string;
     location: string;
     status: 'published' | 'on_going' | 'completed' | 'cancelled';
-    attendance_status: 'present' | 'absent' | 'on_going' | 'cancelled' | 'scheduled';
+    attendance_status: 'present' | 'absent' | 'on_going' | 'cancelled' | 'scheduled' | 'late';
     class_session: {
         id: number;
         title: string;
@@ -95,21 +95,41 @@ export default function JadwalCoach({
         return days;
     }, [month, year]);
 
-    // Get schedule status for a specific date
+    // Get schedule status for a specific date - returns all schedules for that date
     const getDateInfo = (day: number) => {
         const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const schedules = schedulesByDate[dateStr] || [];
 
         if (schedules.length === 0) return null;
 
-        const schedule = schedules[0];
         return {
             hasSchedule: true,
-            status: schedule.attendance_status,
-            scheduleStatus: schedule.status,
+            schedules: schedules.map(s => ({
+                id: s.id,
+                status: s.attendance_status,
+                scheduleStatus: s.status,
+                classTitle: s.class_session?.title || '-',
+            })),
             count: schedules.length,
-            classTitle: schedule.class_session.title,
         };
+    };
+
+    // Get dot color for a specific attendance status
+    const getDotColor = (status: string) => {
+        switch (status) {
+            case 'present':
+                return 'bg-green-500';
+            case 'late':
+                return 'bg-orange-500';
+            case 'absent':
+            case 'cancelled':
+                return 'bg-red-500';
+            case 'on_going':
+                return 'bg-blue-500';
+            case 'scheduled':
+            default:
+                return 'bg-gray-400';
+        }
     };
 
     // Check if a date is today
@@ -124,35 +144,27 @@ export default function JadwalCoach({
     const getDateStyles = (dateInfo: ReturnType<typeof getDateInfo>, day: number) => {
         let bgClass = '';
         let textClass = 'text-foreground';
-        let dotColor = '';
-        let dotStyle: React.CSSProperties | undefined = undefined;
 
         if (isToday(day)) {
             bgClass = 'bg-primary/10 ring-2 ring-primary';
             textClass = 'text-primary font-bold';
-        }
-
-        if (dateInfo) {
-            switch (dateInfo.status) {
+        } else if (dateInfo && dateInfo.schedules.length > 0) {
+            const firstStatus = dateInfo.schedules[0].status;
+            switch (firstStatus) {
                 case 'present':
-                    dotColor = 'bg-green-500';
-                    if (!isToday(day)) textClass = 'text-green-600 font-semibold';
+                    textClass = 'text-green-600 font-semibold';
+                    break;
+                case 'late':
+                    textClass = 'text-orange-600 font-semibold';
                     break;
                 case 'absent':
                 case 'cancelled':
-                    dotColor = 'bg-red-500';
-                    if (!isToday(day)) textClass = 'text-red-600 font-semibold';
-                    break;
-                case 'on_going':
-                    dotColor = 'bg-blue-500';
-                    break;
-                case 'scheduled':
-                    dotStyle = { backgroundColor: '#f59e0b' };
+                    textClass = 'text-red-600 font-semibold';
                     break;
             }
         }
 
-        return { bgClass, textClass, dotColor, dotStyle };
+        return { bgClass, textClass };
     };
 
     // Navigate months
@@ -278,7 +290,7 @@ export default function JadwalCoach({
                             <div className="grid grid-cols-7 gap-1">
                                 {calendarDays.map((day, index) => {
                                     const dateInfo = day ? getDateInfo(day) : null;
-                                    const styles = day ? getDateStyles(dateInfo, day) : { bgClass: '', textClass: '', dotColor: '', dotStyle: undefined };
+                                    const styles = day ? getDateStyles(dateInfo, day) : { bgClass: '', textClass: '' };
 
                                     return (
                                         <div
@@ -294,12 +306,15 @@ export default function JadwalCoach({
                                                     <span className={`text-sm ${styles.textClass}`}>
                                                         {day}
                                                     </span>
-                                                    {dateInfo && (
-                                                        <div className="flex gap-0.5 mt-1">
-                                                            <span className={`w-1.5 h-1.5 rounded-full ${styles.dotColor}`} style={styles.dotStyle} />
-                                                            {dateInfo.count > 1 && (
-                                                                <span className={`w-1.5 h-1.5 rounded-full ${styles.dotColor}`} style={styles.dotStyle} />
-                                                            )}
+                                                    {dateInfo && dateInfo.schedules && dateInfo.schedules.length > 0 && (
+                                                        <div className="flex gap-0.5 mt-1 flex-wrap justify-center max-w-full">
+                                                            {dateInfo.schedules.map((schedule, idx) => (
+                                                                <span
+                                                                    key={idx}
+                                                                    className={`w-1.5 h-1.5 rounded-full ${getDotColor(schedule.status)}`}
+                                                                    title={`${schedule.classTitle}: ${schedule.status}`}
+                                                                />
+                                                            ))}
                                                         </div>
                                                     )}
                                                 </>
@@ -316,11 +331,15 @@ export default function JadwalCoach({
                                     <span className="text-muted-foreground">Hadir</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-sm">
+                                    <span className="w-3 h-3 rounded-full bg-orange-500" />
+                                    <span className="text-muted-foreground">Terlambat</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-sm">
                                     <span className="w-3 h-3 rounded-full bg-red-500" />
                                     <span className="text-muted-foreground">Tidak Hadir</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-sm">
-                                    <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#f59e0b' }} />
+                                    <span className="w-3 h-3 rounded-full bg-gray-400" />
                                     <span className="text-muted-foreground">Terjadwal</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-sm">

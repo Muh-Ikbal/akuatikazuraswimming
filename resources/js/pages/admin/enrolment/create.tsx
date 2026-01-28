@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Save, User, Building, BookOpen } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { ArrowLeft, Save, User, Building, BookOpen, Search, ChevronDown, X } from 'lucide-react';
 
 interface Member {
     id: number;
@@ -53,6 +54,15 @@ export default function CreateEnrolment({ enrolment, members, class_sessions = [
     const [selectedCourse, setSelectedCourse] = useState<number | ''>(enrolment?.course_id || '');
     const [selectedClassSession, setSelectedClassSession] = useState<number | ''>(enrolment?.class_session_id || '');
 
+    // Member search states
+    const [memberSearch, setMemberSearch] = useState('');
+    const [isMemberDropdownOpen, setIsMemberDropdownOpen] = useState(false);
+    const memberDropdownRef = useRef<HTMLDivElement>(null);
+
+    // Get selected member name
+    const selectedMember = members.find(m => m.id === enrolment?.member_id);
+    const [selectedMemberName, setSelectedMemberName] = useState(selectedMember?.name || '');
+
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: 'Enrolment Management',
@@ -72,6 +82,35 @@ export default function CreateEnrolment({ enrolment, members, class_sessions = [
         state: enrolment?.state || 'on_progress',
     });
 
+    // Filter members based on search
+    const filteredMembers = members.filter(member =>
+        member.name.toLowerCase().includes(memberSearch.toLowerCase())
+    );
+
+    // Handle click outside to close dropdown
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (memberDropdownRef.current && !memberDropdownRef.current.contains(event.target as Node)) {
+                setIsMemberDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const handleMemberSelect = (member: Member) => {
+        setData('member_id', member.id);
+        setSelectedMemberName(member.name);
+        setMemberSearch('');
+        setIsMemberDropdownOpen(false);
+    };
+
+    const handleClearMember = () => {
+        setData('member_id', '');
+        setSelectedMemberName('');
+        setMemberSearch('');
+    };
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (isEdit) {
@@ -89,7 +128,6 @@ export default function CreateEnrolment({ enrolment, members, class_sessions = [
             setData('course_id', session.course.id);
         }
     };
-
 
 
     return (
@@ -124,26 +162,69 @@ export default function CreateEnrolment({ enrolment, members, class_sessions = [
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0 space-y-4">
-                                {/* Member */}
+                                {/* Member - Searchable Select */}
                                 <div className="space-y-2">
                                     <Label htmlFor="member_id" className="text-sm">
                                         Member <span className="text-destructive">*</span>
                                     </Label>
-                                    <div className="relative">
-                                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                                        <select
-                                            id="member_id"
-                                            className={`w-full h-10 sm:h-11 pl-10 pr-3 border rounded-md bg-background text-sm ${errors.member_id ? 'border-destructive' : 'border-input'}`}
-                                            value={data.member_id}
-                                            onChange={(e) => setData('member_id', parseInt(e.target.value))}
-                                        >
-                                            <option value="">-- Pilih Member --</option>
-                                            {members.map((member) => (
-                                                <option key={member.id} value={member.id}>
-                                                    {member.name}
-                                                </option>
-                                            ))}
-                                        </select>
+                                    <div className="relative" ref={memberDropdownRef}>
+                                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
+
+                                        {/* Selected value or search input */}
+                                        {selectedMemberName && !isMemberDropdownOpen ? (
+                                            <div
+                                                className={`w-full h-10 sm:h-11 pl-10 pr-10 border rounded-md bg-background text-sm flex items-center cursor-pointer ${errors.member_id ? 'border-destructive' : 'border-input'}`}
+                                                onClick={() => setIsMemberDropdownOpen(true)}
+                                            >
+                                                {selectedMemberName}
+                                            </div>
+                                        ) : (
+                                            <Input
+                                                id="member_search"
+                                                placeholder="Cari member..."
+                                                className={`pl-10 pr-10 ${errors.member_id ? 'border-destructive' : ''}`}
+                                                value={memberSearch}
+                                                onChange={(e) => setMemberSearch(e.target.value)}
+                                                onFocus={() => setIsMemberDropdownOpen(true)}
+                                            />
+                                        )}
+
+                                        {/* Clear button */}
+                                        {selectedMemberName && (
+                                            <button
+                                                type="button"
+                                                onClick={handleClearMember}
+                                                className="absolute right-8 top-1/2 -translate-y-1/2 p-1 hover:bg-muted rounded"
+                                            >
+                                                <X className="w-3 h-3 text-muted-foreground" />
+                                            </button>
+                                        )}
+
+                                        <ChevronDown
+                                            className={`absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground transition-transform ${isMemberDropdownOpen ? 'rotate-180' : ''}`}
+                                        />
+
+                                        {/* Dropdown list */}
+                                        {isMemberDropdownOpen && (
+                                            <div className="absolute z-50 w-full mt-1 bg-background border border-input rounded-md shadow-lg max-h-60 overflow-auto">
+                                                {filteredMembers.length > 0 ? (
+                                                    filteredMembers.map((member) => (
+                                                        <div
+                                                            key={member.id}
+                                                            className="px-4 py-2 hover:bg-muted cursor-pointer text-sm flex items-center gap-2"
+                                                            onClick={() => handleMemberSelect(member)}
+                                                        >
+                                                            <User className="w-4 h-4 text-muted-foreground" />
+                                                            {member.name}
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    <div className="px-4 py-3 text-sm text-muted-foreground text-center">
+                                                        Tidak ada member ditemukan
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                     {errors.member_id && <p className="text-sm text-destructive">{errors.member_id}</p>}
                                 </div>

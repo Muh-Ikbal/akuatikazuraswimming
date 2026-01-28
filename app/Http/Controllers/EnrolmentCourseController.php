@@ -67,7 +67,7 @@ class EnrolmentCourseController extends Controller
             'member_id' => 'required|exists:members,id',
             'class_session_id' => 'required|exists:class_sessions,id',
             'course_id' => 'required|exists:courses,id',
-            'meeting_count' => 'nullable|numeric',
+            'meeting_count' => 'required|numeric',
             'state' => 'required|in:on_progress,completed,cancelled',
         ]);
 

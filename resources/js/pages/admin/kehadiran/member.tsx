@@ -231,8 +231,8 @@ export default function KehadiranMember({ attendances, class_sessions, stats, fi
                                     <tr>
                                         <th className="text-left p-4 font-medium text-sm">Member</th>
                                         <th className="text-left p-4 font-medium text-sm">Kelas</th>
-                                        <th className="text-left p-4 font-medium text-sm">Course</th>
-                                        <th className="text-left p-4 font-medium text-sm">Coach</th>
+                                        <th className="text-left p-4 font-medium text-sm">Kursus</th>
+                                        <th className="text-left p-4 font-medium text-sm">Pelatih</th>
                                         <th className="text-left p-4 font-medium text-sm">Waktu Scan</th>
                                         <th className="text-center p-4 font-medium text-sm">Aksi</th>
                                     </tr>
@@ -248,7 +248,7 @@ export default function KehadiranMember({ attendances, class_sessions, stats, fi
                                                 <td className="p-4 text-muted-foreground">{attendance.course}</td>
                                                 <td className="p-4 text-muted-foreground">{attendance.coach}</td>
                                                 <td className="p-4">
-                                                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-medium">
+                                                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-100 text-green-900 text-xs font-medium">
                                                         <CalendarCheck className="w-3 h-3" />
                                                         {attendance.scan_time}
                                                     </span>
