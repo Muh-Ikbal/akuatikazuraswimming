@@ -10,6 +10,7 @@ import {
     Mail,
     MapPin,
     Save,
+    Instagram,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
@@ -18,6 +19,7 @@ interface ContactSettings {
     contact_phone: string | null;
     contact_email: string | null;
     contact_address: string | null;
+    contact_instagram: string | null;
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -32,6 +34,7 @@ export default function CmsKontak({ settings }: { settings: ContactSettings }) {
         contact_phone: settings.contact_phone || '',
         contact_email: settings.contact_email || '',
         contact_address: settings.contact_address || '',
+        contact_instagram: settings.contact_instagram || '',
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -127,6 +130,25 @@ export default function CmsKontak({ settings }: { settings: ContactSettings }) {
                                         <p className="text-sm text-red-500">{errors.contact_address}</p>
                                     )}
                                 </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="contact_instagram" className="flex items-center gap-2">
+                                        <Instagram className="w-4 h-4" />
+                                        Instagram
+                                    </Label>
+                                    <Input
+                                        id="contact_instagram"
+                                        value={data.contact_instagram}
+                                        onChange={(e) => setData('contact_instagram', e.target.value)}
+                                        placeholder="@akuatikazura"
+                                    />
+                                    {errors.contact_instagram && (
+                                        <p className="text-sm text-red-500">{errors.contact_instagram}</p>
+                                    )}
+                                    <p className="text-xs text-muted-foreground">
+                                        Masukkan username Instagram (contoh: @akuatikazura)
+                                    </p>
+                                </div>
                             </CardContent>
                         </Card>
 
@@ -167,6 +189,16 @@ export default function CmsKontak({ settings }: { settings: ContactSettings }) {
                                         <h3 className="font-semibold text-foreground mb-1">Lokasi</h3>
                                         <p className="text-sm text-muted-foreground">
                                             {data.contact_address || '-'}
+                                        </p>
+                                    </div>
+
+                                    <div className="text-center p-4 bg-muted/50 rounded-lg">
+                                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                                            <Instagram className="w-5 h-5 text-primary" />
+                                        </div>
+                                        <h3 className="font-semibold text-foreground mb-1">Instagram</h3>
+                                        <p className="text-sm text-muted-foreground">
+                                            {data.contact_instagram || '-'}
                                         </p>
                                     </div>
                                 </div>

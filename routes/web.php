@@ -19,43 +19,7 @@ use App\Models\Course;
 use App\Models\Coach;
 use App\Models\Member;
 
-Route::get('/', function () {
-    // Get hero and contact settings
-    $settings = \App\Models\SiteSetting::getMany([
-        'hero_title',
-        'hero_subtitle',
-        'hero_image',
-        'satisfaction_rate',
-        'contact_phone',
-        'contact_email',
-        'contact_address',
-    ]);
-
-    // Get active features
-    $features = \App\Models\Feature::active()->ordered()->get();
-
-    // Get active courses
-    $courses = Course::where('state', 'active')->get();
-    
-    // Get coaches with certificates
-    $coaches = Coach::with('certificate_coaches')->get();
-    
-    // Get stats
-    $stats = [
-        'members_count' => Member::count(),
-        'coaches_count' => Coach::count(),
-        'satisfaction_rate' => $settings['satisfaction_rate'] ?? '98',
-    ];
-    
-    return Inertia::render('welcome', [
-        'canRegister' => Features::enabled(Features::registration()),
-        'settings' => $settings,
-        'features' => $features,
-        'courses' => $courses,
-        'coaches' => $coaches,
-        'stats' => $stats,
-    ]);
-})->name('home');
+Route::get('/', [\App\Http\Controllers\LandingController::class, 'index'])->name('home');
 
 // dashboard
 Route::middleware(['auth', 'verified'])->get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -167,6 +131,16 @@ Route::middleware(['auth', 'verified','role:admin'])->group(function () {
 
     Route::get('cms/kontak', [\App\Http\Controllers\Admin\CmsContactController::class, 'index'])->name('cms.kontak');
     Route::put('cms/kontak', [\App\Http\Controllers\Admin\CmsContactController::class, 'update'])->name('cms.kontak.update');
+
+    Route::get('cms/visi-misi', [\App\Http\Controllers\Admin\CmsVisiMisiController::class, 'index'])->name('cms.visi-misi');
+    Route::put('cms/visi-misi', [\App\Http\Controllers\Admin\CmsVisiMisiController::class, 'update'])->name('cms.visi-misi.update');
+
+    Route::get('cms/sejarah', [\App\Http\Controllers\Admin\CmsSejarahController::class, 'index'])->name('cms.sejarah');
+    Route::put('cms/sejarah', [\App\Http\Controllers\Admin\CmsSejarahController::class, 'update'])->name('cms.sejarah.update');
+
+    Route::get('cms/gallery', [\App\Http\Controllers\Admin\CmsGalleryController::class, 'index'])->name('cms.gallery');
+    Route::post('cms/gallery', [\App\Http\Controllers\Admin\CmsGalleryController::class, 'store'])->name('cms.gallery.store');
+    Route::delete('cms/gallery/{id}', [\App\Http\Controllers\Admin\CmsGalleryController::class, 'destroy'])->name('cms.gallery.destroy');
 
     // Kehadiran Member
     Route::get('kehadiran-member', [\App\Http\Controllers\AdminMemberAttendanceController::class, 'index'])->name('kehadiran-member');

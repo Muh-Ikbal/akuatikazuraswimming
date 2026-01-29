@@ -4,13 +4,24 @@ import { Button } from "./ui/button"
 
 
 
-const AlertDelete = ({ title, description, action }: { title: string, description: string, action: () => void }) => {
+interface AlertDeleteProps {
+    title: string;
+    description: string;
+    action: () => void;
+    trigger?: React.ReactNode;
+}
+
+const AlertDelete = ({ title, description, action, trigger }: AlertDeleteProps) => {
     return (
         <AlertDialog>
             <AlertDialogTrigger asChild>
-                <Button variant='outline' size='icon' className="text-destructive hover:bg-destructive/10">
-                    <Trash2 className="w-4 h-4" />
-                </Button>
+                {trigger ? (
+                    trigger
+                ) : (
+                    <Button variant='outline' size='icon' className="text-destructive hover:bg-destructive/10">
+                        <Trash2 className="w-4 h-4" />
+                    </Button>
+                )}
             </AlertDialogTrigger>
             <AlertDialogContent>
                 <AlertDialogHeader>

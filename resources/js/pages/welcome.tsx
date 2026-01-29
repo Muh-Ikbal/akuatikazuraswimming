@@ -1,4 +1,5 @@
 import { dashboard, login } from '@/routes';
+import { motion } from 'framer-motion';
 import { type SharedData } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
 import {
@@ -19,8 +20,24 @@ import {
     Clock,
     Star,
     Sparkles,
+    Instagram,
+    History,
+    Image as ImageIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+
+const FadeInUp = ({ children, delay = 0, className = "" }: { children: React.ReactNode, delay?: number, className?: string }) => (
+    <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 0.6, delay, ease: "easeOut" }}
+        className={className}
+    >
+        {children}
+    </motion.div>
+);
 
 interface Certificate {
     id: number;
@@ -60,6 +77,14 @@ interface Settings {
     contact_phone: string | null;
     contact_email: string | null;
     contact_address: string | null;
+    contact_instagram: string | null;
+    visi_title: string | null;
+    visi_content: string | null;
+    misi_title: string | null;
+    misi_content: string | null;
+    sejarah_title: string | null;
+    sejarah_content: string | null;
+    sejarah_image: string | null;
 }
 
 interface Stats {
@@ -68,12 +93,19 @@ interface Stats {
     satisfaction_rate: string;
 }
 
+interface Gallery {
+    id: number;
+    title: string | null;
+    image: string;
+}
+
 interface WelcomeProps {
     canRegister?: boolean;
     settings?: Settings;
     features?: Feature[];
     courses?: Course[];
     coaches?: Coach[];
+    galleries?: Gallery[];
     stats?: Stats;
 }
 
@@ -109,6 +141,7 @@ export default function Welcome({
     features,
     courses = [],
     coaches = [],
+    galleries = [],
     stats,
 }: WelcomeProps) {
     const { auth } = usePage<SharedData>().props;
@@ -120,6 +153,18 @@ export default function Welcome({
     const contactPhone = settings?.contact_phone || '+62 812 3456 7890';
     const contactEmail = settings?.contact_email || 'info@akuatikazura.com';
     const contactAddress = settings?.contact_address || 'Jl. Renang No. 123, Jakarta';
+    const contactInstagram = settings?.contact_instagram || '@akuatikazura';
+
+    // Visi Misi defaults
+    const visiTitle = settings?.visi_title || 'Visi Kami';
+    const visiContent = settings?.visi_content || 'Menjadi lembaga kursus renang terdepan yang menghasilkan perenang handal dan berkarakter, serta berkontribusi dalam memasyarakatkan olahraga renang di Indonesia.';
+    const misiTitle = settings?.misi_title || 'Misi Kami';
+    const misiContent = settings?.misi_content || 'Menyediakan pelatihan renang berkualitas dengan metode yang aman dan menyenangkan.\nMengembangkan kemampuan renang dari dasar hingga mahir untuk semua usia.\nMenciptakan lingkungan belajar yang nyaman dan mendukung perkembangan peserta.';
+
+    // Sejarah defaults
+    const sejarahTitle = settings?.sejarah_title || 'Sejarah Kami';
+    const sejarahContent = settings?.sejarah_content || 'Akuatik Azura didirikan pada tahun 2010 dengan semangat untuk memajukan olahraga renang di Indonesia.\n\nBerawal dari sebuah komunitas kecil, kini kami telah berkembang menjadi salah satu akademi renang terkemuka dengan ratusan siswa aktif dan puluhan pelatih bersertifikasi.';
+    const sejarahImage = settings?.sejarah_image ? `/storage/${settings.sejarah_image}` : null;
 
     // Default features if none in database
     const displayFeatures = features && features.length > 0 ? features : [
@@ -161,10 +206,7 @@ export default function Welcome({
                         box-shadow: 0 20px 40px rgba(59, 130, 246, 0.15);
                     }
                     .gradient-text {
-                        background: linear-gradient(135deg, #1e40af 0%, #0891b2 100%);
-                        -webkit-background-clip: text;
-                        -webkit-text-fill-color: transparent;
-                        background-clip: text;
+                        color: #2563eb;
                     }
                 `}</style>
 
@@ -182,6 +224,8 @@ export default function Welcome({
 
                             {/* Nav Links */}
                             <div className="hidden md:flex items-center gap-8">
+                                <a href="#visi-misi" className="text-sm text-slate-600 hover:text-blue-600 transition-colors duration-300 font-medium">Visi & Misi</a>
+                                <a href="#sejarah" className="text-sm text-slate-600 hover:text-blue-600 transition-colors duration-300 font-medium">Sejarah</a>
                                 <a href="#features" className="text-sm text-slate-600 hover:text-blue-600 transition-colors duration-300 font-medium">Keunggulan</a>
                                 <a href="#courses" className="text-sm text-slate-600 hover:text-blue-600 transition-colors duration-300 font-medium">Program</a>
                                 <a href="#coaches" className="text-sm text-slate-600 hover:text-blue-600 transition-colors duration-300 font-medium">Coach</a>
@@ -192,14 +236,14 @@ export default function Welcome({
                             <div className="flex items-center gap-3">
                                 {auth.user ? (
                                     <Link href={dashboard().url}>
-                                        <Button className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all duration-300">
+                                        <Button className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/25 transition-all duration-300">
                                             Dashboard
                                         </Button>
                                     </Link>
                                 ) : (
                                     <>
                                         <Link href={login().url}>
-                                            <Button className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all duration-300">
+                                            <Button className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/25 transition-all duration-300">
                                                 Masuk
                                             </Button>
                                         </Link>
@@ -213,7 +257,7 @@ export default function Welcome({
                 {/* Hero Section */}
                 <section className="pt-28 pb-20 px-4 relative overflow-hidden">
                     {/* Soft Background */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-slate-50 to-cyan-50"></div>
+                    <div className="absolute inset-0 bg-blue-50"></div>
 
                     {/* Soft glowing orbs */}
                     <div className="absolute top-20 right-1/4 w-[500px] h-[500px] bg-blue-200/40 rounded-full blur-[100px] pulse-soft"></div>
@@ -222,7 +266,7 @@ export default function Welcome({
                     {/* Subtle pattern */}
                     <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiMzYjgyZjYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMiIvPjwvZz48L2c+PC9zdmc+')] opacity-70"></div>
 
-                    <div className="max-w-7xl mx-auto relative z-10">
+                    <div className="max-w-7xl mx-auto relative z-10"><FadeInUp>
                         <div className="grid lg:grid-cols-2 gap-12 items-center">
                             <div>
                                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100/80 border border-blue-200/50 text-blue-700 text-sm font-medium mb-6 backdrop-blur-sm shadow-sm">
@@ -233,7 +277,7 @@ export default function Welcome({
                                     {heroTitle.includes('Menyenangkan') ? (
                                         <>
                                             <span className="text-slate-800">{heroTitle.split('Menyenangkan')[0]}</span>
-                                            <span className="gradient-text">Menyenangkan</span>
+                                            <span className="text-blue-600">Menyenangkan</span>
                                             <span className="text-slate-800">{heroTitle.split('Menyenangkan')[1]}</span>
                                         </>
                                     ) : (
@@ -245,7 +289,7 @@ export default function Welcome({
                                 </p>
                                 <div className="flex flex-col sm:flex-row gap-4">
                                     <a href="#courses">
-                                        <Button size="lg" className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all duration-300 hover:scale-105">
+                                        <Button size="lg" className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/25 transition-all duration-300 hover:scale-105">
                                             Lihat Program
                                             <ChevronRight className="w-4 h-4 ml-1" />
                                         </Button>
@@ -260,15 +304,15 @@ export default function Welcome({
                                 {/* Stats */}
                                 <div className="flex flex-wrap gap-4 mt-12">
                                     <div className="px-5 py-4 rounded-2xl bg-white/80 backdrop-blur-sm border border-blue-100 shadow-lg shadow-blue-100/50 hover:shadow-blue-200/60 transition-all duration-300 card-hover">
-                                        <div className="text-3xl font-bold gradient-text">{membersCount > 0 ? `${membersCount}+` : '500+'}</div>
+                                        <div className="text-3xl font-bold text-blue-600">{membersCount > 0 ? `${membersCount}+` : '500+'}</div>
                                         <div className="text-sm text-slate-500 font-medium">Peserta Aktif</div>
                                     </div>
                                     <div className="px-5 py-4 rounded-2xl bg-white/80 backdrop-blur-sm border border-blue-100 shadow-lg shadow-blue-100/50 hover:shadow-blue-200/60 transition-all duration-300 card-hover">
-                                        <div className="text-3xl font-bold gradient-text">{coachesCount > 0 ? `${coachesCount}+` : '15+'}</div>
+                                        <div className="text-3xl font-bold text-blue-600">{coachesCount > 0 ? `${coachesCount}+` : '15+'}</div>
                                         <div className="text-sm text-slate-500 font-medium">Coach Profesional</div>
                                     </div>
                                     <div className="px-5 py-4 rounded-2xl bg-white/80 backdrop-blur-sm border border-blue-100 shadow-lg shadow-blue-100/50 hover:shadow-blue-200/60 transition-all duration-300 card-hover">
-                                        <div className="text-3xl font-bold gradient-text">{satisfactionRate}%</div>
+                                        <div className="text-3xl font-bold text-blue-600">{satisfactionRate}%</div>
                                         <div className="text-sm text-slate-500 font-medium">Tingkat Kepuasan</div>
                                     </div>
                                 </div>
@@ -276,21 +320,21 @@ export default function Welcome({
 
                             {/* Hero Image */}
                             <div className="relative float-animation">
-                                <div className="absolute inset-0 bg-gradient-to-br from-blue-400/20 to-cyan-400/20 rounded-3xl rotate-3 scale-105 blur-xl"></div>
-                                <div className="aspect-[4/3] rounded-3xl bg-gradient-to-br from-blue-500 via-blue-400 to-cyan-400 flex items-center justify-center overflow-hidden shadow-2xl shadow-blue-500/20 relative border border-white/20">
+                                <div className="absolute inset-0 bg-blue-100 rounded-3xl rotate-3 scale-105 blur-xl"></div>
+                                <div className="aspect-[4/3] rounded-3xl bg-blue-100 flex items-center justify-center overflow-hidden shadow-2xl shadow-blue-500/20 relative border border-white/20">
                                     {heroImage ? (
                                         <img src={heroImage} alt="Hero" className="w-full h-full object-cover" />
                                     ) : (
                                         <div className="absolute inset-0 flex items-center justify-center">
-                                            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/90 to-cyan-400/90"></div>
-                                            <Waves className="w-32 h-32 text-white/30 animate-pulse relative z-10" />
+                                            <div className="absolute inset-0 bg-blue-600/10"></div>
+                                            <Waves className="w-32 h-32 text-blue-200 animate-pulse relative z-10" />
                                         </div>
                                     )}
                                 </div>
                                 {/* Floating Card */}
                                 <div className="absolute -bottom-6 -left-6 bg-white rounded-2xl shadow-xl shadow-blue-100/60 p-5 border border-blue-100 hover:scale-105 transition-transform duration-300 card-hover">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/25">
+                                        <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/25">
                                             <CheckCircle className="w-6 h-6 text-white" />
                                         </div>
                                         <div>
@@ -302,7 +346,7 @@ export default function Welcome({
                                 {/* Additional floating element */}
                                 <div className="absolute -top-4 -right-4 bg-white rounded-2xl shadow-xl shadow-blue-100/60 p-4 border border-blue-100 hover:scale-105 transition-transform duration-300 card-hover">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/25">
+                                        <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/25">
                                             <Award className="w-5 h-5 text-white" />
                                         </div>
                                         <div>
@@ -313,6 +357,106 @@ export default function Welcome({
                                 </div>
                             </div>
                         </div>
+                    </FadeInUp>
+                    </div>
+                </section>
+
+                {/* Visi Misi Section */}
+                <section id="visi-misi" className="py-20 px-4 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-white"></div>
+                    <div className="absolute top-1/2 left-0 w-[400px] h-[400px] bg-blue-100/50 rounded-full blur-[100px]"></div>
+                    <div className="absolute bottom-0 right-0 w-[300px] h-[300px] bg-cyan-100/50 rounded-full blur-[80px]"></div>
+
+                    <div className="max-w-7xl mx-auto relative z-10"><FadeInUp>
+                        <div className="text-center mb-16">
+                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100/80 border border-blue-200/50 text-blue-700 text-sm font-medium mb-4 shadow-sm">
+                                <Target className="w-4 h-4" />
+                                <span>Tentang Kami</span>
+                            </div>
+                            <h2 className="text-3xl md:text-4xl font-bold text-slate-800 mb-4">Visi & Misi</h2>
+                            <p className="text-slate-600 max-w-2xl mx-auto text-lg">
+                                Komitmen kami untuk memberikan yang terbaik dalam pendidikan renang
+                            </p>
+                        </div>
+
+                        <div className="grid md:grid-cols-2 gap-8">
+                            {/* Visi Card */}
+                            <div className="group bg-blue-600 rounded-3xl p-8 text-white shadow-xl shadow-blue-500/20 hover:shadow-blue-500/30 transition-all duration-300 hover:-translate-y-2">
+                                <div className="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 backdrop-blur-sm">
+                                    <Waves className="w-8 h-8 text-white" />
+                                </div>
+                                <h3 className="text-2xl font-bold mb-4">{visiTitle}</h3>
+                                <ul className="space-y-3">
+                                    {visiContent.split('\n').map((item, index) => (
+                                        <li key={index} className="flex items-start gap-3 text-blue-100">
+                                            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-white/20 text-white text-sm font-bold flex-shrink-0 mt-0.5">
+                                                {index + 1}
+                                            </span>
+                                            <span className="leading-relaxed">{item}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+
+                            {/* Misi Card */}
+                            <div className="group bg-white rounded-3xl p-8 border border-blue-100 shadow-xl shadow-blue-100/50 hover:shadow-blue-200/60 transition-all duration-300 hover:-translate-y-2">
+                                <div className="w-16 h-16 rounded-2xl bg-blue-600 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-blue-500/25">
+                                    <Target className="w-8 h-8 text-white" />
+                                </div>
+                                <h3 className="text-2xl font-bold text-slate-800 mb-4">{misiTitle}</h3>
+                                <ul className="space-y-3">
+                                    {misiContent.split('\n').map((item, index) => (
+                                        <li key={index} className="flex items-start gap-3 text-slate-600">
+                                            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-600 text-sm font-bold flex-shrink-0 mt-0.5">
+                                                {index + 1}
+                                            </span>
+                                            <span className="leading-relaxed">{item}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </div>
+                    </FadeInUp>
+                    </div>
+                </section>
+
+                {/* Sejarah Section */}
+                <section id="sejarah" className="py-20 px-4 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-slate-50"></div>
+                    <div className="max-w-7xl mx-auto relative z-10"><FadeInUp>
+                        <div className="grid md:grid-cols-2 gap-12 items-center">
+                            <div className="order-2 md:order-1">
+                                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100/80 border border-blue-200/50 text-blue-700 text-sm font-medium mb-6 shadow-sm">
+                                    <History className="w-4 h-4" />
+                                    <span>Perjalanan Kami</span>
+                                </div>
+                                <h2 className="text-3xl md:text-4xl font-bold text-slate-800 mb-6">{sejarahTitle}</h2>
+                                <div className="space-y-4 text-slate-600 text-lg leading-relaxed">
+                                    {sejarahContent.split('\n\n').map((paragraph, index) => (
+                                        <p key={index}>{paragraph}</p>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="order-1 md:order-2">
+                                <div className="relative">
+                                    <div className="absolute inset-0 bg-blue-500 rounded-3xl rotate-3 scale-105 opacity-20 blur-lg"></div>
+                                    <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-white/50 aspect-video bg-white">
+                                        {sejarahImage ? (
+                                            <img
+                                                src={sejarahImage}
+                                                alt="Sejarah Akuatik Azura"
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center bg-blue-50">
+                                                <History className="w-20 h-20 text-blue-200" />
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </FadeInUp>
                     </div>
                 </section>
 
@@ -321,7 +465,7 @@ export default function Welcome({
                     <div className="absolute inset-0 bg-white"></div>
                     <div className="absolute top-0 left-0 w-[400px] h-[400px] bg-blue-100/50 rounded-full blur-[100px]"></div>
 
-                    <div className="max-w-7xl mx-auto relative z-10">
+                    <div className="max-w-7xl mx-auto relative z-10"><FadeInUp>
                         <div className="text-center mb-16">
                             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100/80 border border-blue-200/50 text-blue-700 text-sm font-medium mb-4 shadow-sm">
                                 <Star className="w-4 h-4" />
@@ -337,23 +481,23 @@ export default function Welcome({
                             {displayFeatures.map((feature, index) => {
                                 const IconComponent = getIcon(feature.icon);
                                 const gradients = [
-                                    'from-blue-500 to-cyan-500',
-                                    'from-cyan-500 to-teal-500',
-                                    'from-blue-600 to-indigo-500',
-                                    'from-teal-500 to-emerald-500'
+                                    'bg-blue-600',
+                                    'bg-blue-600',
+                                    'bg-blue-600',
+                                    'bg-blue-600'
                                 ];
                                 const shadows = [
                                     'shadow-blue-500/25',
-                                    'shadow-cyan-500/25',
-                                    'shadow-indigo-500/25',
-                                    'shadow-teal-500/25'
+                                    'shadow-blue-500/25',
+                                    'shadow-blue-500/25',
+                                    'shadow-blue-500/25'
                                 ];
                                 return (
                                     <div
                                         key={feature.id}
                                         className="group bg-white rounded-2xl border border-blue-100 p-6 hover:border-blue-200 transition-all duration-300 hover:-translate-y-2 shadow-lg shadow-blue-50 card-hover"
                                     >
-                                        <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${gradients[index % 4]} flex items-center justify-center mb-5 shadow-lg ${shadows[index % 4]} group-hover:scale-110 transition-all duration-300`}>
+                                        <div className={`w-14 h-14 rounded-2xl ${gradients[index % 4]} flex items-center justify-center mb-5 shadow-lg ${shadows[index % 4]} group-hover:scale-110 transition-all duration-300`}>
                                             <IconComponent className="w-7 h-7 text-white" />
                                         </div>
                                         <h3 className="font-bold text-slate-800 mb-2 text-lg group-hover:text-blue-600 transition-colors duration-300">{feature.title}</h3>
@@ -362,15 +506,16 @@ export default function Welcome({
                                 );
                             })}
                         </div>
+                    </FadeInUp>
                     </div>
                 </section>
 
                 {/* Courses Section */}
                 <section id="courses" className="py-20 px-4 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-blue-500 to-cyan-500"></div>
+                    <div className="absolute inset-0 bg-blue-600"></div>
                     <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMyIvPjwvZz48L2c+PC9zdmc+')] opacity-60"></div>
 
-                    <div className="max-w-7xl mx-auto relative z-10">
+                    <div className="max-w-7xl mx-auto relative z-10"><FadeInUp>
                         <div className="text-center mb-16">
                             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 text-white text-sm font-medium mb-4 backdrop-blur-sm border border-white/20">
                                 <Target className="w-4 h-4" />
@@ -396,7 +541,7 @@ export default function Welcome({
                                                 className="w-full h-44 object-cover rounded-2xl mb-5 shadow-lg"
                                             />
                                         ) : (
-                                            <div className="w-full h-44 rounded-2xl mb-5 bg-gradient-to-br from-blue-100 to-cyan-100 flex items-center justify-center border border-blue-200">
+                                            <div className="w-full h-44 rounded-2xl mb-5 bg-blue-50 flex items-center justify-center border border-blue-200">
                                                 <Waves className="w-16 h-16 text-blue-400" />
                                             </div>
                                         )}
@@ -409,7 +554,7 @@ export default function Welcome({
                                         <div className="flex items-end justify-between">
                                             <div>
                                                 <div className="text-sm text-slate-500">Mulai dari</div>
-                                                <div className="text-2xl font-bold gradient-text">{formatPrice(course.price)}</div>
+                                                <div className="text-2xl font-bold text-blue-600">{formatPrice(course.price)}</div>
                                             </div>
                                         </div>
                                     </div>
@@ -423,6 +568,7 @@ export default function Welcome({
                                 </div>
                             )}
                         </div>
+                    </FadeInUp>
                     </div>
                 </section>
 
@@ -431,7 +577,7 @@ export default function Welcome({
                     <div className="absolute inset-0 bg-slate-50"></div>
                     <div className="absolute top-1/2 right-0 w-[400px] h-[400px] bg-blue-100/40 rounded-full blur-[100px]"></div>
 
-                    <div className="max-w-7xl mx-auto relative z-10">
+                    <div className="max-w-7xl mx-auto relative z-10"><FadeInUp>
                         <div className="text-center mb-16">
                             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100/80 border border-blue-200/50 text-blue-700 text-sm font-medium mb-4 shadow-sm">
                                 <Users className="w-4 h-4" />
@@ -447,7 +593,7 @@ export default function Welcome({
                             {coaches.length > 0 ? (
                                 coaches.map((coach) => (
                                     <div key={coach.id} className="group bg-white rounded-2xl border border-blue-100 overflow-hidden hover:border-blue-200 transition-all duration-300 hover:-translate-y-2 shadow-lg shadow-blue-50 card-hover">
-                                        <div className="aspect-square bg-gradient-to-br from-blue-100 to-cyan-100 flex items-center justify-center overflow-hidden">
+                                        <div className="aspect-square bg-blue-50 flex items-center justify-center overflow-hidden">
                                             {coach.image ? (
                                                 <img
                                                     src={`/storage/${coach.image}`}
@@ -456,8 +602,8 @@ export default function Welcome({
                                                 />
                                             ) : (
                                                 <div className={`w-full h-full flex items-center justify-center ${coach.gender === 'male'
-                                                    ? 'bg-gradient-to-br from-blue-100 to-blue-200'
-                                                    : 'bg-gradient-to-br from-pink-100 to-pink-200'
+                                                    ? 'bg-blue-100'
+                                                    : 'bg-pink-100'
                                                     }`}>
                                                     <User className={`w-16 h-16 ${coach.gender === 'male' ? 'text-blue-500' : 'text-pink-500'
                                                         }`} />
@@ -468,9 +614,13 @@ export default function Welcome({
                                             <h3 className="font-semibold text-slate-800 mb-1 group-hover:text-blue-600 transition-colors">{coach.name}</h3>
                                             <p className="text-sm text-blue-600 font-medium mb-2">Coach</p>
                                             {coach.certificate_coaches && coach.certificate_coaches.length > 0 && (
-                                                <p className="text-xs text-slate-500">
-                                                    {coach.certificate_coaches.map(c => c.title).slice(0, 2).join(' • ')}
-                                                </p>
+                                                <div className="flex flex-wrap items-center justify-center gap-2 mt-3">
+                                                    {coach.certificate_coaches.slice(0, 3).map((cert, idx) => (
+                                                        <Badge key={idx} variant="secondary" className="text-[10px] px-2 py-0.5 bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-100">
+                                                            {cert.title}
+                                                        </Badge>
+                                                    ))}
+                                                </div>
                                             )}
                                         </div>
                                     </div>
@@ -481,16 +631,68 @@ export default function Welcome({
                                 </div>
                             )}
                         </div>
+                    </FadeInUp>
                     </div>
                 </section>
 
+
+                {/* Gallery Section */}
+                <section id="gallery" className="py-20 px-4 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-slate-50"></div>
+                    <div className="max-w-7xl mx-auto relative z-10"><FadeInUp>
+                        <div className="text-center mb-16">
+                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100/80 border border-blue-200/50 text-blue-700 text-sm font-medium mb-4 shadow-sm">
+                                <ImageIcon className="w-4 h-4" />
+                                <span>Galeri</span>
+                            </div>
+                            <h2 className="text-3xl md:text-4xl font-bold text-slate-800 mb-4">Galeri Kegiatan</h2>
+                            <p className="text-slate-600 max-w-2xl mx-auto text-lg">
+                                Momen-momen seru dan berkesan di Akuatik Azura
+                            </p>
+                        </div>
+
+                        {galleries.length > 0 ? (
+                            <div className="columns-2 md:columns-3 lg:columns-4 gap-0 space-y-0">
+                                {galleries.map((gallery) => (
+                                    <div key={gallery.id} className="break-inside-avoid group relative overflow-hidden">
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 flex items-center justify-center">
+                                            <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                                                <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white">
+                                                    <ImageIcon className="w-5 h-5" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <img
+                                            src={`/storage/${gallery.image}`}
+                                            alt={gallery.title || 'Gallery Image'}
+                                            className="w-full h-auto object-cover transform group-hover:scale-110 transition-transform duration-500 block"
+                                        />
+                                        {gallery.title && (
+                                            <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent z-20">
+                                                <p className="text-white font-medium text-sm truncate">{gallery.title}</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-12 text-slate-500 bg-white rounded-3xl border border-dashed border-slate-200">
+                                <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center mx-auto mb-4">
+                                    <ImageIcon className="w-8 h-8 text-blue-200" />
+                                </div>
+                                <p className="font-medium">Belum ada foto galeri</p>
+                            </div>
+                        )}
+                    </FadeInUp>
+                    </div>
+                </section>
 
                 {/* Contact Section */}
                 <section id="contact" className="py-20 px-4 relative overflow-hidden">
                     <div className="absolute inset-0 bg-white"></div>
                     <div className="absolute bottom-0 left-1/4 w-[500px] h-[500px] bg-cyan-100/40 rounded-full blur-[100px]"></div>
 
-                    <div className="max-w-7xl mx-auto relative z-10">
+                    <div className="max-w-7xl mx-auto relative z-10"><FadeInUp>
                         <div className="text-center mb-16">
                             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100/80 border border-blue-200/50 text-blue-700 text-sm font-medium mb-4 shadow-sm">
                                 <Phone className="w-4 h-4" />
@@ -502,45 +704,111 @@ export default function Welcome({
                             </p>
                         </div>
 
-                        <div className="grid md:grid-cols-3 gap-8">
+                        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
                             <div className="group text-center bg-white rounded-2xl p-8 border border-blue-100 hover:border-blue-200 transition-all duration-300 hover:-translate-y-2 shadow-lg shadow-blue-50 card-hover">
-                                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center mx-auto mb-5 shadow-lg shadow-blue-500/25 group-hover:scale-110 transition-transform duration-300">
+                                <div className="w-16 h-16 rounded-2xl bg-blue-600 flex items-center justify-center mx-auto mb-5 shadow-lg shadow-blue-500/25 group-hover:scale-110 transition-transform duration-300">
                                     <Phone className="w-7 h-7 text-white" />
                                 </div>
                                 <h3 className="font-bold text-slate-800 mb-2 text-lg group-hover:text-blue-600 transition-colors">Telepon</h3>
                                 <p className="text-slate-600">{contactPhone}</p>
                             </div>
                             <div className="group text-center bg-white rounded-2xl p-8 border border-blue-100 hover:border-blue-200 transition-all duration-300 hover:-translate-y-2 shadow-lg shadow-blue-50 card-hover">
-                                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500 to-teal-500 flex items-center justify-center mx-auto mb-5 shadow-lg shadow-cyan-500/25 group-hover:scale-110 transition-transform duration-300">
+                                <div className="w-16 h-16 rounded-2xl bg-blue-600 flex items-center justify-center mx-auto mb-5 shadow-lg shadow-blue-500/25 group-hover:scale-110 transition-transform duration-300">
                                     <Mail className="w-7 h-7 text-white" />
                                 </div>
                                 <h3 className="font-bold text-slate-800 mb-2 text-lg group-hover:text-blue-600 transition-colors">Email</h3>
                                 <p className="text-slate-600">{contactEmail}</p>
                             </div>
                             <div className="group text-center bg-white rounded-2xl p-8 border border-blue-100 hover:border-blue-200 transition-all duration-300 hover:-translate-y-2 shadow-lg shadow-blue-50 card-hover">
-                                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-500 to-emerald-500 flex items-center justify-center mx-auto mb-5 shadow-lg shadow-teal-500/25 group-hover:scale-110 transition-transform duration-300">
+                                <div className="w-16 h-16 rounded-2xl bg-blue-600 flex items-center justify-center mx-auto mb-5 shadow-lg shadow-blue-500/25 group-hover:scale-110 transition-transform duration-300">
                                     <MapPin className="w-7 h-7 text-white" />
                                 </div>
                                 <h3 className="font-bold text-slate-800 mb-2 text-lg group-hover:text-blue-600 transition-colors">Lokasi</h3>
                                 <p className="text-slate-600">{contactAddress}</p>
                             </div>
+                            <a href={`https://instagram.com/${contactInstagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="group text-center bg-white rounded-2xl p-8 border border-blue-100 hover:border-blue-200 transition-all duration-300 hover:-translate-y-2 shadow-lg shadow-blue-50 card-hover">
+                                <div className="w-16 h-16 rounded-2xl bg-blue-600 flex items-center justify-center mx-auto mb-5 shadow-lg shadow-blue-500/25 group-hover:scale-110 transition-transform duration-300">
+                                    <Instagram className="w-7 h-7 text-white" />
+                                </div>
+                                <h3 className="font-bold text-slate-800 mb-2 text-lg group-hover:text-blue-600 transition-colors">Instagram</h3>
+                                <p className="text-slate-600">{contactInstagram}</p>
+                            </a>
                         </div>
+                    </FadeInUp>
                     </div>
                 </section>
 
                 {/* Footer */}
-                <footer className="py-8 px-4 bg-gradient-to-r from-blue-600 to-cyan-500">
-                    <div className="max-w-7xl mx-auto">
-                        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-white shadow-lg flex items-center justify-center p-1.5">
-                                    <img src="/logo.png" alt="Akuatik Azura" className="w-full h-full object-contain" />
+                <footer className="py-16 px-4 bg-slate-900 text-white relative overflow-hidden">
+                    {/* Background Pattern */}
+                    <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiMxZTI5M2IiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMiIvPjwvZz48L2c+PC9zdmc+')] opacity-50"></div>
+                    <div className="absolute top-0 left-0 w-full h-px bg-blue-800"></div>
+
+                    <div className="max-w-7xl mx-auto relative z-10">
+                        <div className="grid md:grid-cols-4 gap-12 mb-12">
+                            {/* Brand */}
+                            <div className="col-span-1 md:col-span-2">
+                                <div className="flex items-center gap-3 mb-6">
+                                    <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center p-1.5 shadow-lg">
+                                        <img src="/logo.png" alt="Akuatik Azura" className="w-full h-full object-contain" />
+                                    </div>
+                                    <span className="font-bold text-2xl tracking-tight text-white">Akuatik Azura</span>
                                 </div>
-                                <span className="font-bold text-white text-lg">Akuatik Azura</span>
+                                <p className="text-slate-400 mb-8 leading-relaxed max-w-sm">
+                                    Akuatik Azura Swimming merupakann club renang yang
+                                    berada Kota Kendari, Sulawesi tenggara . dan merupakan
+                                    salah satu club renang yang banyak melahirkan bibit bibit
+                                    atlet sulawesi tenggara di daerah maupan nasional.
+                                </p>
+
                             </div>
-                            <p className="text-sm text-blue-100">
-                                © 2024 Akuatik Azura. All rights reserved.
+
+                            {/* Quick Links */}
+                            <div>
+                                <h3 className="font-bold text-lg mb-6 text-blue-400">Tautan Cepat</h3>
+                                <ul className="space-y-4">
+                                    <li><a href="#visi-misi" className="text-slate-400 hover:text-white transition-colors duration-300 flex items-center gap-2 group"><span className="w-1.5 h-1.5 rounded-full bg-blue-500 group-hover:w-3 transition-all duration-300"></span> Visi & Misi</a></li>
+                                    <li><a href="#features" className="text-slate-400 hover:text-white transition-colors duration-300 flex items-center gap-2 group"><span className="w-1.5 h-1.5 rounded-full bg-blue-500 group-hover:w-3 transition-all duration-300"></span> Keunggulan</a></li>
+                                    <li><a href="#courses" className="text-slate-400 hover:text-white transition-colors duration-300 flex items-center gap-2 group"><span className="w-1.5 h-1.5 rounded-full bg-blue-500 group-hover:w-3 transition-all duration-300"></span> Program</a></li>
+                                    <li><a href="#gallery" className="text-slate-400 hover:text-white transition-colors duration-300 flex items-center gap-2 group"><span className="w-1.5 h-1.5 rounded-full bg-blue-500 group-hover:w-3 transition-all duration-300"></span> Galeri</a></li>
+                                    <li><a href="#contact" className="text-slate-400 hover:text-white transition-colors duration-300 flex items-center gap-2 group"><span className="w-1.5 h-1.5 rounded-full bg-blue-500 group-hover:w-3 transition-all duration-300"></span> Kontak</a></li>
+                                </ul>
+                            </div>
+
+                            {/* Contact */}
+                            <div>
+                                <h3 className="font-bold text-lg mb-6 text-blue-400">Hubungi Kami</h3>
+                                <ul className="space-y-4">
+                                    <li className="flex items-start gap-3 text-slate-400 group">
+                                        <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-600/20 transition-colors duration-300">
+                                            <MapPin className="w-4 h-4 text-blue-500" />
+                                        </div>
+                                        <span className="text-sm leading-relaxed">{contactAddress}</span>
+                                    </li>
+                                    <li className="flex items-center gap-3 text-slate-400 group">
+                                        <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-600/20 transition-colors duration-300">
+                                            <Phone className="w-4 h-4 text-blue-500" />
+                                        </div>
+                                        <span className="text-sm">{contactPhone}</span>
+                                    </li>
+                                    <li className="flex items-center gap-3 text-slate-400 group">
+                                        <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-600/20 transition-colors duration-300">
+                                            <Mail className="w-4 h-4 text-blue-500" />
+                                        </div>
+                                        <span className="text-sm">{contactEmail}</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+                            <p className="text-slate-500 text-sm">
+                                © {new Date().getFullYear()} Akuatik Azura. All rights reserved.
                             </p>
+                            <div className="flex gap-6 text-sm text-slate-500">
+                                <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
+                                <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
+                            </div>
                         </div>
                     </div>
                 </footer>
