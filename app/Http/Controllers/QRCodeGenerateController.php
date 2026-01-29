@@ -56,15 +56,67 @@ class QRCodeGenerateController extends Controller
             logoPath: public_path('logo.png'),
             logoResizeToWidth: 100,
             logoPunchoutBackground: true,
-            labelText: $user->name,
-            labelFont: new OpenSans(20),
-            labelAlignment: LabelAlignment::Center
+            // REMOVE LABEL FROM BUILDER to avoid FreeType dependency
+            // labelText: $user->name,
+            // labelFont: new OpenSans(20),
+            // labelAlignment: LabelAlignment::Center
         );
 
         $result = $builder->build();
 
-
-        $result->saveToFile(public_path($qr_code_path));
+        // Manual Label Rendering Workaround (No FreeType required)
+        try {
+            // Load the generated QR code from string
+            $qrImage = imagecreatefromstring($result->getString());
+            if ($qrImage === false) {
+                 throw new \Exception("Failed to load QR code image.");
+            }
+            
+            $qrWidth = imagesx($qrImage);
+            $qrHeight = imagesy($qrImage);
+            
+            // Define label area
+            $labelHeight = 50; 
+            $finalHeight = $qrHeight + $labelHeight;
+            
+            // Create a new true color image
+            $finalImage = imagecreatetruecolor($qrWidth, $finalHeight);
+            
+            // Set background color (white)
+            $white = imagecolorallocate($finalImage, 255, 255, 255);
+            $black = imagecolorallocate($finalImage, 0, 0, 0);
+            
+            // Fill background
+            imagefilledrectangle($finalImage, 0, 0, $qrWidth, $finalHeight, $white);
+            
+            // Copy QR code onto new image
+            imagecopy($finalImage, $qrImage, 0, 0, 0, 0, $qrWidth, $qrHeight);
+            
+            // Add text using built-in font (Font 5 is the largest built-in font)
+            $text = $user->name;
+            $font = 5;
+            $fontWidth = imagefontwidth($font);
+            $fontHeight = imagefontheight($font);
+            
+            // Calculate center position
+            $textWidth = strlen($text) * $fontWidth;
+            $x = ($qrWidth - $textWidth) / 2;
+            $y = $qrHeight + (($labelHeight - $fontHeight) / 2);
+            
+            // Write text
+            imagestring($finalImage, $font, (int)$x, (int)$y, $text, $black);
+            
+            // Save final image
+            imagepng($finalImage, public_path($qr_code_path));
+            
+            // Cleanup
+            imagedestroy($qrImage);
+            imagedestroy($finalImage);
+            
+        } catch (\Throwable $e) {
+            // Fallback: Just save the original QR code without label if manual manipulation fails
+            $result->saveToFile(public_path($qr_code_path));
+        }
 
         QrCodeGenerate::create([
             'qr_code' => $uuid,
