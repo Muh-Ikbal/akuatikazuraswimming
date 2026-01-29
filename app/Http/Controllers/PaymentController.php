@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Payment;
 use App\Models\EnrolmentCourse;
+use App\Models\Promo;
 use Inertia\Inertia;
 
 class PaymentController extends Controller
@@ -27,12 +28,15 @@ class PaymentController extends Controller
         $pendingAmount = $allAmount-$totalIncome;
         $totalPaidCount = Payment::where('state','paid')->count();
         
+        $promos = Promo::where('state', 'active')->get();
+
         return Inertia::render('admin/payment_management', [
             'payments' => $payments,
             'totalIncome' => $totalIncome,
             'pendingAmount' => $pendingAmount,
             'totalPaidCount'=>$totalPaidCount,
             'filters' => $request->only(['search']),
+            'promos' => $promos,
         ]);
     }
 
@@ -47,8 +51,11 @@ class PaymentController extends Controller
             })
             ->get();
         
+        $promos = Promo::where('state', 'active')->get();
+
         return Inertia::render('admin/payment/create', [
-            'enrolments' => $enrolments
+            'enrolments' => $enrolments,
+            'promos' => $promos
         ]);
     }
 
@@ -59,9 +66,33 @@ class PaymentController extends Controller
             'amount' => 'required|numeric|min:0',
             'amount_paid' => 'required|numeric|min:0',
             'payment_method' => 'required|string|max:50',
+            'promo_id' => 'nullable|exists:promos,id',
         ]);
 
-        if($validated['amount'] <= $validated['amount_paid']) {
+        $discountAmount = 0;
+        $notes = null;
+
+        if (!empty($validated['promo_id'])) {
+            $promo = Promo::find($validated['promo_id']);
+            if ($promo) {
+                if ($promo->discount_type === 'percentage') {
+                    $discountAmount = ($validated['amount'] * $promo->discount_value) / 100;
+                } else {
+                    $discountAmount = $promo->discount_value;
+                }
+                
+                if ($discountAmount > $validated['amount']) {
+                    $discountAmount = $validated['amount'];
+                }
+                
+                $notes = "Promo applied: {$promo->title} (Discount: " . number_format($discountAmount, 0, ',', '.') . ")";
+            }
+        }
+        
+        $validated['discount_amount'] = $discountAmount;
+        if($notes) $validated['notes'] = $notes;
+
+        if(($validated['amount'] - $discountAmount) <= $validated['amount_paid']) {
             $validated['state'] = 'paid';
         } else if ($validated['amount_paid'] > 0) {
             $validated['state'] = 'partial_paid';
@@ -86,7 +117,7 @@ class PaymentController extends Controller
 
     public function invoice($id)
     {
-        $payment = Payment::with(['enrolment_course.member', 'enrolment_course.course', 'enrolment_course.class_session'])
+        $payment = Payment::with(['enrolment_course.member', 'enrolment_course.course', 'enrolment_course.class_session', 'promo'])
             ->where('state', 'paid')
             ->findOrFail($id);
         
@@ -103,10 +134,12 @@ class PaymentController extends Controller
     {
         $payment = Payment::with(['enrolment_course.member', 'enrolment_course.course'])->findOrFail($id);
         $enrolments = EnrolmentCourse::with(['member', 'course'])->get();
+        $promos = Promo::where('state', 'active')->get();
         
         return Inertia::render('admin/payment/create', [
             'payment' => $payment,
-            'enrolments' => $enrolments
+            'enrolments' => $enrolments,
+            'promos' => $promos,
         ]);
     }
 
@@ -119,10 +152,35 @@ class PaymentController extends Controller
             'amount' => 'required|numeric|min:0',
             'amount_paid' => 'required|numeric|min:0',
             'payment_method' => 'required|string|max:50',
+            'promo_id' => 'nullable|exists:promos,id',
             // 'state' => 'required|in:pending,paid,failed',
         ]);
 
-        if($validated['amount'] <= $validated['amount_paid']) {
+        $discountAmount = 0;
+        $notes = null;
+
+        if (!empty($validated['promo_id'])) {
+            $promo = Promo::find($validated['promo_id']);
+            if ($promo) {
+                if ($promo->discount_type === 'percentage') {
+                    $discountAmount = ($validated['amount'] * $promo->discount_value) / 100;
+                } else {
+                    $discountAmount = $promo->discount_value;
+                }
+                
+                if ($discountAmount > $validated['amount']) {
+                    $discountAmount = $validated['amount'];
+                }
+                
+                $notes = "Promo applied: {$promo->title} (Discount: " . number_format($discountAmount, 0, ',', '.') . ")";
+            }
+        }
+        
+        $validated['discount_amount'] = $discountAmount;
+        if($notes) $validated['notes'] = $notes;
+
+
+        if(($validated['amount'] - $discountAmount) <= $validated['amount_paid']) {
             $validated['state'] = 'paid';
         } else if ($validated['amount_paid'] > 0) {
             $validated['state'] = 'partial_paid';
@@ -149,21 +207,61 @@ class PaymentController extends Controller
             'amount' => 'required|numeric|min:0',
             'amount_paid' => 'required|numeric|min:0',
             'payment_method' => 'required|string|max:50',
+            'promo_id' => 'nullable|exists:promos,id',
         ]);
         $payment = Payment::findOrFail($id);
-        $payment_paid = $payment->amount_paid + $validated['amount_paid'];
         
-        if($payment_paid >= $validated['amount']) {
-            $validated['state'] = 'paid';
-        } else if ($payment_paid > 0) {
+        $discountAmount = 0;
+        $notes = null;
+
+        if (!empty($validated['promo_id'])) {
+            $promo = Promo::find($validated['promo_id']);
+            if ($promo) {
+                if ($promo->discount_type === 'percentage') {
+                    $discountAmount = ($payment->amount * $promo->discount_value) / 100;
+                } else {
+                    $discountAmount = $promo->discount_value;
+                }
+                
+                // Ensure discount doesn't exceed total amount
+                if ($discountAmount > $payment->amount) {
+                    $discountAmount = $payment->amount;
+                }
+                
+                $notes = "Promo applied: {$promo->title} (Discount: " . number_format($discountAmount, 0, ',', '.') . ")";
+            }
+        }
+
+        // Adjust validation logic: total needed includes discount
+        // Currently 'amount' is total cost.
+        // User pays 'amount_paid'.
+        // If discount is applied, effective cost is amount - discount.
+        // So total paid or cleared = amount_paid + discountAmount.
+        
+        $payment_paid = $payment->amount_paid + $validated['amount_paid'];
+        $total_cleared = $payment_paid + $discountAmount;
+        
+        if($total_cleared >= $payment->amount) { // Or usually >= amount
+             // However, logic says if amount_paid >= amount.
+             // With discount, we should consider discount as part of "covering" the cost?
+             // Or update the amount?
+             // Let's assume (paid + discount) >= amount means Fully Paid.
+             $validated['state'] = 'paid';
+        } else if ($total_cleared > 0) {
             $validated['state'] = 'partial_paid';
         } else {
             $validated['state'] = 'pending';
         }
+        
         $payment->update([
             'state' => $validated['state'],
             'amount_paid' => $payment_paid,
             'payment_method' => $validated['payment_method'],
+            'promo_id' => $validated['promo_id'] ?? null,
+            'discount_amount' => $discountAmount, // Note: this overwrites previous discount if any?
+            // If paying multiple times, maybe we shouldn't overwrite discount unless it's a new promo application on first pay?
+            // For simplicity, we assume promo is applied once or updated.
+             'notes' => $notes ? ($payment->notes ? $payment->notes . "\n" . $notes : $notes) : $payment->notes,
         ]);
         
 

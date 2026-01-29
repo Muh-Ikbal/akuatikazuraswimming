@@ -44,3 +44,12 @@ export interface User {
     roles: Role[];
     [key: string]: unknown; // This allows for additional properties...
 }
+
+export interface Promo {
+    id: number;
+    title: string;
+    description: string | null;
+    discount_type: 'percentage' | 'fixed';
+    discount_value: number;
+    state: 'active' | 'inactive';
+}

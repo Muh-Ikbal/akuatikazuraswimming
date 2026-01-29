@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { debounce } from "lodash";
 import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
+import { type BreadcrumbItem, type Promo } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -74,9 +74,10 @@ interface Props {
     totalIncome: number;
     pendingAmount: number;
     totalPaidCount: number;
+    promos: Promo[];
 }
 
-export default function PaymentManagement({ payments, filters, totalIncome, pendingAmount, totalPaidCount }: Props) {
+export default function PaymentManagement({ payments, filters, totalIncome, pendingAmount, totalPaidCount, promos }: Props) {
     const [searchQuery, setSearchQuery] = useState(filters?.search ?? "");
     const [page, setPage] = useState(payments.current_page)
     const [filterState, setFilterState] = useState<string>("all");
@@ -349,9 +350,8 @@ export default function PaymentManagement({ payments, filters, totalIncome, pend
                                                         {
                                                             payment.state !== 'paid' && payment.state !== 'failed' ? (
                                                                 <>
-                                                                    <DialogPayment payment={payment} />
+                                                                    <DialogPayment payment={payment} promos={promos} />
                                                                     <AlertCancelPayment title="Batal Pembayaran?" description={`Apakah Anda yakin ingin membatalkan pembayaran ini? Tindakan ini tidak dapat dibatalkan.`} action={() => router.put(`/management-pembayaran/fail/${payment.id}`)} />
-
                                                                 </>
                                                             ) : null
                                                         }

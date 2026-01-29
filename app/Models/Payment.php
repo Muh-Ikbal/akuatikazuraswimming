@@ -12,10 +12,18 @@ class Payment extends Model
         'amount',
         'payment_method',
         'amount_paid',
-        'state'
+        'state',
+        'promo_id',
+        'discount_amount',
+        'notes',
     ];
 
     public function enrolment_course(){
         return $this->belongsTo(EnrolmentCourse::class);
+    }
+
+    public function promo()
+    {
+        return $this->belongsTo(Promo::class);
     }
 }

@@ -13,4 +13,9 @@ class Promo extends Model
         'discount_value',
         'state',
     ];
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
 }

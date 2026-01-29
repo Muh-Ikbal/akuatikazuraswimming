@@ -1,12 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
+import { type BreadcrumbItem, type Promo } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Save, User, Banknote, CreditCard } from 'lucide-react';
+import { ArrowLeft, Save, User, Banknote, CreditCard, Tag } from 'lucide-react';
 
 interface Enrolment {
     id: number;
@@ -33,9 +33,10 @@ interface Payment {
 interface Props {
     payment?: Payment;
     enrolments: Enrolment[];
+    promos?: Promo[];
 }
 
-export default function CreatePayment({ payment, enrolments }: Props) {
+export default function CreatePayment({ payment, enrolments, promos = [] }: Props) {
     const isEdit = !!payment;
 
     const breadcrumbs: BreadcrumbItem[] = [
@@ -55,7 +56,47 @@ export default function CreatePayment({ payment, enrolments }: Props) {
         payment_method: payment?.payment_method || 'transfer',
         amount_paid: payment?.amount_paid || '',
         state: payment?.state || 'pending',
+        promo_id: '',
     });
+
+    const [discountAmount, setDiscountAmount] = useState(0);
+
+    const formatCurrency = (amount: number) => {
+        return new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0
+        }).format(amount);
+    };
+
+    useEffect(() => {
+        if (data.promo_id) {
+            const promo = promos.find(p => p.id.toString() === data.promo_id.toString());
+            const amountVal = Number(data.amount) || 0;
+            if (promo && amountVal > 0) {
+                let discount = 0;
+                if (promo.discount_type === 'percentage') {
+                    discount = (amountVal * promo.discount_value) / 100;
+                } else {
+                    discount = promo.discount_value;
+                }
+
+                if (discount > amountVal) discount = amountVal;
+
+                setDiscountAmount(discount);
+
+                // Adjust amount_paid if it matches full amount (convenience)
+                // or just let user adjust.
+                // Let's suggest paid amount = amount - discount
+                setData('amount_paid', Math.max(0, amountVal - discount));
+            }
+        } else {
+            setDiscountAmount(0);
+            if (!isEdit && data.amount) {
+                setData('amount_paid', data.amount);
+            }
+        }
+    }, [data.promo_id, data.amount]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -75,13 +116,7 @@ export default function CreatePayment({ payment, enrolments }: Props) {
         }
     };
 
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('id-ID', {
-            style: 'currency',
-            currency: 'IDR',
-            minimumFractionDigits: 0
-        }).format(amount);
-    };
+
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -157,6 +192,36 @@ export default function CreatePayment({ payment, enrolments }: Props) {
                                         />
                                     </div>
                                     {errors.amount && <p className="text-sm text-destructive">{errors.amount}</p>}
+                                    {errors.amount && <p className="text-sm text-destructive">{errors.amount}</p>}
+                                </div>
+
+                                {/* Promo */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="promo_id" className="text-sm">
+                                        Promo
+                                    </Label>
+                                    <div className="relative">
+                                        <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                        <select
+                                            id="promo_id"
+                                            className="w-full h-10 sm:h-11 pl-10 pr-3 border rounded-md bg-background text-sm border-input"
+                                            value={data.promo_id}
+                                            onChange={(e) => setData('promo_id', e.target.value)}
+                                        >
+                                            <option value="">Pilih Promo (Opsional)</option>
+                                            {promos.map((promo) => (
+                                                <option key={promo.id} value={promo.id}>
+                                                    {promo.title} - {promo.discount_type === 'percentage' ? `${promo.discount_value}%` : formatCurrency(promo.discount_value)}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    {discountAmount > 0 && (
+                                        <div className="text-sm text-green-600 bg-green-50 p-2 rounded-md border border-green-100 flex justify-between items-center">
+                                            <span>Potongan Harga:</span>
+                                            <span className="font-bold">{formatCurrency(discountAmount)}</span>
+                                        </div>
+                                    )}
                                 </div>
                                 {/* Amount paid*/}
                                 <div className="space-y-2">

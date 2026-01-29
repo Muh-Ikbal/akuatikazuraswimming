@@ -27,7 +27,13 @@ interface Payment {
             id: number;
             title: string;
         };
+
     };
+    promo?: {
+        id: number;
+        title: string;
+    };
+    discount_amount: number;
 }
 
 interface Props {
@@ -104,7 +110,7 @@ export default function Invoice({ payment, invoiceNumber }: Props) {
                     <div class="company-info">
                         <div>
                             <div class="company-name">Akuatik Azura Swimming</div>
-                            <div class="company-address">Jl. Contoh Alamat No. 123<br>Kota, Indonesia<br>Telp: (021) 1234567</div>
+                            <div class="company-address">Gelanggang Olahraga Renang SULTRA<br>Kota Kendari, Indonesia<br>Telp: 082288184712</div>
                         </div>
                         <img src="/logo.png" alt="Logo" class="logo">
                     </div>
@@ -139,6 +145,14 @@ export default function Invoice({ payment, invoiceNumber }: Props) {
                             </td>
                             <td>${formatCurrency(payment.amount)}</td>
                         </tr>
+                        ${payment.discount_amount > 0 ? `
+                        <tr>
+                            <td>
+                                <div class="item-title">Potongan Harga (${payment.promo?.title || 'Promo'})</div>
+                            </td>
+                            <td style="color: #ef4444;">-${formatCurrency(payment.discount_amount)}</td>
+                        </tr>
+                        ` : ''}
                     </tbody>
                 </table>
                 
@@ -146,7 +160,7 @@ export default function Invoice({ payment, invoiceNumber }: Props) {
                     <div class="totals-box">
                         <div class="subtotal-row">
                             <span class="subtotal-label">Subtotal</span>
-                            <span>${formatCurrency(payment.amount)}</span>
+                            <span>${formatCurrency(payment.amount - payment.discount_amount)}</span>
                         </div>
                         <div class="total-row">
                             <span>Total Dibayar</span>
@@ -205,9 +219,9 @@ export default function Invoice({ payment, invoiceNumber }: Props) {
                                 <div>
                                     <h2 className="text-xl font-bold text-gray-900 dark:text-white">Akuatik Azura Swimming</h2>
                                     <p className="text-sm text-gray-500 mt-1">
-                                        Jl. Contoh Alamat No. 123<br />
-                                        Kota, Indonesia<br />
-                                        Telp: (021) 1234567
+                                        Gelanggang Olahraga Renang SULTRA<br />
+                                        Kota Kendari, Indonesia<br />
+                                        Telp: 082288184712
                                     </p>
                                 </div>
                                 <img
@@ -260,6 +274,16 @@ export default function Invoice({ payment, invoiceNumber }: Props) {
                                             {formatCurrency(payment.amount)}
                                         </td>
                                     </tr>
+                                    {payment.discount_amount > 0 && (
+                                        <tr className="border-t bg-red-50/50">
+                                            <td className="py-4 px-4">
+                                                <p className="font-medium text-red-700">Potongan Harga ({payment.promo?.title})</p>
+                                            </td>
+                                            <td className="py-4 px-4 text-right font-medium text-red-700">
+                                                -{formatCurrency(payment.discount_amount)}
+                                            </td>
+                                        </tr>
+                                    )}
                                 </tbody>
                             </table>
                         </div>
@@ -269,7 +293,7 @@ export default function Invoice({ payment, invoiceNumber }: Props) {
                             <div className="w-72">
                                 <div className="flex justify-between py-2 border-b">
                                     <span className="text-gray-500">Subtotal</span>
-                                    <span className="text-gray-900 dark:text-white">{formatCurrency(payment.amount)}</span>
+                                    <span className="text-gray-900 dark:text-white">{formatCurrency(payment.amount - payment.discount_amount)}</span>
                                 </div>
                                 <div className="flex justify-between py-3 text-lg font-bold">
                                     <span className="text-gray-900 dark:text-white">Total Dibayar</span>
