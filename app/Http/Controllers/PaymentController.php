@@ -13,11 +13,16 @@ class PaymentController extends Controller
     public function index(Request $request)
     {
         $search = $request->query('search');
+        $state = $request->query('state');
+
         $payments = Payment::with(['enrolment_course.member', 'enrolment_course.course'])
             ->when($search, function($query,$search){
                 $query->whereHas('enrolment_course.member',function ($query) use ($search){
                     $query->where('name','like',"%{$search}%");
                 });
+            })
+            ->when($state && $state !== 'all', function ($query) use ($state) {
+                $query->where('state', $state);
             })
             ->orderBy('created_at', 'desc')
             ->paginate(10)
@@ -35,7 +40,7 @@ class PaymentController extends Controller
             'totalIncome' => $totalIncome,
             'pendingAmount' => $pendingAmount,
             'totalPaidCount'=>$totalPaidCount,
-            'filters' => $request->only(['search']),
+            'filters' => $request->only(['search', 'state']),
             'promos' => $promos,
         ]);
     }

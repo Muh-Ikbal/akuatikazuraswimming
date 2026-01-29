@@ -321,9 +321,9 @@ export default function Welcome({
                             {/* Hero Image */}
                             <div className="relative float-animation">
                                 <div className="absolute inset-0 bg-blue-100 rounded-3xl rotate-3 scale-105 blur-xl"></div>
-                                <div className="aspect-[4/3] rounded-3xl bg-blue-100 flex items-center justify-center overflow-hidden shadow-2xl shadow-blue-500/20 relative border border-white/20">
+                                <div className="rounded-3xl bg-blue-100 flex items-center justify-center overflow-hidden shadow-2xl shadow-blue-500/20 relative border border-white/20">
                                     {heroImage ? (
-                                        <img src={heroImage} alt="Hero" className="w-full h-full object-cover" />
+                                        <img src={heroImage} alt="Hero" className="w-full h-auto object-cover" />
                                     ) : (
                                         <div className="absolute inset-0 flex items-center justify-center">
                                             <div className="absolute inset-0 bg-blue-600/10"></div>

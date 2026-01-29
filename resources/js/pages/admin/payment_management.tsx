@@ -80,7 +80,7 @@ interface Props {
 export default function PaymentManagement({ payments, filters, totalIncome, pendingAmount, totalPaidCount, promos }: Props) {
     const [searchQuery, setSearchQuery] = useState(filters?.search ?? "");
     const [page, setPage] = useState(payments.current_page)
-    const [filterState, setFilterState] = useState<string>("all");
+    const [filterState, setFilterState] = useState<string>(filters?.state ?? "all");
     const isTyping = useRef(false);
 
     const onSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -97,10 +97,11 @@ export default function PaymentManagement({ payments, filters, totalIncome, pend
 
     const debounceSearch = useMemo(
         () =>
-            debounce((query: string, page: number) => {
+            debounce((query: string, page: number, state: string) => {
                 router.get('/management-pembayaran', {
                     search: query,
-                    page: page
+                    page: page,
+                    state: state
                 }, {
                     preserveState: true,
                     replace: true
@@ -111,19 +112,16 @@ export default function PaymentManagement({ payments, filters, totalIncome, pend
     )
 
     useEffect(() => {
-        debounceSearch(searchQuery, page);
+        debounceSearch(searchQuery, page, filterState);
         return () => {
             debounceSearch.cancel()
         }
-    }, [searchQuery, page])
+    }, [searchQuery, page, filterState])
 
     const paymentList: Payment[] = payments.data;
 
-    const filteredPayments = paymentList.filter((p) => {
-
-        const matchesState = filterState === "all" || p.state === filterState;
-        return matchesState;
-    });
+    // Client-side filtering removed in favor of server-side filtering
+    const filteredPayments = paymentList;
 
     const handleDelete = (id: number) => {
         router.delete(`/management-pembayaran/${id}`);
@@ -263,7 +261,10 @@ export default function PaymentManagement({ payments, filters, totalIncome, pend
                                 <select
                                     className="px-4 py-2 border border-input rounded-md bg-background text-sm"
                                     value={filterState}
-                                    onChange={(e) => setFilterState(e.target.value)}
+                                    onChange={(e) => {
+                                        setFilterState(e.target.value);
+                                        setPage(1); // Reset to first page on filter change
+                                    }}
                                 >
                                     <option value="all">Semua Status</option>
                                     <option value="paid">Lunas</option>
@@ -286,6 +287,7 @@ export default function PaymentManagement({ payments, filters, totalIncome, pend
                                         <TableHead className="hidden md:table-cell">Kursus</TableHead>
                                         <TableHead>Jumlah</TableHead>
                                         <TableHead className="hidden sm:table-cell">Terbayar</TableHead>
+                                        <TableHead>Metode</TableHead>
                                         <TableHead>Status</TableHead>
                                         <TableHead className="hidden lg:table-cell">Tanggal</TableHead>
                                         <TableHead className="text-right">Aksi</TableHead>
