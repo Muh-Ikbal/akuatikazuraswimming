@@ -22,6 +22,7 @@ class MemberController extends Controller
             $search = $request->query('search');
             $members = Member::with('user')
                 ->where('name', 'like', "%{$search}%")
+                ->orderBy('created_at', 'desc')
                 ->paginate(10)
                 ->withQueryString();
 
