@@ -18,29 +18,36 @@ class CoachController extends Controller
 {
     public function index(Request $request)
     {
+        try {
+            $search = $request->query('search');
+            $coaches = Coach::with('user')
+            ->when($search, function ($query,$search){
+                $query->whereHas('user', function ($query) use ($search) {
+                    $query->where('name', 'like', "%{$search}%");
+                });
+            })
+            ->paginate(10)
+            ->withQueryString();
 
-        $search = $request->query('search');
-        $coaches = Coach::with('user')
-        ->when($search, function ($query,$search){
-            $query->whereHas('user', function ($query) use ($search) {
-                $query->where('name', 'like', "%{$search}%");
-            });
-        })
-        ->paginate(10)
-        ->withQueryString();
-
-        $coachStats = Coach::with('user')->get();
-        
-        return Inertia::render('admin/coach_management', [
-            'coaches' => $coaches,
-            'coachStats'=>$coachStats,
-            'filters' => $request->only(['search']),
-        ]);
+            $coachStats = Coach::with('user')->get();
+            
+            return Inertia::render('admin/coach_management', [
+                'coaches' => $coaches,
+                'coachStats'=>$coachStats,
+                'filters' => $request->only(['search']),
+            ]);
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
     }
 
     public function create()
     {
-        return Inertia::render('admin/coach/create');
+        try {
+            return Inertia::render('admin/coach/create');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
     }
 
     public function store(Request $request)
@@ -64,84 +71,94 @@ class CoachController extends Controller
             'certificates.*.image' => 'nullable|image|max:2048',
         ]);
 
-        DB::transaction(function () use ($validated, $request) {
-            // Handle image upload
-            $imagePath = null;
-            if ($request->hasFile('image')) {
-                $imagePath = $request->file('image')->store('coaches', 'public');
-            }
-
-            // Create user
-            $user = User::create([
-                'name' => $validated['name'],
-                'email' => $validated['email'],
-                'password' => Hash::make($validated['password']),
-            ]);
-            $user->assignRole('coach');
-
-            // Create coach
-            $coach = Coach::create([
-                'name' => $validated['name'],
-                'phone_number' => $validated['phone_number'],
-                'birth_date' => $validated['birth_date'],
-                'gender' => $validated['gender'],
-                'address' => $validated['address'],
-                'birthplace' => $validated['birthplace'],
-                'image' => $imagePath,
-                'user_id' => $user->id,
-            ]);
-
-            // Create certificates
-            if ($request->has('certificates')) {
-                foreach ($request->certificates as $index => $certData) {
-                    $certImagePath = null;
-                    if ($request->hasFile("certificates.{$index}.image")) {
-                        $certImagePath = $request->file("certificates.{$index}.image")->store('certificates', 'public');
-                    }
-                    
-                    CertificateCoach::create([
-                        'title' => $certData['title'],
-                        'description' => $certData['description'] ?? '',
-                        'image' => $certImagePath,
-                        'coach_id' => $coach->id,
-                    ]);
+        try {
+            DB::transaction(function () use ($validated, $request) {
+                // Handle image upload
+                $imagePath = null;
+                if ($request->hasFile('image')) {
+                    $imagePath = $request->file('image')->store('coaches', 'public');
                 }
-            }
-        });
 
-        return redirect('/management-coach')->with('success', 'Coach berhasil ditambahkan');
+                // Create user
+                $user = User::create([
+                    'name' => $validated['name'],
+                    'email' => $validated['email'],
+                    'password' => Hash::make($validated['password']),
+                ]);
+                $user->assignRole('coach');
+
+                // Create coach
+                $coach = Coach::create([
+                    'name' => $validated['name'],
+                    'phone_number' => $validated['phone_number'],
+                    'birth_date' => $validated['birth_date'],
+                    'gender' => $validated['gender'],
+                    'address' => $validated['address'],
+                    'birthplace' => $validated['birthplace'],
+                    'image' => $imagePath,
+                    'user_id' => $user->id,
+                ]);
+
+                // Create certificates
+                if ($request->has('certificates')) {
+                    foreach ($request->certificates as $index => $certData) {
+                        $certImagePath = null;
+                        if ($request->hasFile("certificates.{$index}.image")) {
+                            $certImagePath = $request->file("certificates.{$index}.image")->store('certificates', 'public');
+                        }
+                        
+                        CertificateCoach::create([
+                            'title' => $certData['title'],
+                            'description' => $certData['description'] ?? '',
+                            'image' => $certImagePath,
+                            'coach_id' => $coach->id,
+                        ]);
+                    }
+                }
+            });
+
+            return redirect('/management-coach')->with('success', 'Coach berhasil ditambahkan');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
     }
 
     public function show($id)
     {
-        $coach = Coach::with(['user', 'certificate_coaches'])->findOrFail($id);
-        
-        return Inertia::render('admin/coach/show', [
-            'coach' => $coach
-        ]);
+        try {
+            $coach = Coach::with(['user', 'certificate_coaches'])->findOrFail($id);
+            
+            return Inertia::render('admin/coach/show', [
+                'coach' => $coach
+            ]);
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
     }
 
     public function edit($id)
     {
-        $coach = Coach::with(['user', 'certificate_coaches'])->findOrFail($id);
-        // Get users with 'coach' role that are not linked to any coach OR linked to this coach
-        $users = User::role('coach')
-            ->where(function($query) use ($coach) {
-                $query->whereDoesntHave('coach')
-                    ->orWhere('id', $coach->user_id);
-            })
-            ->get(['id', 'name', 'email']);
-        
-        return Inertia::render('admin/coach/create', [
-            'coach' => $coach,
-            'users' => $users
-        ]);
+        try {
+            $coach = Coach::with(['user', 'certificate_coaches'])->findOrFail($id);
+            // Get users with 'coach' role that are not linked to any coach OR linked to this coach
+            $users = User::role('coach')
+                ->where(function($query) use ($coach) {
+                    $query->whereDoesntHave('coach')
+                        ->orWhere('id', $coach->user_id);
+                })
+                ->get(['id', 'name', 'email']);
+            
+            return Inertia::render('admin/coach/create', [
+                'coach' => $coach,
+                'users' => $users
+            ]);
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
     }
 
     public function update(Request $request, $id)
     {
-        $coach = Coach::findOrFail($id);
-        
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'phone_number' => 'required|string|max:20',
@@ -161,111 +178,120 @@ class CoachController extends Controller
             'deleted_certificates.*' => 'exists:certificate_coaches,id',
         ]);
 
-        // Handle image upload
-        if ($request->hasFile('image')) {
-            // Delete old image
-            if ($coach->image) {
-                Storage::disk('public')->delete($coach->image);
-            }
-            $validated['image'] = $request->file('image')->store('coaches', 'public');
-        }
-
-        $coach->update([
-            'name' => $validated['name'],
-            'phone_number' => $validated['phone_number'],
-            'address' => $validated['address'],
-            'birthplace' => $validated['birthplace'],
-            'birth_date' => $validated['birth_date'],
-            'gender' => $validated['gender'],
-            'image' => $validated['image'] ?? $coach->image,
-            'user_id' => $validated['user_id'] ?? $coach->user_id,
-        ]);
-
-        // Update linked user name if exists
-        if ($coach->user_id && $coach->user) {
-            $coach->user->update(['name' => $validated['name']]);
-        }
-
-        // Handle deleted certificates
-        if ($request->has('deleted_certificates')) {
-            foreach ($request->deleted_certificates as $certId) {
-                $cert = CertificateCoach::find($certId);
-                if ($cert && $cert->coach_id == $coach->id) {
-                    if ($cert->image) {
-                        Storage::disk('public')->delete($cert->image);
-                    }
-                    $cert->delete();
+        try {
+            $coach = Coach::findOrFail($id);
+            // Handle image upload
+            if ($request->hasFile('image')) {
+                // Delete old image
+                if ($coach->image) {
+                    Storage::disk('public')->delete($coach->image);
                 }
+                $validated['image'] = $request->file('image')->store('coaches', 'public');
             }
-        }
 
-        // Handle certificates (create new or update existing)
-        if ($request->has('certificates')) {
-            foreach ($request->certificates as $index => $certData) {
-                $certImagePath = null;
-                if ($request->hasFile("certificates.{$index}.image")) {
-                    $certImagePath = $request->file("certificates.{$index}.image")->store('certificates', 'public');
-                }
-                
-                if (isset($certData['id']) && $certData['id']) {
-                    // Update existing certificate
-                    $cert = CertificateCoach::find($certData['id']);
+            $coach->update([
+                'name' => $validated['name'],
+                'phone_number' => $validated['phone_number'],
+                'address' => $validated['address'],
+                'birthplace' => $validated['birthplace'],
+                'birth_date' => $validated['birth_date'],
+                'gender' => $validated['gender'],
+                'image' => $validated['image'] ?? $coach->image,
+                'user_id' => $validated['user_id'] ?? $coach->user_id,
+            ]);
+
+            // Update linked user name if exists
+            if ($coach->user_id && $coach->user) {
+                $coach->user->update(['name' => $validated['name']]);
+            }
+
+            // Handle deleted certificates
+            if ($request->has('deleted_certificates')) {
+                foreach ($request->deleted_certificates as $certId) {
+                    $cert = CertificateCoach::find($certId);
                     if ($cert && $cert->coach_id == $coach->id) {
-                        $updateData = [
+                        if ($cert->image) {
+                            Storage::disk('public')->delete($cert->image);
+                        }
+                        $cert->delete();
+                    }
+                }
+            }
+
+            // Handle certificates (create new or update existing)
+            if ($request->has('certificates')) {
+                foreach ($request->certificates as $index => $certData) {
+                    $certImagePath = null;
+                    if ($request->hasFile("certificates.{$index}.image")) {
+                        $certImagePath = $request->file("certificates.{$index}.image")->store('certificates', 'public');
+                    }
+                    
+                    if (isset($certData['id']) && $certData['id']) {
+                        // Update existing certificate
+                        $cert = CertificateCoach::find($certData['id']);
+                        if ($cert && $cert->coach_id == $coach->id) {
+                            $updateData = [
+                                'title' => $certData['title'],
+                                'description' => $certData['description'] ?? '',
+                            ];
+                            if ($certImagePath) {
+                                if ($cert->image) {
+                                    Storage::disk('public')->delete($cert->image);
+                                }
+                                $updateData['image'] = $certImagePath;
+                            }
+                            $cert->update($updateData);
+                        }
+                    } else {
+                        // Create new certificate
+                        CertificateCoach::create([
                             'title' => $certData['title'],
                             'description' => $certData['description'] ?? '',
-                        ];
-                        if ($certImagePath) {
-                            if ($cert->image) {
-                                Storage::disk('public')->delete($cert->image);
-                            }
-                            $updateData['image'] = $certImagePath;
-                        }
-                        $cert->update($updateData);
+                            'image' => $certImagePath,
+                            'coach_id' => $coach->id,
+                        ]);
                     }
-                } else {
-                    // Create new certificate
-                    CertificateCoach::create([
-                        'title' => $certData['title'],
-                        'description' => $certData['description'] ?? '',
-                        'image' => $certImagePath,
-                        'coach_id' => $coach->id,
-                    ]);
                 }
             }
-        }
 
-        return redirect('/management-coach')->with('success', 'Coach berhasil diupdate');
+            return redirect('/management-coach')->with('success', 'Coach berhasil diupdate');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
     }
 
     public function destroy($id)
     {
-        $coach = Coach::findOrFail($id);
+        try {
+            $coach = Coach::findOrFail($id);
 
-        // Check if coach has any schedules assigned
-        $scheduleCount = Schedule::where('coach_id', $coach->id)->count();
-        if($scheduleCount > 0){
-            return redirect('/management-coach')->with('error', 'Coach gagal dihapus, masih ada jadwal yang terkait dengan coach ini');
-        }
-        
-        // Delete image
-        if ($coach->image) {
-            Storage::disk('public')->delete($coach->image);
-        }
-
-        $certificates = CertificateCoach::where('coach_id', $coach->id)->get();
-        foreach ($certificates as $certificate) {
-            if ($certificate->image) {
-                Storage::disk('public')->delete($certificate->image);
+            // Check if coach has any schedules assigned
+            $scheduleCount = Schedule::where('coach_id', $coach->id)->count();
+            if($scheduleCount > 0){
+                return redirect('/management-coach')->with('error', 'Coach gagal dihapus, masih ada jadwal yang terkait dengan coach ini');
             }
-            $certificate->delete();
+            
+            // Delete image
+            if ($coach->image) {
+                Storage::disk('public')->delete($coach->image);
+            }
+
+            $certificates = CertificateCoach::where('coach_id', $coach->id)->get();
+            foreach ($certificates as $certificate) {
+                if ($certificate->image) {
+                    Storage::disk('public')->delete($certificate->image);
+                }
+                $certificate->delete();
+            }
+
+            $coach->certificate_coaches()->delete();
+
+            
+            $coach->delete();
+
+            return redirect('/management-coach')->with('success', 'Coach berhasil dihapus');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
         }
-
-        $coach->certificate_coaches()->delete();
-
-        
-        $coach->delete();
-
-        return redirect('/management-coach')->with('success', 'Coach berhasil dihapus');
     }
 }

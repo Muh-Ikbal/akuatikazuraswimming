@@ -11,11 +11,15 @@ class CmsFeatureController extends Controller
 {
     public function index()
     {
-        $features = Feature::ordered()->get();
+        try {
+            $features = Feature::ordered()->get();
 
-        return Inertia::render('admin/cms/keunggulan', [
-            'features' => $features,
-        ]);
+            return Inertia::render('admin/cms/keunggulan', [
+                'features' => $features,
+            ]);
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
     }
 
     public function store(Request $request)
@@ -26,17 +30,21 @@ class CmsFeatureController extends Controller
             'icon' => 'required|string|max:50',
         ]);
 
-        $maxOrder = Feature::max('order') ?? 0;
+        try {
+            $maxOrder = Feature::max('order') ?? 0;
 
-        Feature::create([
-            'title' => $request->title,
-            'description' => $request->description,
-            'icon' => $request->icon,
-            'order' => $maxOrder + 1,
-            'is_active' => true,
-        ]);
+            Feature::create([
+                'title' => $request->title,
+                'description' => $request->description,
+                'icon' => $request->icon,
+                'order' => $maxOrder + 1,
+                'is_active' => true,
+            ]);
 
-        return redirect()->back()->with('success', 'Keunggulan berhasil ditambahkan.');
+            return redirect()->back()->with('success', 'Keunggulan berhasil ditambahkan.');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
     }
 
     public function update(Request $request, $id)
@@ -48,23 +56,31 @@ class CmsFeatureController extends Controller
             'is_active' => 'boolean',
         ]);
 
-        $feature = Feature::findOrFail($id);
-        $feature->update([
-            'title' => $request->title,
-            'description' => $request->description,
-            'icon' => $request->icon,
-            'is_active' => $request->is_active ?? true,
-        ]);
+        try {
+            $feature = Feature::findOrFail($id);
+            $feature->update([
+                'title' => $request->title,
+                'description' => $request->description,
+                'icon' => $request->icon,
+                'is_active' => $request->is_active ?? true,
+            ]);
 
-        return redirect()->back()->with('success', 'Keunggulan berhasil diperbarui.');
+            return redirect()->back()->with('success', 'Keunggulan berhasil diperbarui.');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
     }
 
     public function destroy($id)
     {
-        $feature = Feature::findOrFail($id);
-        $feature->delete();
+        try {
+            $feature = Feature::findOrFail($id);
+            $feature->delete();
 
-        return redirect()->back()->with('success', 'Keunggulan berhasil dihapus.');
+            return redirect()->back()->with('success', 'Keunggulan berhasil dihapus.');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
     }
 
     public function reorder(Request $request)
@@ -75,10 +91,14 @@ class CmsFeatureController extends Controller
             'orders.*.order' => 'required|integer',
         ]);
 
-        foreach ($request->orders as $item) {
-            Feature::where('id', $item['id'])->update(['order' => $item['order']]);
-        }
+        try {
+            foreach ($request->orders as $item) {
+                Feature::where('id', $item['id'])->update(['order' => $item['order']]);
+            }
 
-        return redirect()->back()->with('success', 'Urutan berhasil diperbarui.');
+            return redirect()->back()->with('success', 'Urutan berhasil diperbarui.');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
     }
 }

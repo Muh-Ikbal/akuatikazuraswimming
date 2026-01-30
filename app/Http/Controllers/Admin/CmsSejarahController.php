@@ -11,15 +11,19 @@ class CmsSejarahController extends Controller
 {
     public function index()
     {
-        $settings = SiteSetting::getMany([
-            'sejarah_title',
-            'sejarah_content',
-            'sejarah_image',
-        ]);
+        try {
+            $settings = SiteSetting::getMany([
+                'sejarah_title',
+                'sejarah_content',
+                'sejarah_image',
+            ]);
 
-        return Inertia::render('admin/cms/sejarah', [
-            'settings' => $settings,
-        ]);
+            return Inertia::render('admin/cms/sejarah', [
+                'settings' => $settings,
+            ]);
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
     }
 
     public function update(Request $request)
@@ -30,21 +34,25 @@ class CmsSejarahController extends Controller
             'sejarah_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ]);
 
-        SiteSetting::setValue('sejarah_title', $request->sejarah_title);
-        SiteSetting::setValue('sejarah_content', $request->sejarah_content);
+        try {
+            SiteSetting::setValue('sejarah_title', $request->sejarah_title);
+            SiteSetting::setValue('sejarah_content', $request->sejarah_content);
 
-        if ($request->hasFile('sejarah_image')) {
-            // Delete old image if exists
-            $oldImage = SiteSetting::getValue('sejarah_image');
-            if ($oldImage && \Illuminate\Support\Facades\Storage::disk('public')->exists($oldImage)) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($oldImage);
+            if ($request->hasFile('sejarah_image')) {
+                // Delete old image if exists
+                $oldImage = SiteSetting::getValue('sejarah_image');
+                if ($oldImage && \Illuminate\Support\Facades\Storage::disk('public')->exists($oldImage)) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($oldImage);
+                }
+
+                // Store new image
+                $path = $request->file('sejarah_image')->store('cms/sejarah', 'public');
+                SiteSetting::setValue('sejarah_image', $path);
             }
 
-            // Store new image
-            $path = $request->file('sejarah_image')->store('cms/sejarah', 'public');
-            SiteSetting::setValue('sejarah_image', $path);
+            return redirect()->back()->with('success', 'Sejarah berhasil diperbarui.');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
         }
-
-        return redirect()->back()->with('success', 'Sejarah berhasil diperbarui.');
     }
 }

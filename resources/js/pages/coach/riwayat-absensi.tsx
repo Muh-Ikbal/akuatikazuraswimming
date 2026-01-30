@@ -30,13 +30,14 @@ interface AttendanceRecord {
     date: string;
     check_in_time: string;
     check_out_time: string | null;
-    state: 'present' | 'late';
+    state: 'present' | 'late' | 'alpha';
     status: string;
 }
 
 interface Stats {
     total_present: number;
     total_late: number;
+    total_alpha: number;
     total_records: number;
 }
 
@@ -64,11 +65,18 @@ export default function RiwayatAbsensiCoach({ attendanceRecords, stats }: Props)
                     Tepat Waktu
                 </Badge>
             );
-        } else {
+        } else if (state === 'late') {
             return (
                 <Badge className="bg-yellow-100 text-yellow-700 border-yellow-200 hover:bg-yellow-100">
                     <AlertTriangle className="w-3 h-3 mr-1" />
                     Terlambat
+                </Badge>
+            );
+        } else {
+            return (
+                <Badge className="bg-red-100 text-red-700 border-red-200 hover:bg-red-100">
+                    <AlertTriangle className="w-3 h-3 mr-1" />
+                    Alpa
                 </Badge>
             );
         }
@@ -85,7 +93,7 @@ export default function RiwayatAbsensiCoach({ attendanceRecords, stats }: Props)
                 </div>
 
                 {/* Stats Cards */}
-                <div className="grid gap-4 sm:grid-cols-3">
+                <div className="grid gap-4 sm:grid-cols-4">
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Tepat Waktu</CardTitle>
@@ -109,6 +117,19 @@ export default function RiwayatAbsensiCoach({ attendanceRecords, stats }: Props)
                         <CardContent>
                             <div className="text-2xl font-bold text-yellow-600">{stats.total_late}</div>
                             <p className="text-xs text-muted-foreground">kehadiran terlambat</p>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Alpa</CardTitle>
+                            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-red-100">
+                                <AlertTriangle className="h-5 w-5 text-red-600" />
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold text-red-600">{stats.total_alpha}</div>
+                            <p className="text-xs text-muted-foreground">total alpa</p>
                         </CardContent>
                     </Card>
 

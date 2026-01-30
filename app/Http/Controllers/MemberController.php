@@ -18,34 +18,42 @@ class MemberController extends Controller
 {
     public function index(Request $request)
     {
-        $search = $request->query('search');
-        $members = Member::with('user')
-            ->where('name', 'like', "%{$search}%")
-            ->paginate(10)
-            ->withQueryString();
+        try {
+            $search = $request->query('search');
+            $members = Member::with('user')
+                ->where('name', 'like', "%{$search}%")
+                ->paginate(10)
+                ->withQueryString();
 
-        $memberStats = Member::select(
-            DB::raw('COUNT(*) as total'),
-            DB::raw('SUM(CASE WHEN gender = "male" THEN 1 ELSE 0 END) as male_count'),
-            DB::raw('SUM(CASE WHEN gender = "female" THEN 1 ELSE 0 END) as female_count'),
-            DB::raw('SUM(CASE WHEN user_id IS NOT NULL THEN 1 ELSE 0 END) as user_count')
-        )->first();
-        
-        return Inertia::render('admin/member_management', [
-            'members' => $members,
-            'filters' => $request->only(['search']),
-            'memberStats' => $memberStats,
-        ]);
+            $memberStats = Member::select(
+                DB::raw('COUNT(*) as total'),
+                DB::raw('SUM(CASE WHEN gender = "male" THEN 1 ELSE 0 END) as male_count'),
+                DB::raw('SUM(CASE WHEN gender = "female" THEN 1 ELSE 0 END) as female_count'),
+                DB::raw('SUM(CASE WHEN user_id IS NOT NULL THEN 1 ELSE 0 END) as user_count')
+            )->first();
+            
+            return Inertia::render('admin/member_management', [
+                'members' => $members,
+                'filters' => $request->only(['search']),
+                'memberStats' => $memberStats,
+            ]);
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
     }
 
     public function create()
     {
-        $courses = Course::get(['id','title']);
-        $classSessions = ClassSession::get(['id','title']);
-        return Inertia::render('admin/member/create', [
-            'courses' => $courses,
-            'classSessions' => $classSessions,
-        ]);
+        try {
+            $courses = Course::get(['id','title']);
+            $classSessions = ClassSession::get(['id','title']);
+            return Inertia::render('admin/member/create', [
+                'courses' => $courses,
+                'classSessions' => $classSessions,
+            ]);
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
     }
 
     public function store(Request $request)
@@ -68,21 +76,109 @@ class MemberController extends Controller
             'class_session_id' => 'required|exists:class_sessions,id',
 
         ]);
+        
+        try {
+            DB::transaction(function () use ($validated) {
+                $userId = null;
 
-        DB::transaction(function () use ($validated) {
-            $userId = null;
+                // Create user if requested
+                $user = User::create([
+                    'name' => $validated['name'],
+                    'email' => $validated['email'],
+                    'password' => Hash::make($validated['password']),
+                ]);
+                $user->assignRole('member');
+                $userId = $user->id;
 
-            // Create user if requested
-            $user = User::create([
-                'name' => $validated['name'],
-                'email' => $validated['email'],
-                'password' => Hash::make($validated['password']),
+                // Create member
+                $member = Member::create([
+                    'name' => $validated['name'],
+                    'birth_date' => $validated['birth_date'],
+                    'gender' => $validated['gender'],
+                    'address' => $validated['address'],
+                    'birth_place' => $validated['birth_place'],
+                    'entry_date' => $validated['entry_date'],
+                    'phone_number' => $validated['phone_number'],
+                    'parent_name' => $validated['parent_name'],
+                    'parent_phone_number' => $validated['parent_phone_number'],
+                    'user_id' => $userId,
+                ]);
+                // create enrolment
+                $memberId = $member->id; 
+                $enrolmentCourse = EnrolmentCourse::create([
+                    'member_id' => $memberId,
+                    'course_id' => $validated['course_id'],
+                    'class_session_id' => $validated['class_session_id'],
+                ]);
+
+                $course = Course::findOrFail($validated['course_id']);
+                $enrolmentCourseId = $enrolmentCourse->id;
+                Payment::create([
+                    'enrolment_course_id' => $enrolmentCourseId,
+                    'amount' => $course->price,
+                    'state' => 'pending',
+                ]);
+            });
+
+            return redirect('/management-member')->with('success', 'Member berhasil ditambahkan');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
+    }
+
+    public function show($id)
+    {
+        try {
+            $member = Member::with('user')->findOrFail($id);
+            
+            return Inertia::render('admin/member/show', [
+                'member' => $member
             ]);
-            $user->assignRole('member');
-            $userId = $user->id;
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
+    }
 
-            // Create member
-            $member = Member::create([
+    public function edit($id)
+    {
+        try {
+            $member = Member::with('user')->findOrFail($id);
+            // Get users with 'member' role that are not linked to any member OR linked to this member
+            $users = User::role('member')
+                ->where(function($query) use ($member) {
+                    $query->whereDoesntHave('member')
+                        ->orWhere('id', $member->user_id);
+                })
+                ->get(['id', 'name', 'email']);
+            
+            return Inertia::render('admin/member/create', [
+                'member' => $member,
+                'users' => $users
+            ]);
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
+    }
+
+    public function update(Request $request, $id)
+    {
+        try {
+            $member = Member::findOrFail($id);
+            
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'birth_date' => 'required|date',
+                'gender' => 'required|in:male,female',
+                'address' => 'required|string',
+                'birth_place' => 'required|string',
+                'entry_date' => 'required|date',
+                'phone_number' => 'required|string|max:20',
+                'parent_name' => 'required|string|max:255',
+                'parent_phone_number' => 'required|string|max:20',
+                'user_id' => 'nullable|exists:users,id',
+            ]);
+
+            $member->update([
                 'name' => $validated['name'],
                 'birth_date' => $validated['birth_date'],
                 'gender' => $validated['gender'],
@@ -92,102 +188,34 @@ class MemberController extends Controller
                 'phone_number' => $validated['phone_number'],
                 'parent_name' => $validated['parent_name'],
                 'parent_phone_number' => $validated['parent_phone_number'],
-                'user_id' => $userId,
-            ]);
-            // create enrolment
-            $memberId = $member->id; 
-            $enrolmentCourse = EnrolmentCourse::create([
-                'member_id' => $memberId,
-                'course_id' => $validated['course_id'],
-                'class_session_id' => $validated['class_session_id'],
+                'user_id' => $validated['user_id'] ?? null,
             ]);
 
-            $course = Course::findOrFail($validated['course_id']);
-            $enrolmentCourseId = $enrolmentCourse->id;
-            Payment::create([
-                'enrolment_course_id' => $enrolmentCourseId,
-                'amount' => $course->price,
-                'state' => 'pending',
-            ]);
-        });
+            // Update linked user name if exists
+            if ($member->user_id && $member->user) {
+                $member->user->update(['name' => $validated['name']]);
+            }
 
-        return redirect('/management-member')->with('success', 'Member berhasil ditambahkan');
-    }
-
-    public function show($id)
-    {
-        $member = Member::with('user')->findOrFail($id);
-        
-        return Inertia::render('admin/member/show', [
-            'member' => $member
-        ]);
-    }
-
-    public function edit($id)
-    {
-        $member = Member::with('user')->findOrFail($id);
-        // Get users with 'member' role that are not linked to any member OR linked to this member
-        $users = User::role('member')
-            ->where(function($query) use ($member) {
-                $query->whereDoesntHave('member')
-                    ->orWhere('id', $member->user_id);
-            })
-            ->get(['id', 'name', 'email']);
-        
-        return Inertia::render('admin/member/create', [
-            'member' => $member,
-            'users' => $users
-        ]);
-    }
-
-    public function update(Request $request, $id)
-    {
-        $member = Member::findOrFail($id);
-        
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'birth_date' => 'required|date',
-            'gender' => 'required|in:male,female',
-            'address' => 'required|string',
-            'birth_place' => 'required|string',
-            'entry_date' => 'required|date',
-            'phone_number' => 'required|string|max:20',
-            'parent_name' => 'required|string|max:255',
-            'parent_phone_number' => 'required|string|max:20',
-            'user_id' => 'nullable|exists:users,id',
-        ]);
-
-        $member->update([
-            'name' => $validated['name'],
-            'birth_date' => $validated['birth_date'],
-            'gender' => $validated['gender'],
-            'address' => $validated['address'],
-            'birth_place' => $validated['birth_place'],
-            'entry_date' => $validated['entry_date'],
-            'phone_number' => $validated['phone_number'],
-            'parent_name' => $validated['parent_name'],
-            'parent_phone_number' => $validated['parent_phone_number'],
-            'user_id' => $validated['user_id'] ?? null,
-        ]);
-
-        // Update linked user name if exists
-        if ($member->user_id && $member->user) {
-            $member->user->update(['name' => $validated['name']]);
+            return redirect('/management-member')->with('success', 'Member berhasil diupdate');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
         }
-
-        return redirect('/management-member')->with('success', 'Member berhasil diupdate');
     }
 
     public function destroy($id)
     {
-        $member = Member::findOrFail($id);
+        try {
+            $member = Member::findOrFail($id);
 
-        $enrolments = EnrolmentCourse::where('member_id', $id)->get();
-        if($enrolments->count() > 0){
-            return redirect('/management-member')->with('error', 'Member masih memiliki enrolment');
+            $enrolments = EnrolmentCourse::where('member_id', $id)->get();
+            if($enrolments->count() > 0){
+                return redirect('/management-member')->with('error', 'Member masih memiliki enrolment');
+            }
+            $member->delete();
+
+            return redirect('/management-member')->with('success', 'Member berhasil dihapus');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
         }
-        $member->delete();
-
-        return redirect('/management-member')->with('success', 'Member berhasil dihapus');
     }
 }

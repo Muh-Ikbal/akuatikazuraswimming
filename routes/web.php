@@ -158,6 +158,12 @@ Route::middleware(['auth', 'verified','role:admin'])->group(function () {
     Route::put('management-promo/update/{id}', [\App\Http\Controllers\PromoController::class,'update'])->name('management-promo.update');
     Route::delete('management-promo/{id}', [\App\Http\Controllers\PromoController::class,'destroy'])->name('management-promo.destroy');
 
+    // Management Sesi Absensi Pegawai
+    Route::get('admin/settings/employee-sessions', [\App\Http\Controllers\Admin\EmployeeSessionController::class, 'index'])->name('employee-sessions.index');
+    Route::post('admin/settings/employee-sessions', [\App\Http\Controllers\Admin\EmployeeSessionController::class, 'store'])->name('employee-sessions.store');
+    Route::put('admin/settings/employee-sessions/{id}', [\App\Http\Controllers\Admin\EmployeeSessionController::class, 'update'])->name('employee-sessions.update');
+    Route::delete('admin/settings/employee-sessions/{id}', [\App\Http\Controllers\Admin\EmployeeSessionController::class, 'destroy'])->name('employee-sessions.destroy');
+
 });
 
 Route::middleware(['auth', 'verified','role:member'])->group(function () {

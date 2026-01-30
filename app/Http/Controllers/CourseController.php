@@ -9,14 +9,22 @@ use Illuminate\Support\Facades\Storage;
 class CourseController extends Controller
 {
     public function index(){
-        $courses = Course::paginate(10);
-        return Inertia::render('admin/course_management',[
-            'courses' => $courses
-        ]);
+        try {
+            $courses = Course::paginate(10);
+            return Inertia::render('admin/course_management',[
+                'courses' => $courses
+            ]);
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
     }
 
     public function create(){
-        return Inertia::render('admin/course/create');
+        try {
+            return Inertia::render('admin/course/create');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
     }
 
     public function store(Request $request){
@@ -30,20 +38,28 @@ class CourseController extends Controller
             'state' => 'required|in:active,inactive',
         ]);
 
-        if ($request->hasFile('image')){
-            $fileName = time() . '.' . $request->image->extension();
-            $validated['image'] = $request->image->storeAs('courses', $fileName, 'public');
-        }
-        Course::create($validated);
+        try {
+            if ($request->hasFile('image')){
+                $fileName = time() . '.' . $request->image->extension();
+                $validated['image'] = $request->image->storeAs('courses', $fileName, 'public');
+            }
+            Course::create($validated);
 
-        return redirect('/management-course')->with('success', 'Course berhasil ditambahkan');
+            return redirect('/management-course')->with('success', 'Course berhasil ditambahkan');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
     }
 
     public function edit($id){
-        $course = Course::findOrFail($id);
-        return Inertia::render('admin/course/create', [
-            'course' => $course
-        ]);
+        try {
+            $course = Course::findOrFail($id);
+            return Inertia::render('admin/course/create', [
+                'course' => $course
+            ]);
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
     }
 
     public function update(Request $request, $id){
@@ -57,25 +73,33 @@ class CourseController extends Controller
             'price' => 'required|numeric|min:0',
             'state' => 'required|in:active,inactive',
         ]);
-        $course = Course::findOrFail($id);
-        $validated['image'] = $course->image;
-        if ($request->hasFile('image')){
-            if ($course->image){
-                Storage::disk('public')->delete($course->image);
+        try {
+            $course = Course::findOrFail($id);
+            $validated['image'] = $course->image;
+            if ($request->hasFile('image')){
+                if ($course->image){
+                    Storage::disk('public')->delete($course->image);
+                }
+                $fileName = time() . '.' . $request->image->extension();
+                $validated['image'] = $request->image->storeAs('courses', $fileName, 'public');
             }
-            $fileName = time() . '.' . $request->image->extension();
-            $validated['image'] = $request->image->storeAs('courses', $fileName, 'public');
-        }
-        $course->update($validated);
+            $course->update($validated);
 
-        return redirect('/management-course')->with('success', 'Course berhasil diupdate');
+            return redirect('/management-course')->with('success', 'Course berhasil diupdate');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
     }
 
     public function show($id){
-        $course = Course::findOrFail($id);
-        return Inertia::render('admin/course/show', [
-            'course' => $course
-        ]);
+        try {
+            $course = Course::findOrFail($id);
+            return Inertia::render('admin/course/show', [
+                'course' => $course
+            ]);
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
     }
 
     public function destroy($id){

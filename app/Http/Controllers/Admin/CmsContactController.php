@@ -11,16 +11,20 @@ class CmsContactController extends Controller
 {
     public function index()
     {
-        $settings = SiteSetting::getMany([
-            'contact_phone',
-            'contact_email',
-            'contact_address',
-            'contact_instagram',
-        ]);
+        try {
+            $settings = SiteSetting::getMany([
+                'contact_phone',
+                'contact_email',
+                'contact_address',
+                'contact_instagram',
+            ]);
 
-        return Inertia::render('admin/cms/kontak', [
-            'settings' => $settings,
-        ]);
+            return Inertia::render('admin/cms/kontak', [
+                'settings' => $settings,
+            ]);
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
     }
 
     public function update(Request $request)
@@ -32,11 +36,15 @@ class CmsContactController extends Controller
             'contact_instagram' => 'nullable|string|max:100',
         ]);
 
-        SiteSetting::setValue('contact_phone', $request->contact_phone);
-        SiteSetting::setValue('contact_email', $request->contact_email);
-        SiteSetting::setValue('contact_address', $request->contact_address);
-        SiteSetting::setValue('contact_instagram', $request->contact_instagram);
+        try {
+            SiteSetting::setValue('contact_phone', $request->contact_phone);
+            SiteSetting::setValue('contact_email', $request->contact_email);
+            SiteSetting::setValue('contact_address', $request->contact_address);
+            SiteSetting::setValue('contact_instagram', $request->contact_instagram);
 
-        return redirect()->back()->with('success', 'Informasi kontak berhasil diperbarui.');
+            return redirect()->back()->with('success', 'Informasi kontak berhasil diperbarui.');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
     }
 }

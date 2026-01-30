@@ -13,41 +13,52 @@ class CoachAttendanceHistoryController extends Controller
 {
     public function index()
     {
-        $user = auth()->user();
-        $coach = Coach::where('user_id', $user->id)->first();
-        
-        $attendanceRecords = collect();
-        $stats = [
-            'total_present' => 0,
-            'total_late' => 0,
-            'total_records' => 0,
-        ];
-        
-        if ($coach) {
-            // Get all attendance records for this coach/user from attandance_employees table
-            $attendances = AttandanceEmployee::where('user_id', $user->id)
-                ->orderBy('scan_time', 'desc')
-                ->get();
+        try {
+            $user = auth()->user();
+            $coach = Coach::where('user_id', $user->id)->first();
             
-            $stats['total_records'] = $attendances->count();
-            $stats['total_present'] = $attendances->where('state', 'present')->count();
-            $stats['total_late'] = $attendances->where('state', 'late')->count();
+            $attendanceRecords = collect();
+            $stats = [
+                'total_present' => 0,
+                'total_late' => 0,
+                'total_alpha' => 0,
+                'total_records' => 0,
+            ];
             
-            // Each record is a separate attendance entry
-            foreach ($attendances as $attendance) {
-                $attendanceRecords->push([
-                    'id' => $attendance->id,
-                    'date' => Carbon::parse($attendance->scan_time)->toDateString(),
-                    'check_in_time' => Carbon::parse($attendance->scan_time)->format('H:i:s'),
-                    'state' => $attendance->state,
-                    'status' => $attendance->state === 'present' ? 'Tepat Waktu' : 'Terlambat',
-                ]);
+            if ($coach) {
+                // Get all attendance records for this coach/user from attandance_employees table
+                $attendances = AttandanceEmployee::where('user_id', $user->id)
+                    ->orderBy('scan_time', 'desc')
+                    ->get();
+                
+                $stats['total_records'] = $attendances->count();
+                $stats['total_present'] = $attendances->where('state', 'present')->count();
+                $stats['total_late'] = $attendances->where('state', 'late')->count();
+                $stats['total_alpha'] = $attendances->where('state', 'alpha')->count();
+                
+                // Each record is a separate attendance entry
+                foreach ($attendances as $attendance) {
+                    $attendanceRecords->push([
+                        'id' => $attendance->id,
+                        'date' => Carbon::parse($attendance->scan_time)->toDateString(),
+                        'check_in_time' => Carbon::parse($attendance->scan_time)->format('H:i:s'),
+                        'state' => $attendance->state,
+                        'status' => match($attendance->state) {
+                            'present' => 'Tepat Waktu',
+                            'late' => 'Terlambat',
+                            'alpha' => 'Alpa',
+                            default => '-'
+                        },
+                    ]);
+                }
             }
+            
+            return Inertia::render('coach/riwayat-absensi', [
+                'attendanceRecords' => $attendanceRecords,
+                'stats' => $stats,
+            ]);
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
         }
-        
-        return Inertia::render('coach/riwayat-absensi', [
-            'attendanceRecords' => $attendanceRecords,
-            'stats' => $stats,
-        ]);
     }
 }

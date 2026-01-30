@@ -13,27 +13,35 @@ use Carbon\Carbon;
 class ScheduleController extends Controller
 {
     public function index(){
-        Schedule::whereDate('date', '<=', today())
-            ->whereTime('end_time', '<=', now())
-            ->update([
-                'status' => 'completed'
+        try {
+            Schedule::whereDate('date', '<=', today())
+                ->whereTime('end_time', '<=', now())
+                ->update([
+                    'status' => 'completed'
+                ]);
+            $schedules = Schedule::with('class_session','coach')->orderBy('date', 'desc')->orderBy('time', 'desc')->paginate(10);
+                   
+            
+            return Inertia::render('admin/schedule_management', [
+                'schedules' => $schedules
             ]);
-        $schedules = Schedule::with('class_session','coach')->orderBy('date', 'desc')->orderBy('time', 'desc')->paginate(10);
-               
-        
-        return Inertia::render('admin/schedule_management', [
-            'schedules' => $schedules
-        ]);
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
     }
 
     public function create(){
-        $class_sessions = ClassSession::all();
-        $coaches = Coach::all();
+        try {
+            $class_sessions = ClassSession::all();
+            $coaches = Coach::all();
 
-        return Inertia::render('admin/schedule/create',[
-            'class_sessions' => $class_sessions,
-            'coaches' => $coaches
-        ]);
+            return Inertia::render('admin/schedule/create',[
+                'class_sessions' => $class_sessions,
+                'coaches' => $coaches
+            ]);
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
     }
 
     public function store(Request $request){
@@ -47,23 +55,29 @@ class ScheduleController extends Controller
             'status' => 'required|in:published,on_going,completed,cancelled'
         ]);
       
+        try {
+            Schedule::create($validated);
 
-
-        Schedule::create($validated);
-
-        return redirect('/management-jadwal')->with('success', 'Jadwal berhasil ditambahkan');
+            return redirect('/management-jadwal')->with('success', 'Jadwal berhasil ditambahkan');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
     }
 
     public function edit($id){
-        $schedule = Schedule::findOrFail($id);
-        $class_sessions = ClassSession::all();
-        $coaches = Coach::all();
+        try {
+            $schedule = Schedule::findOrFail($id);
+            $class_sessions = ClassSession::all();
+            $coaches = Coach::all();
 
-        return Inertia::render('admin/schedule/create',[
-            'schedule' => $schedule,
-            'class_sessions' => $class_sessions,
-            'coaches' => $coaches 
-        ]);
+            return Inertia::render('admin/schedule/create',[
+                'schedule' => $schedule,
+                'class_sessions' => $class_sessions,
+                'coaches' => $coaches 
+            ]);
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
     }
 
     public function update(Request $request,$id){
@@ -77,15 +91,23 @@ class ScheduleController extends Controller
             'status' => 'required|in:published,on_going,completed,cancelled'
         ]);
 
-        Schedule::findOrFail($id)->update($validated);
+        try {
+            Schedule::findOrFail($id)->update($validated);
 
-        return redirect('/management-jadwal')->with('success', 'Schedule berhasil diupdate');
+            return redirect('/management-jadwal')->with('success', 'Schedule berhasil diupdate');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
     }
 
     public function destroy($id){
-        $schedule = Schedule::findOrFail($id);
-        $schedule->delete();
+        try {
+            $schedule = Schedule::findOrFail($id);
+            $schedule->delete();
 
-        return redirect('/management-jadwal')->with('success', 'Schedule berhasil dihapus');
+            return redirect('/management-jadwal')->with('success', 'Schedule berhasil dihapus');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
     }
 }

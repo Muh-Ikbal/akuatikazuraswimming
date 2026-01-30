@@ -9,10 +9,14 @@ use App\Models\ExpenseCategory;
 class ExpenseCategoryController extends Controller
 {
     public function index(){
-        $expensesCategory = ExpenseCategory::paginate(10);
-        return Inertia::render('admin/expense-category',[
-            'expensesCategory' => $expensesCategory
-        ]);
+        try {
+            $expensesCategory = ExpenseCategory::paginate(10);
+            return Inertia::render('admin/expense-category',[
+                'expensesCategory' => $expensesCategory
+            ]);
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
     }
 
     public function create(){
@@ -20,13 +24,17 @@ class ExpenseCategoryController extends Controller
     }
 
     public function store(Request $request){
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-        ]);
-
-        ExpenseCategory::create($validated);
-
-        return redirect('/kategori-pengeluaran')->with('success', 'Kategori berhasil ditambahkan');
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+            ]);
+    
+            ExpenseCategory::create($validated);
+    
+            return redirect('/kategori-pengeluaran')->with('success', 'Kategori berhasil ditambahkan');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
     }
 
     public function edit($id){
@@ -37,21 +45,29 @@ class ExpenseCategoryController extends Controller
     }
 
     public function update(Request $request){
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-        ]);
-
-        $expenseCategory = ExpenseCategory::findOrFail($request->id);
-        $expenseCategory->update($validated);
-
-        return redirect('/kategori-pengeluaran')->with('success', 'Kategori berhasil diupdate');
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+            ]);
+    
+            $expenseCategory = ExpenseCategory::findOrFail($request->id);
+            $expenseCategory->update($validated);
+    
+            return redirect('/kategori-pengeluaran')->with('success', 'Kategori berhasil diupdate');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
     }
 
     public function destroy($id){
-        $expenseCategory = ExpenseCategory::findOrFail($id);
-        $expenseCategory->delete();
-        
-        return redirect('/kategori-pengeluaran')->with('success', 'Kategori berhasil dihapus');
+        try {
+            $expenseCategory = ExpenseCategory::findOrFail($id);
+            $expenseCategory->delete();
+            
+            return redirect('/kategori-pengeluaran')->with('success', 'Kategori berhasil dihapus');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
     }
 
 

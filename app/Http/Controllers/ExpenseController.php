@@ -11,10 +11,14 @@ class ExpenseController extends Controller
 {
     public function index()
     {
-        $expenses = Expense::with('expense_category')->paginate(10);
-        return Inertia::render('admin/expense_management', [
-            'expenses' => $expenses
-        ]);
+        try {
+            $expenses = Expense::with('expense_category')->paginate(10);
+            return Inertia::render('admin/expense_management', [
+                'expenses' => $expenses
+            ]);
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
     }
 
     public function create()
@@ -26,16 +30,20 @@ class ExpenseController extends Controller
     }
 
     public function store(Request $request){
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'expense_category_id' => 'required|exists:expense_categories,id',
-            'amount' => 'required|numeric',
-            'description' => 'nullable|string',
-        ]);
-
-        Expense::create($validated);
-
-        return redirect('/management-pengeluaran')->with('success', 'Pengeluaran berhasil ditambahkan');
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'expense_category_id' => 'required|exists:expense_categories,id',
+                'amount' => 'required|numeric',
+                'description' => 'nullable|string',
+            ]);
+    
+            Expense::create($validated);
+    
+            return redirect('/management-pengeluaran')->with('success', 'Pengeluaran berhasil ditambahkan');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
     }
 
     public function edit($id){
@@ -48,23 +56,31 @@ class ExpenseController extends Controller
     }
 
     public function update(Request $request){
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'expense_category_id' => 'required|exists:expense_categories,id',
-            'amount' => 'required|numeric',
-            'description' => 'nullable|string',
-        ]);
-
-        $expense = Expense::findOrFail($request->id);
-        $expense->update($validated);
-
-        return redirect('/management-pengeluaran')->with('success', 'Pengeluaran berhasil diupdate');
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'expense_category_id' => 'required|exists:expense_categories,id',
+                'amount' => 'required|numeric',
+                'description' => 'nullable|string',
+            ]);
+    
+            $expense = Expense::findOrFail($request->id);
+            $expense->update($validated);
+    
+            return redirect('/management-pengeluaran')->with('success', 'Pengeluaran berhasil diupdate');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
     }
 
     public function destroy($id){
-        $expense = Expense::findOrFail($id);
-        $expense->delete();
-
-        return redirect('/management-pengeluaran')->with('success', 'Pengeluaran berhasil dihapus');
+        try {
+            $expense = Expense::findOrFail($id);
+            $expense->delete();
+    
+            return redirect('/management-pengeluaran')->with('success', 'Pengeluaran berhasil dihapus');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
     }
 }

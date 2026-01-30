@@ -10,10 +10,14 @@ class PromoController extends Controller
 {
     public function index()
     {
-        $promos = Promo::orderBy('created_at', 'desc')->paginate(10);
-        return Inertia::render('admin/promo_management', [
-            'promos' => $promos
-        ]);
+        try {
+            $promos = Promo::orderBy('created_at', 'desc')->paginate(10);
+            return Inertia::render('admin/promo_management', [
+                'promos' => $promos
+            ]);
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
     }
 
     public function create()
@@ -23,17 +27,21 @@ class PromoController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'discount_type' => 'required|in:percentage,fixed',
-            'discount_value' => 'required|numeric|min:0',
-            'state' => 'required|in:active,inactive',
-        ]);
-
-        Promo::create($validated);
-
-        return redirect('/management-promo')->with('success', 'Promo berhasil ditambahkan');
+        try {
+            $validated = $request->validate([
+                'title' => 'required|string|max:255',
+                'description' => 'nullable|string',
+                'discount_type' => 'required|in:percentage,fixed',
+                'discount_value' => 'required|numeric|min:0',
+                'state' => 'required|in:active,inactive',
+            ]);
+    
+            Promo::create($validated);
+    
+            return redirect('/management-promo')->with('success', 'Promo berhasil ditambahkan');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
     }
 
     public function edit($id)
@@ -46,18 +54,22 @@ class PromoController extends Controller
 
     public function update(Request $request, $id)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'discount_type' => 'required|in:percentage,fixed',
-            'discount_value' => 'required|numeric|min:0',
-            'state' => 'required|in:active,inactive',
-        ]);
-
-        $promo = Promo::findOrFail($id);
-        $promo->update($validated);
-
-        return redirect('/management-promo')->with('success', 'Promo berhasil diupdate');
+        try {
+            $validated = $request->validate([
+                'title' => 'required|string|max:255',
+                'description' => 'nullable|string',
+                'discount_type' => 'required|in:percentage,fixed',
+                'discount_value' => 'required|numeric|min:0',
+                'state' => 'required|in:active,inactive',
+            ]);
+    
+            $promo = Promo::findOrFail($id);
+            $promo->update($validated);
+    
+            return redirect('/management-promo')->with('success', 'Promo berhasil diupdate');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
     }
 
     public function destroy($id)

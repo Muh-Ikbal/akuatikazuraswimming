@@ -231,9 +231,11 @@ export default function KehadiranPegawai({ attendances, stats, filters }: Props)
                                                 <td className="p-4">
                                                     <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${attendance.state === 'present'
                                                         ? 'bg-green-100 text-green-900'
-                                                        : 'bg-red-100 text-red-900'
+                                                        : (attendance.state === 'late'
+                                                            ? 'bg-yellow-100 text-yellow-900'
+                                                            : 'bg-red-100 text-red-900')
                                                         }`}>
-                                                        {attendance.state === 'present' ? 'Hadir' : 'Terlambat'}
+                                                        {attendance.state === 'present' ? 'Hadir' : (attendance.state === 'late' ? 'Terlambat' : 'Alpa')}
                                                     </span>
                                                 </td>
                                                 <td className="p-4">

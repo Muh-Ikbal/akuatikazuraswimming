@@ -13,7 +13,7 @@ interface Schedule {
     time: string;
     location: string;
     status: 'published' | 'on_going' | 'completed' | 'cancelled';
-    attendance_status: 'present' | 'absent' | 'on_going' | 'cancelled' | 'scheduled' | 'late';
+    attendance_status: 'present' | 'absent' | 'on_going' | 'cancelled' | 'scheduled' | 'late' | 'alpha';
     class_session: {
         id: number;
         title: string;
@@ -121,6 +121,8 @@ export default function JadwalCoach({
                 return 'bg-green-500';
             case 'late':
                 return 'bg-orange-500';
+            case 'alpha':
+                return 'bg-purple-500';
             case 'absent':
             case 'cancelled':
                 return 'bg-red-500';
@@ -156,6 +158,9 @@ export default function JadwalCoach({
                     break;
                 case 'late':
                     textClass = 'text-orange-600 font-semibold';
+                    break;
+                case 'alpha':
+                    textClass = 'text-purple-600 font-semibold';
                     break;
                 case 'absent':
                 case 'cancelled':
@@ -337,6 +342,10 @@ export default function JadwalCoach({
                                 <div className="flex items-center gap-2 text-sm">
                                     <span className="w-3 h-3 rounded-full bg-red-500" />
                                     <span className="text-muted-foreground">Tidak Hadir</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-sm">
+                                    <span className="w-3 h-3 rounded-full bg-purple-500" />
+                                    <span className="text-muted-foreground">Alpa (Hadir)</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-sm">
                                     <span className="w-3 h-3 rounded-full bg-gray-400" />
