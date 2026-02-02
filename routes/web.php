@@ -118,6 +118,7 @@ Route::middleware(['auth', 'verified','role:admin'])->group(function () {
     Route::delete('management-jadwal/{id}',[ScheduleController::class,'destroy'])->name('management-jadwal.destroy');
 
     // Laporan Keuangan
+    Route::get('laporan-keuangan/export', [\App\Http\Controllers\ReportController::class, 'export'])->name('laporan-keuangan.export');
     Route::get('laporan-keuangan',[\App\Http\Controllers\ReportController::class,'financial'])->name('laporan-keuangan');
 
     // CMS Routes

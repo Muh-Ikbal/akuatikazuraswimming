@@ -3,6 +3,8 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { useState } from 'react';
 import {
     TrendingUp,
     TrendingDown,
@@ -48,17 +50,38 @@ interface Props {
     incomeBySource: IncomeBySource[];
     expenseByCategory: ExpenseByCategory[];
     selectedPeriod: string;
+    startDate?: string;
+    endDate?: string;
 }
 
 export default function FinancialReport({
     summary = { totalIncome: 0, totalExpense: 0, netProfit: 0, receivables: 0, incomeGrowth: 0, expenseGrowth: 0 },
     incomeBySource = [],
     expenseByCategory = [],
-    selectedPeriod = 'this_month'
+    selectedPeriod = 'all_time',
+    startDate,
+    endDate
 }: Props) {
+    const [customStartDate, setCustomStartDate] = useState(startDate || '');
+    const [customEndDate, setCustomEndDate] = useState(endDate || '');
+    const [isCustomPeriod, setIsCustomPeriod] = useState(selectedPeriod === 'custom');
 
     const handlePeriodChange = (period: string) => {
-        router.get('/laporan-keuangan', { period }, { preserveState: true });
+        if (period === 'custom') {
+            setIsCustomPeriod(true);
+        } else {
+            setIsCustomPeriod(false);
+            router.get('/laporan-keuangan', { period }, { preserveState: true });
+        }
+    };
+    const handleApplyCustomDate = () => {
+        if (customStartDate && customEndDate) {
+            router.get('/laporan-keuangan', {
+                period: 'custom',
+                start_date: customStartDate,
+                end_date: customEndDate
+            }, { preserveState: true });
+        }
     };
 
     const formatCurrency = (value: number) => {
@@ -89,14 +112,38 @@ export default function FinancialReport({
                             value={selectedPeriod}
                             onChange={(e) => handlePeriodChange(e.target.value)}
                         >
+                            <option value="all_time">Semua Waktu</option>
                             <option value="this_month">Bulan Ini</option>
                             <option value="last_month">Bulan Lalu</option>
                             <option value="this_quarter">Kuartal Ini</option>
                             <option value="this_year">Tahun Ini</option>
+                            <option value="custom">Custom</option>
                         </select>
-                        <Button variant="outline">
-                            <Download className="w-4 h-4 mr-2" />
-                            Export
+                        {isCustomPeriod && (
+                            <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-4 duration-300">
+                                <Input
+                                    type="date"
+                                    value={customStartDate}
+                                    onChange={(e) => setCustomStartDate(e.target.value)}
+                                    className="w-auto h-9"
+                                />
+                                <span className="text-muted-foreground">-</span>
+                                <Input
+                                    type="date"
+                                    value={customEndDate}
+                                    onChange={(e) => setCustomEndDate(e.target.value)}
+                                    className="w-auto h-9"
+                                />
+                                <Button size="sm" onClick={handleApplyCustomDate} disabled={!customStartDate || !customEndDate}>
+                                    Terapkan
+                                </Button>
+                            </div>
+                        )}
+                        <Button variant="outline" asChild>
+                            <a href={`/laporan-keuangan/export?period=${selectedPeriod}&start_date=${customStartDate}&end_date=${customEndDate}`}>
+                                <Download className="w-4 h-4 mr-2" />
+                                Export
+                            </a>
                         </Button>
                     </div>
                 </div>
@@ -104,7 +151,7 @@ export default function FinancialReport({
                 {/* Summary Cards */}
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     {/* Total Pemasukan */}
-                    <Card className="border-l-4 border-l-green-500">
+                    < Card className="border-l-4 border-l-green-500" >
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Total Pemasukan</CardTitle>
                             <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-green-100">
@@ -128,10 +175,10 @@ export default function FinancialReport({
                                 dari periode lalu
                             </p>
                         </CardContent>
-                    </Card>
+                    </Card >
 
                     {/* Total Pengeluaran */}
-                    <Card className="border-l-4 border-l-red-500">
+                    < Card className="border-l-4 border-l-red-500" >
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Total Pengeluaran</CardTitle>
                             <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-red-100">

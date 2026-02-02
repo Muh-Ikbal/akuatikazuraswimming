@@ -271,7 +271,7 @@ export default function Welcome({
                             <div>
                                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100/80 border border-blue-200/50 text-blue-700 text-sm font-medium mb-6 backdrop-blur-sm shadow-sm">
                                     <Sparkles className="w-4 h-4" />
-                                    <span>Kursus Renang Terbaik di Kota</span>
+                                    <span>Kursus Renang Terbaik di Kota Kendari</span>
                                 </div>
                                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6">
                                     {heroTitle.includes('Menyenangkan') ? (
@@ -755,10 +755,7 @@ export default function Welcome({
                                     <span className="font-bold text-2xl tracking-tight text-white">Akuatik Azura</span>
                                 </div>
                                 <p className="text-slate-400 mb-8 leading-relaxed max-w-sm">
-                                    Akuatik Azura Swimming merupakann club renang yang
-                                    berada Kota Kendari, Sulawesi tenggara . dan merupakan
-                                    salah satu club renang yang banyak melahirkan bibit bibit
-                                    atlet sulawesi tenggara di daerah maupan nasional.
+                                    {heroSubtitle ? heroSubtitle : 'Akuatik Azura Swimming'}
                                 </p>
 
                             </div>

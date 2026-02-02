@@ -397,7 +397,7 @@ export default function CreateMember({ member, users = [], courses = [], classSe
                                         <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
                                             <div className="space-y-2">
                                                 <Label htmlFor="course_id" className="text-sm">
-                                                    Kurus <span className="text-destructive">*</span>
+                                                    Kursus <span className="text-destructive">*</span>
                                                 </Label>
                                                 <select
                                                     id="course_id"
