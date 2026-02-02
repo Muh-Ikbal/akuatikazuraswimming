@@ -284,7 +284,7 @@ export default function Welcome({
                                         <span className="text-slate-800">{heroTitle}</span>
                                     )}
                                 </h1>
-                                <p className="text-lg text-slate-600 mb-8 max-w-xl leading-relaxed">
+                                <p className="text-lg text-slate-600 mb-8 max-w-xl leading-relaxed text-justify">
                                     {heroSubtitle}
                                 </p>
                                 <div className="flex flex-col sm:flex-row gap-4">
@@ -404,7 +404,7 @@ export default function Welcome({
                                     <Target className="w-8 h-8 text-white" />
                                 </div>
                                 <h3 className="text-2xl font-bold text-slate-800 mb-4">{misiTitle}</h3>
-                                <ul className="space-y-3">
+                                <ul className="space-y-3 text-justify">
                                     {misiContent.split('\n').map((item, index) => (
                                         <li key={index} className="flex items-start gap-3 text-slate-600">
                                             <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-600 text-sm font-bold flex-shrink-0 mt-0.5">
@@ -431,7 +431,7 @@ export default function Welcome({
                                     <span>Perjalanan Kami</span>
                                 </div>
                                 <h2 className="text-3xl md:text-4xl font-bold text-slate-800 mb-6">{sejarahTitle}</h2>
-                                <div className="space-y-4 text-slate-600 text-lg leading-relaxed">
+                                <div className="space-y-4 text-slate-600 text-lg leading-relaxed text-justify">
                                     {sejarahContent.split('\n\n').map((paragraph, index) => (
                                         <p key={index}>{paragraph}</p>
                                     ))}
@@ -501,7 +501,7 @@ export default function Welcome({
                                             <IconComponent className="w-7 h-7 text-white" />
                                         </div>
                                         <h3 className="font-bold text-slate-800 mb-2 text-lg group-hover:text-blue-600 transition-colors duration-300">{feature.title}</h3>
-                                        <p className="text-slate-600 leading-relaxed">{feature.description}</p>
+                                        <p className="text-slate-600 leading-relaxed text-justify">{feature.description}</p>
                                     </div>
                                 );
                             })}
@@ -754,7 +754,7 @@ export default function Welcome({
                                     </div>
                                     <span className="font-bold text-2xl tracking-tight text-white">Akuatik Azura</span>
                                 </div>
-                                <p className="text-slate-400 mb-8 leading-relaxed max-w-sm">
+                                <p className="text-slate-400 mb-8 leading-relaxed max-w-sm text-justify">
                                     {heroSubtitle ? heroSubtitle : 'Akuatik Azura Swimming'}
                                 </p>
 

@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\SiteSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Coach;
+use App\Models\Member;
 use Inertia\Inertia;
 
 class CmsHeroController extends Controller
@@ -18,7 +20,11 @@ class CmsHeroController extends Controller
                 'hero_subtitle',
                 'hero_image',
                 'satisfaction_rate',
-            ]);
+                
+                ]);
+
+                $settings['coach_count'] = Coach::count();
+                $settings['member_count'] = Member::count();
 
             return Inertia::render('admin/cms/hero', [
                 'settings' => $settings,

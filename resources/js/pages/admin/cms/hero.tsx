@@ -20,6 +20,8 @@ interface HeroSettings {
     hero_subtitle: string | null;
     hero_image: string | null;
     satisfaction_rate: string | null;
+    coach_count: number;
+    member_count: number;
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -39,6 +41,8 @@ export default function CmsHero({ settings }: { settings: HeroSettings }) {
         hero_subtitle: settings.hero_subtitle || '',
         hero_image: null as File | null,
         satisfaction_rate: settings.satisfaction_rate || '98',
+        coach_count: settings.coach_count,
+        member_count: settings.member_count,
         _method: 'PUT',
     });
 
@@ -142,6 +146,36 @@ export default function CmsHero({ settings }: { settings: HeroSettings }) {
                                     />
                                     {errors.satisfaction_rate && (
                                         <p className="text-sm text-red-500">{errors.satisfaction_rate}</p>
+                                    )}
+
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="coach_count">Jumlah Coach</Label>
+                                    <Input
+                                        id="coach_count"
+                                        type="number"
+                                        disabled
+                                        value={data.coach_count}
+
+                                    />
+                                    {errors.coach_count && (
+                                        <p className="text-sm text-red-500">{errors.coach_count}</p>
+                                    )}
+                                    <p className="text-xs text-muted-foreground">
+                                        Statistik peserta aktif dan coach akan diambil otomatis dari database
+                                    </p>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="member_count">Jumlah Member</Label>
+                                    <Input
+                                        id="member_count"
+                                        type="number"
+                                        disabled
+                                        value={data.member_count}
+
+                                    />
+                                    {errors.member_count && (
+                                        <p className="text-sm text-red-500">{errors.member_count}</p>
                                     )}
                                     <p className="text-xs text-muted-foreground">
                                         Statistik peserta aktif dan coach akan diambil otomatis dari database

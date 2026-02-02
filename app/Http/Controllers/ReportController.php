@@ -40,21 +40,21 @@ class ReportController extends Controller
                 $endDate = Carbon::now()->endOfMonth();
                 $prevStartDate = Carbon::now()->subMonth()->startOfMonth();
                 $prevEndDate = Carbon::now()->subMonth()->endOfMonth();
-                $name_period = 'Bulan '.Carbon::now()->format('F').'-'.Carbon::now()->format('Y');
+                $name_period = 'Bulan '.Carbon::now()->format('F').' - '.Carbon::now()->format('Y');
                 break;
             case 'last_month':
                 $startDate = Carbon::now()->subMonth()->startOfMonth();
                 $endDate = Carbon::now()->subMonth()->endOfMonth();
                 $prevStartDate = Carbon::now()->subMonths(2)->startOfMonth();
                 $prevEndDate = Carbon::now()->subMonths(2)->endOfMonth();
-                $name_period = 'Bulan '.Carbon::now()->subMonth()->format('F').'-'.Carbon::now()->subMonth()->format('Y');
+                $name_period = 'Bulan '.Carbon::now()->subMonth()->format('F').' - '.Carbon::now()->subMonth()->format('Y');
                 break;
             case 'this_quarter':
                 $startDate = Carbon::now()->startOfQuarter();
                 $endDate = Carbon::now()->endOfQuarter();
                 $prevStartDate = Carbon::now()->subQuarter()->startOfQuarter();
                 $prevEndDate = Carbon::now()->subQuarter()->endOfQuarter();
-                $name_period = 'Kuartal '.Carbon::now()->quarter.'-'.Carbon::now()->format('Y');
+                $name_period = 'Kuartal '.Carbon::now()->quarter.' - '.Carbon::now()->format('Y');
                 break;
             case 'this_year':
                 $startDate = Carbon::now()->startOfYear();
