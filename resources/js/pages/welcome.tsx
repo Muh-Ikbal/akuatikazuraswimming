@@ -511,12 +511,12 @@ export default function Welcome({
                 </section>
 
                 {/* Courses Section */}
-                <section id="courses" className="py-20 px-4 relative overflow-hidden">
+                <section id="courses" className="py-20 relative overflow-hidden">
                     <div className="absolute inset-0 bg-blue-600"></div>
                     <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMyIvPjwvZz48L2c+PC9zdmc+')] opacity-60"></div>
 
-                    <div className="max-w-7xl mx-auto relative z-10"><FadeInUp>
-                        <div className="text-center mb-16">
+                    <div className="max-w-7xl mx-auto relative z-10 px-4"><FadeInUp>
+                        <div className="text-center mb-12">
                             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 text-white text-sm font-medium mb-4 backdrop-blur-sm border border-white/20">
                                 <Target className="w-4 h-4" />
                                 <span>Program Pilihan</span>
@@ -526,59 +526,115 @@ export default function Welcome({
                                 Pilih program yang sesuai dengan level dan kebutuhan Anda
                             </p>
                         </div>
+                    </FadeInUp>
+                    </div>
 
-                        <div className="grid md:grid-cols-3 gap-8">
+                    {/* Course Cards - Horizontal Scroll on Mobile, Grid on Desktop */}
+                    <div className="relative z-10">
+                        <FadeInUp>
                             {courses.length > 0 ? (
-                                courses.map((course) => (
-                                    <div
-                                        key={course.id}
-                                        className="group bg-white rounded-3xl p-8 transition-all duration-300 hover:-translate-y-2 shadow-xl shadow-blue-900/10 hover:shadow-2xl hover:shadow-blue-900/20"
-                                    >
-                                        {course.image ? (
-                                            <img
-                                                src={`/storage/${course.image}`}
-                                                alt={course.title}
-                                                className="w-full h-44 object-cover rounded-2xl mb-5 shadow-lg"
-                                            />
-                                        ) : (
-                                            <div className="w-full h-44 rounded-2xl mb-5 bg-blue-50 flex items-center justify-center border border-blue-200">
-                                                <Waves className="w-16 h-16 text-blue-400" />
-                                            </div>
-                                        )}
-                                        <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium mb-3">
-                                            <Calendar className="w-3 h-3" />
-                                            <span>{course.total_meeting} pertemuan</span>
+                                <>
+                                    {/* Mobile: Horizontal Scroll Carousel */}
+                                    <div className="md:hidden">
+                                        <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth px-4 pb-4 -mx-0 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                                            {courses.map((course) => (
+                                                <div
+                                                    key={course.id}
+                                                    className="flex-shrink-0 w-[85%] snap-center"
+                                                >
+                                                    <div className="group bg-white rounded-3xl p-5 transition-all duration-300 shadow-xl shadow-blue-900/10 h-full">
+                                                        {course.image ? (
+                                                            <img
+                                                                src={`/storage/${course.image}`}
+                                                                alt={course.title}
+                                                                className="w-full h-36 object-cover rounded-2xl mb-4 shadow-lg"
+                                                                loading="lazy"
+                                                            />
+                                                        ) : (
+                                                            <div className="w-full h-36 rounded-2xl mb-4 bg-blue-50 flex items-center justify-center border border-blue-200">
+                                                                <Waves className="w-12 h-12 text-blue-400" />
+                                                            </div>
+                                                        )}
+                                                        <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium mb-2">
+                                                            <Calendar className="w-3 h-3" />
+                                                            <span>{course.total_meeting} pertemuan</span>
+                                                        </div>
+                                                        <h3 className="text-lg font-bold text-slate-800 mb-1.5">{course.title}</h3>
+                                                        <p className="text-slate-600 mb-4 line-clamp-2 leading-relaxed text-sm">{course.description}</p>
+                                                        <div>
+                                                            <div className="text-xs text-slate-500">Mulai dari</div>
+                                                            <div className="text-xl font-bold text-blue-600">{formatPrice(course.price)}</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
                                         </div>
-                                        <h3 className="text-xl font-bold text-slate-800 mb-2 group-hover:text-blue-600 transition-colors">{course.title}</h3>
-                                        <p className="text-slate-600 mb-6 line-clamp-2 leading-relaxed">{course.description}</p>
-                                        <div className="flex items-end justify-between">
-                                            <div>
-                                                <div className="text-sm text-slate-500">Mulai dari</div>
-                                                <div className="text-2xl font-bold text-blue-600">{formatPrice(course.price)}</div>
-                                            </div>
+                                        {/* Pagination Dots */}
+                                        <div className="flex justify-center gap-2 mt-4 px-4">
+                                            {courses.map((_, idx) => (
+                                                <div key={idx} className="w-2 h-2 rounded-full bg-white/40"></div>
+                                            ))}
                                         </div>
                                     </div>
-                                ))
+
+                                    {/* Desktop: Grid Layout */}
+                                    <div className="hidden md:block max-w-7xl mx-auto px-4">
+                                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                            {courses.map((course) => (
+                                                <div
+                                                    key={course.id}
+                                                    className="group bg-white rounded-3xl p-8 transition-all duration-300 hover:-translate-y-2 shadow-xl shadow-blue-900/10 hover:shadow-2xl hover:shadow-blue-900/20"
+                                                >
+                                                    {course.image ? (
+                                                        <img
+                                                            src={`/storage/${course.image}`}
+                                                            alt={course.title}
+                                                            className="w-full h-44 object-cover rounded-2xl mb-5 shadow-lg"
+                                                            loading="lazy"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-full h-44 rounded-2xl mb-5 bg-blue-50 flex items-center justify-center border border-blue-200">
+                                                            <Waves className="w-16 h-16 text-blue-400" />
+                                                        </div>
+                                                    )}
+                                                    <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium mb-3">
+                                                        <Calendar className="w-3 h-3" />
+                                                        <span>{course.total_meeting} pertemuan</span>
+                                                    </div>
+                                                    <h3 className="text-xl font-bold text-slate-800 mb-2 group-hover:text-blue-600 transition-colors">{course.title}</h3>
+                                                    <p className="text-slate-600 mb-6 line-clamp-2 leading-relaxed">{course.description}</p>
+                                                    <div className="flex items-end justify-between">
+                                                        <div>
+                                                            <div className="text-sm text-slate-500">Mulai dari</div>
+                                                            <div className="text-2xl font-bold text-blue-600">{formatPrice(course.price)}</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </>
                             ) : (
-                                <div className="col-span-3 text-center py-12">
-                                    <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-4 border border-white/20">
-                                        <Waves className="w-10 h-10 text-white/70" />
+                                <div className="max-w-7xl mx-auto px-4">
+                                    <div className="text-center py-12">
+                                        <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-4 border border-white/20">
+                                            <Waves className="w-10 h-10 text-white/70" />
+                                        </div>
+                                        <p className="text-white/80 text-lg">Belum ada program kursus tersedia</p>
                                     </div>
-                                    <p className="text-white/80 text-lg">Belum ada program kursus tersedia</p>
                                 </div>
                             )}
-                        </div>
-                    </FadeInUp>
+                        </FadeInUp>
                     </div>
                 </section>
 
                 {/* Coach Section */}
-                <section id="coaches" className="py-20 px-4 relative overflow-hidden">
+                <section id="coaches" className="py-20 relative overflow-hidden">
                     <div className="absolute inset-0 bg-slate-50"></div>
                     <div className="absolute top-1/2 right-0 w-[400px] h-[400px] bg-blue-100/40 rounded-full blur-[100px]"></div>
 
-                    <div className="max-w-7xl mx-auto relative z-10"><FadeInUp>
-                        <div className="text-center mb-16">
+                    <div className="max-w-7xl mx-auto relative z-10 px-4"><FadeInUp>
+                        <div className="text-center mb-12">
                             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100/80 border border-blue-200/50 text-blue-700 text-sm font-medium mb-4 shadow-sm">
                                 <Users className="w-4 h-4" />
                                 <span>Tim Kami</span>
@@ -588,50 +644,115 @@ export default function Welcome({
                                 Didampingi oleh pelatih berpengalaman dan bersertifikasi
                             </p>
                         </div>
+                    </FadeInUp>
+                    </div>
 
-                        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {/* Coach Cards - Horizontal Scroll on Mobile, Grid on Desktop */}
+                    <div className="relative z-10">
+                        <FadeInUp>
                             {coaches.length > 0 ? (
-                                coaches.map((coach) => (
-                                    <div key={coach.id} className="group bg-white rounded-2xl border border-blue-100 overflow-hidden hover:border-blue-200 transition-all duration-300 hover:-translate-y-2 shadow-lg shadow-blue-50 card-hover">
-                                        <div className="aspect-square bg-blue-50 flex items-center justify-center overflow-hidden">
-                                            {coach.image ? (
-                                                <img
-                                                    src={`/storage/${coach.image}`}
-                                                    alt={coach.name}
-                                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                                                />
-                                            ) : (
-                                                <div className={`w-full h-full flex items-center justify-center ${coach.gender === 'male'
-                                                    ? 'bg-blue-100'
-                                                    : 'bg-pink-100'
-                                                    }`}>
-                                                    <User className={`w-16 h-16 ${coach.gender === 'male' ? 'text-blue-500' : 'text-pink-500'
-                                                        }`} />
+                                <>
+                                    {/* Mobile: Horizontal Scroll Carousel */}
+                                    <div className="md:hidden">
+                                        <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory scroll-smooth px-4 pb-4 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                                            {coaches.map((coach) => (
+                                                <div
+                                                    key={coach.id}
+                                                    className="flex-shrink-0 w-[45%] snap-center"
+                                                >
+                                                    <div className="group bg-white rounded-2xl border border-blue-100 overflow-hidden shadow-lg shadow-blue-50 h-full">
+                                                        <div className="aspect-[4/5] bg-blue-50 flex items-center justify-center overflow-hidden">
+                                                            {coach.image ? (
+                                                                <img
+                                                                    src={`/storage/${coach.image}`}
+                                                                    alt={coach.name}
+                                                                    className="w-full h-full object-cover"
+                                                                    loading="lazy"
+                                                                />
+                                                            ) : (
+                                                                <div className={`w-full h-full flex items-center justify-center ${coach.gender === 'male'
+                                                                    ? 'bg-blue-100'
+                                                                    : 'bg-pink-100'
+                                                                    }`}>
+                                                                    <User className={`w-12 h-12 ${coach.gender === 'male' ? 'text-blue-500' : 'text-pink-500'
+                                                                        }`} />
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <div className="p-3 text-center">
+                                                            <h3 className="font-semibold text-slate-800 mb-0.5 text-sm truncate">{coach.name}</h3>
+                                                            <p className="text-xs text-blue-600 font-medium">Coach</p>
+                                                            {coach.certificate_coaches && coach.certificate_coaches.length > 0 && (
+                                                                <div className="flex flex-wrap items-center justify-center gap-1 mt-2">
+                                                                    {coach.certificate_coaches.slice(0, 2).map((cert, idx) => (
+                                                                        <Badge key={idx} variant="secondary" className="text-[8px] px-1.5 py-0.5 bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-100">
+                                                                            {cert.title}
+                                                                        </Badge>
+                                                                    ))}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            )}
+                                            ))}
                                         </div>
-                                        <div className="p-5 text-center">
-                                            <h3 className="font-semibold text-slate-800 mb-1 group-hover:text-blue-600 transition-colors">{coach.name}</h3>
-                                            <p className="text-sm text-blue-600 font-medium mb-2">Coach</p>
-                                            {coach.certificate_coaches && coach.certificate_coaches.length > 0 && (
-                                                <div className="flex flex-wrap items-center justify-center gap-2 mt-3">
-                                                    {coach.certificate_coaches.slice(0, 3).map((cert, idx) => (
-                                                        <Badge key={idx} variant="secondary" className="text-[10px] px-2 py-0.5 bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-100">
-                                                            {cert.title}
-                                                        </Badge>
-                                                    ))}
-                                                </div>
-                                            )}
+                                        {/* Pagination Dots */}
+                                        <div className="flex justify-center gap-2 mt-4 px-4">
+                                            {coaches.map((_, idx) => (
+                                                <div key={idx} className="w-2 h-2 rounded-full bg-blue-200"></div>
+                                            ))}
                                         </div>
                                     </div>
-                                ))
+
+                                    {/* Desktop: Grid Layout */}
+                                    <div className="hidden md:block max-w-7xl mx-auto px-4">
+                                        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                            {coaches.map((coach) => (
+                                                <div key={coach.id} className="group bg-white rounded-2xl border border-blue-100 overflow-hidden hover:border-blue-200 transition-all duration-300 hover:-translate-y-2 shadow-lg shadow-blue-50 card-hover">
+                                                    <div className="aspect-square bg-blue-50 flex items-center justify-center overflow-hidden">
+                                                        {coach.image ? (
+                                                            <img
+                                                                src={`/storage/${coach.image}`}
+                                                                alt={coach.name}
+                                                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                                                loading="lazy"
+                                                            />
+                                                        ) : (
+                                                            <div className={`w-full h-full flex items-center justify-center ${coach.gender === 'male'
+                                                                ? 'bg-blue-100'
+                                                                : 'bg-pink-100'
+                                                                }`}>
+                                                                <User className={`w-16 h-16 ${coach.gender === 'male' ? 'text-blue-500' : 'text-pink-500'
+                                                                    }`} />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="p-5 text-center">
+                                                        <h3 className="font-semibold text-slate-800 mb-1 group-hover:text-blue-600 transition-colors">{coach.name}</h3>
+                                                        <p className="text-sm text-blue-600 font-medium mb-2">Coach</p>
+                                                        {coach.certificate_coaches && coach.certificate_coaches.length > 0 && (
+                                                            <div className="flex flex-wrap items-center justify-center gap-2 mt-3">
+                                                                {coach.certificate_coaches.slice(0, 3).map((cert, idx) => (
+                                                                    <Badge key={idx} variant="secondary" className="text-[10px] px-2 py-0.5 bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-100">
+                                                                        {cert.title}
+                                                                    </Badge>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </>
                             ) : (
-                                <div className="col-span-4 text-center py-12 text-slate-500">
-                                    <p>Belum ada coach tersedia</p>
+                                <div className="max-w-7xl mx-auto px-4">
+                                    <div className="text-center py-12 text-slate-500">
+                                        <p>Belum ada coach tersedia</p>
+                                    </div>
                                 </div>
                             )}
-                        </div>
-                    </FadeInUp>
+                        </FadeInUp>
                     </div>
                 </section>
 
