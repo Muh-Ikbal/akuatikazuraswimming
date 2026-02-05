@@ -392,7 +392,7 @@ export default function Welcome({
                                             <span className="flex items-center justify-center w-6 h-6 rounded-full bg-white/20 text-white text-sm font-bold flex-shrink-0 mt-0.5">
                                                 {index + 1}
                                             </span>
-                                            <span className="leading-relaxed">{item}</span>
+                                            <span className="leading-relaxed text-justify">{item}</span>
                                         </li>
                                     ))}
                                 </ul>

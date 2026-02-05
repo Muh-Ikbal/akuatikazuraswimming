@@ -86,8 +86,8 @@ export default function MemberReport({ data, filters }: Props) {
                         <CardTitle className="text-base font-semibold">Filter Data</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="flex flex-col md:flex-row gap-4 items-end">
-                            <div className="space-y-2 w-full md:w-auto">
+                        <div className="flex flex-col lg:flex-row gap-4 items-end">
+                            <div className="space-y-2 w-full lg:w-auto">
                                 <label className="text-sm font-medium">Tanggal Mulai</label>
                                 <Input
                                     type="date"
@@ -95,7 +95,7 @@ export default function MemberReport({ data, filters }: Props) {
                                     onChange={(e) => setStartDate(e.target.value)}
                                 />
                             </div>
-                            <div className="space-y-2 w-full md:w-auto">
+                            <div className="space-y-2 w-full lg:w-auto">
                                 <label className="text-sm font-medium">Tanggal Akhir</label>
                                 <Input
                                     type="date"
@@ -103,7 +103,7 @@ export default function MemberReport({ data, filters }: Props) {
                                     onChange={(e) => setEndDate(e.target.value)}
                                 />
                             </div>
-                            <div className="space-y-2 w-full md:w-auto">
+                            <div className="space-y-2 w-full lg:w-auto">
                                 <label className="text-sm font-medium">Status Membership</label>
                                 <select
                                     className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
@@ -115,7 +115,7 @@ export default function MemberReport({ data, filters }: Props) {
                                     <option value="completed">Selesai</option>
                                 </select>
                             </div>
-                            <div className="flex gap-2">
+                            <div className="flex gap-2 lg:gap-4">
                                 <Button onClick={handleApplyFilter}>
                                     <Filter className="w-4 h-4 mr-2" />
                                     Filter
