@@ -15,7 +15,7 @@ import {
 import { dashboard } from '@/routes';
 import { Link } from '@inertiajs/react';
 import AppLogo from './app-logo';
-import { adminNavItems, memberNavItems, coachNavItems, operatorNavItems } from '@/lib/sidebar-user';
+import { adminNavItems, memberNavItems, coachNavItems, operatorNavItems, superAdminNavItems } from '@/lib/sidebar-user';
 
 
 
@@ -24,6 +24,8 @@ export function AppSidebar() {
     let navItem = adminNavItems;
     if (auth.user.roles[0].name == 'admin') {
         navItem = adminNavItems;
+    } else if (auth.user.roles[0].name == 'super_admin') {
+        navItem = superAdminNavItems;
     } else if (auth.user.roles[0].name == 'member') {
         navItem = memberNavItems;
     } else if (auth.user.roles[0].name == 'coach') {
@@ -31,6 +33,7 @@ export function AppSidebar() {
     } else if (auth.user.roles[0].name == 'operator') {
         navItem = operatorNavItems;
     }
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader className='px-6 py-5 border-b'>

@@ -19,7 +19,7 @@ class DashboardController extends Controller
         try {
             $user = auth()->user();
             
-            if($user->getRoleNames()->first() == 'admin') {
+            if($user->getRoleNames()->first() == 'admin' || $user->getRoleNames()->first() == 'super_admin') {
                 $members = Member::count();
                 $coaches = Coach::count();
                 $courses = Course::count();

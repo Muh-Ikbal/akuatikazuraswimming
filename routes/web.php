@@ -26,7 +26,7 @@ Route::middleware(['auth', 'verified'])->get('dashboard', [DashboardController::
 Route::middleware(['auth','verified'])->post('generate-qr-code', [QRCodeGenerateController::class, 'generateQRCode'])->name('generate-qr-code');
 Route::middleware(['auth','verified'])->get('qr-code', [QRCodeGenerateController::class,'index'])->name('qrcode');
 
-Route::middleware(['auth', 'verified','role:admin'])->group(function () {
+Route::middleware(['auth', 'verified','role:super_admin|admin'])->group(function () {
     
     // management course
      Route::get('management-course', [CourseController::class,'index'])->name('management-course');
@@ -120,6 +120,11 @@ Route::middleware(['auth', 'verified','role:admin'])->group(function () {
     // Laporan Keuangan
     Route::get('laporan-keuangan/export', [\App\Http\Controllers\ReportController::class, 'export'])->name('laporan-keuangan.export');
     Route::get('laporan-keuangan',[\App\Http\Controllers\ReportController::class,'financial'])->name('laporan-keuangan');
+    
+    // Laporan Member
+    Route::get('laporan-member/export', [\App\Http\Controllers\ReportMemberController::class, 'export'])->name('laporan-member.export');
+    Route::get('laporan-member', [\App\Http\Controllers\ReportMemberController::class, 'index'])->name('laporan-member.index');
+
 
     // CMS Routes
     Route::get('cms/hero', [\App\Http\Controllers\Admin\CmsHeroController::class, 'index'])->name('cms.hero');
@@ -185,6 +190,13 @@ Route::middleware(['auth', 'verified','role:coach'])->group(function () {
     Route::get('jadwal-coach', [\App\Http\Controllers\Coach\CoachScheduleController::class, 'index'])->name('jadwal-coach');
     Route::get('riwayat-absensi-coach', [\App\Http\Controllers\Coach\CoachAttendanceHistoryController::class, 'index'])->name('riwayat-absensi-coach');
     Route::get('siswa-coach', [\App\Http\Controllers\Coach\CoachStudentController::class, 'index'])->name('siswa-coach');
+});
+
+Route::middleware(['auth', 'verified','role:super_admin'])->group(function () {
+    Route::get('backup-database', [\App\Http\Controllers\BackupDatabase::class, 'index'])->name('super-admin.backup-database');
+    Route::get('/download-backup', [\App\Http\Controllers\BackupDatabase::class, 'backupDatabase'])->name('super-admin.download-backup');
+    Route::get('logging', [\App\Http\Controllers\LogController::class, 'index'])->name('logging');
+    Route::get('logging/download', [\App\Http\Controllers\LogController::class, 'download'])->name('logging.download');
 });
 
 

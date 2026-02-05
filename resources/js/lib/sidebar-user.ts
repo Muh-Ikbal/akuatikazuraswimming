@@ -1,4 +1,4 @@
-import { LayoutGrid, UserCheck, UserCog, Users, BookOpen, Calendar, School, Banknote, Contact, HandCoins, PiggyBank, Landmark, QrCode, GraduationCap, Home, Star, Phone, ClipboardCheck, ClipboardList, Percent, ScanBarcode, ScanLine, Eye, History, Image as ImageIcon, Clock } from 'lucide-react';
+import { LayoutGrid, UserCheck, UserCog, Users, BookOpen, Calendar, School, Banknote, Contact, HandCoins, PiggyBank, Landmark, QrCode, GraduationCap, Home, Star, Phone, ClipboardCheck, ClipboardList, Percent, ScanBarcode, ScanLine, Eye, History, Image as ImageIcon, Clock, FileText, Database, ScrollText } from 'lucide-react';
 import { type NavGroup } from '@/types';
 import { dashboard } from '@/routes';
 
@@ -37,6 +37,11 @@ const adminNavItems: NavGroup[] = [
                 title: 'Pembayaran',
                 href: '/management-pembayaran',
                 icon: PiggyBank,
+            },
+            {
+                title: 'Laporan Member',
+                href: '/laporan-member',
+                icon: FileText,
             },
         ]
     },
@@ -237,4 +242,23 @@ const operatorNavItems: NavGroup[] = [
 
 ];
 
-export { adminNavItems, memberNavItems, coachNavItems, operatorNavItems };
+const superAdminNavItems: NavGroup[] = [
+    ...adminNavItems,
+    {
+        title: 'SYSTEM',
+        items: [
+            {
+                title: 'Database',
+                href: '/backup-database',
+                icon: Database,
+            },
+            {
+                title: 'Log Sistem',
+                href: '/logging',
+                icon: ScrollText,
+            },
+        ]
+    }
+];
+
+export { adminNavItems, memberNavItems, coachNavItems, operatorNavItems, superAdminNavItems };
