@@ -208,7 +208,7 @@ export default function KehadiranPegawai({ attendances, stats, filters }: Props)
                                 <thead className="bg-muted/50">
                                     <tr>
                                         <th className="text-left p-4 font-medium text-sm">Nama Pegawai</th>
-                                        <th className="text-left p-4 font-medium text-sm">Role</th>
+                                        <th className="text-left p-4 font-medium text-sm">Jabatan</th>
                                         <th className="text-left p-4 font-medium text-sm">Kelas</th>
                                         <th className="text-left p-4 font-medium text-sm">Status</th>
                                         <th className="text-left p-4 font-medium text-sm">Waktu Scan</th>

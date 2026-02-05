@@ -486,7 +486,7 @@ export default function CreateMember({ member, users = [], courses = [], classSe
                                         </select>
                                         {errors.user_id && <p className="text-sm text-destructive">{errors.user_id}</p>}
                                         <p className="text-xs text-muted-foreground">
-                                            Hanya menampilkan user dengan role <strong>member</strong> yang belum terhubung ke member lain
+                                            Hanya menampilkan user dengan jabatan <strong>member</strong> yang belum terhubung ke member lain
                                         </p>
                                     </div>
                                 </CardContent>

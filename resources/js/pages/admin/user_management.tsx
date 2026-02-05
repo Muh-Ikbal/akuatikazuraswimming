@@ -370,7 +370,7 @@ export default function UserManagement({ users, roles, stats, filters }: Props) 
                                         <TableRow>
                                             <TableHead>Nama</TableHead>
                                             <TableHead className="hidden md:table-cell">Email</TableHead>
-                                            <TableHead>Role</TableHead>
+                                            <TableHead>Jabatan</TableHead>
                                             <TableHead className="hidden sm:table-cell">Bergabung</TableHead>
                                             <TableHead className="text-right">Aksi</TableHead>
                                         </TableRow>

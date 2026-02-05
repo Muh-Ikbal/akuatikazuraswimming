@@ -65,7 +65,7 @@ export default function CmsKontak({ settings }: { settings: ContactSettings }) {
                             Informasi Kontak
                         </h1>
                         <p className="text-muted-foreground">
-                            Kelola informasi kontak yang tampil di landing page
+                            Kelola informasi kontak yang tampil di halaman utama
                         </p>
                     </div>
                 </div>
@@ -157,7 +157,7 @@ export default function CmsKontak({ settings }: { settings: ContactSettings }) {
                             <CardHeader>
                                 <CardTitle>Preview</CardTitle>
                                 <CardDescription>
-                                    Tampilan di landing page
+                                    Tampilan di halaman utama
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>

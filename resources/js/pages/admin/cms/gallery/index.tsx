@@ -107,7 +107,7 @@ export default function CmsGallery({ galleries }: { galleries: Gallery[] }) {
                             Galeri
                         </h1>
                         <p className="text-muted-foreground">
-                            Kelola gambar galeri yang tampil di landing page
+                            Kelola gambar galeri yang tampil di halaman utama
                         </p>
                     </div>
                     <Button onClick={openAddDialog}>

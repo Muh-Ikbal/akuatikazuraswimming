@@ -175,7 +175,7 @@ export default function CmsKeunggulan({ features }: { features: Feature[] }) {
                             Keunggulan
                         </h1>
                         <p className="text-muted-foreground">
-                            Kelola daftar keunggulan yang tampil di landing page
+                            Kelola daftar keunggulan yang tampil di halaman utama
                         </p>
                     </div>
                     <Button onClick={openAddDialog}>

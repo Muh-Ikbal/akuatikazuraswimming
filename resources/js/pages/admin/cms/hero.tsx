@@ -87,7 +87,7 @@ export default function CmsHero({ settings }: { settings: HeroSettings }) {
                             Beranda Utama
                         </h1>
                         <p className="text-muted-foreground">
-                            Kelola tampilan hero section di landing page
+                            Kelola tampilan beranda utama
                         </p>
                     </div>
                 </div>

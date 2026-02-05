@@ -65,7 +65,7 @@ export default function CmsVisiMisi({ settings }: { settings: VisiMisiSettings }
                             Visi & Misi
                         </h1>
                         <p className="text-muted-foreground">
-                            Kelola tampilan visi dan misi di landing page
+                            Kelola tampilan visi dan misi di halaman utama
                         </p>
                     </div>
                 </div>
@@ -80,7 +80,7 @@ export default function CmsVisiMisi({ settings }: { settings: VisiMisiSettings }
                                     Visi
                                 </CardTitle>
                                 <CardDescription>
-                                    Atur konten visi yang tampil di landing page
+                                    Atur konten visi yang tampil di halaman utama
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
@@ -121,7 +121,7 @@ export default function CmsVisiMisi({ settings }: { settings: VisiMisiSettings }
                                     Misi
                                 </CardTitle>
                                 <CardDescription>
-                                    Atur konten misi yang tampil di landing page
+                                    Atur konten misi yang tampil di halaman utama
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">

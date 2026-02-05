@@ -81,7 +81,7 @@ export default function CmsSejarah({ settings }: { settings: SejarahSettings }) 
                             Sejarah
                         </h1>
                         <p className="text-muted-foreground">
-                            Kelola tampilan sejarah di landing page
+                            Kelola tampilan sejarah di halaman utama
                         </p>
                     </div>
                 </div>
@@ -96,7 +96,7 @@ export default function CmsSejarah({ settings }: { settings: SejarahSettings }) 
                                     Konten Sejarah
                                 </CardTitle>
                                 <CardDescription>
-                                    Atur konten sejarah yang tampil di landing page
+                                    Atur konten sejarah yang tampil di halaman utama
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
@@ -140,7 +140,7 @@ export default function CmsSejarah({ settings }: { settings: SejarahSettings }) 
                                     Gambar Sejarah
                                 </CardTitle>
                                 <CardDescription>
-                                    Upload gambar yang akan ditampilkan di section sejarah
+                                    Upload gambar yang akan ditampilkan di bagian sejarah
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">

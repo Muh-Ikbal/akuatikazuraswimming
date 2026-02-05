@@ -77,7 +77,7 @@ export default function MemberReport({ data, filters }: Props) {
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
                         <h1 className="text-2xl font-bold">Laporan Member</h1>
-                        <p className="text-muted-foreground">Laporan data member berdasarkan enrolment</p>
+                        <p className="text-muted-foreground">Laporan data member berdasarkan kelas</p>
                     </div>
                 </div>
 
@@ -115,7 +115,7 @@ export default function MemberReport({ data, filters }: Props) {
                                     <option value="completed">Selesai</option>
                                 </select>
                             </div>
-                            <div className="flex gap-2 lg:gap-4">
+                            <div className="flex gap-2 ">
                                 <Button onClick={handleApplyFilter}>
                                     <Filter className="w-4 h-4 mr-2" />
                                     Filter

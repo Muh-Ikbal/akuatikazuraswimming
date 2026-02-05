@@ -488,7 +488,7 @@ export default function CreateCoach({ coach, users = [] }: Props) {
                                         </select>
                                         {errors.user_id && <p className="text-sm text-destructive">{errors.user_id}</p>}
                                         <p className="text-xs text-muted-foreground">
-                                            Hanya menampilkan user dengan role <strong>coach</strong> yang belum terhubung ke coach lain
+                                            Hanya menampilkan user dengan jabatan <strong>pelatih</strong> yang belum terhubung ke coach lain
                                         </p>
                                     </div>
                                 </CardContent>

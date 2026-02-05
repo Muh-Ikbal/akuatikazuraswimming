@@ -319,7 +319,7 @@ export default function FinancialReport({
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <PieChart className="h-5 w-5 text-green-600" />
-                                Pemasukan per Course
+                                Pemasukan per Kursus
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
