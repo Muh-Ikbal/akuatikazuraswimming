@@ -134,7 +134,7 @@ export default function CreateEnrolment({ enrolment, members, class_sessions = [
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={isEdit ? "Edit Enrolment" : "Tambah Enrolment"} />
+            <Head title={isEdit ? "Edit Membership" : "Perpanjang Membership"} />
             <div className="p-4 sm:p-6">
                 {/* Header */}
                 <div className="flex items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
@@ -145,10 +145,10 @@ export default function CreateEnrolment({ enrolment, members, class_sessions = [
                     </Link>
                     <div className="min-w-0">
                         <h1 className="text-xl sm:text-2xl font-bold text-foreground truncate">
-                            {isEdit ? 'Edit Enrolment' : 'Tambah Enrolment Baru'}
+                            {isEdit ? 'Edit Membership' : 'Tambah Membership Baru'}
                         </h1>
                         <p className="text-sm sm:text-base text-muted-foreground">
-                            {isEdit ? 'Perbarui data enrolment' : 'Daftarkan member ke kelas'}
+                            {isEdit ? 'Perbarui data membership' : 'Tambahkan member ke membership'}
                         </p>
                     </div>
                 </div>
@@ -160,7 +160,7 @@ export default function CreateEnrolment({ enrolment, members, class_sessions = [
                             <CardHeader className="p-4 sm:p-6">
                                 <CardTitle className="text-base sm:text-lg flex items-center gap-2">
                                     <BookOpen className="w-5 h-5" />
-                                    Data Enrolment
+                                    Data Membership
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0 space-y-4">
