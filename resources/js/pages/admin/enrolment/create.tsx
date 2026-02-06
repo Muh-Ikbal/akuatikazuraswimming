@@ -40,6 +40,7 @@ interface Enrolment {
     course_id: number;
     meeting_count: number;
     state: string;
+    state_member: string;
 }
 
 interface Props {
@@ -78,8 +79,9 @@ export default function CreateEnrolment({ enrolment, members, class_sessions = [
         member_id: enrolment?.member_id || '',
         class_session_id: enrolment?.class_session_id || '',
         course_id: enrolment?.course_id || '',
-        meeting_count: enrolment?.meeting_count || '',
+        meeting_count: enrolment?.meeting_count || 0,
         state: enrolment?.state || 'on_progress',
+        state_member: enrolment?.state_member || 'new',
     });
 
     // Filter members based on search
@@ -294,10 +296,27 @@ export default function CreateEnrolment({ enrolment, members, class_sessions = [
                                         type="number"
                                         id="meeting_count"
                                         className={`w-full h-10 sm:h-11 px-3 border rounded-md bg-background text-sm ${errors.meeting_count ? 'border-destructive' : 'border-input'}`}
+                                        min={0}
                                         value={data.meeting_count}
                                         onChange={(e) => setData('meeting_count', parseInt(e.target.value))}
                                     />
                                     {errors.meeting_count && <p className="text-sm text-destructive">{errors.meeting_count}</p>}
+                                </div>
+                                {/* State Member*/}
+                                <div className="space-y-2">
+                                    <Label htmlFor="state_member" className="text-sm">
+                                        Status Member <span className="text-destructive">*</span>
+                                    </Label>
+                                    <select
+                                        id="state_member"
+                                        className={`w-full h-10 sm:h-11 px-3 border rounded-md bg-background text-sm ${errors.state_member ? 'border-destructive' : 'border-input'}`}
+                                        value={data.state_member}
+                                        onChange={(e) => setData('state_member', e.target.value)}
+                                    >
+                                        <option value="new">Baru</option>
+                                        <option value="old">Lama</option>
+                                    </select>
+                                    {errors.state_member && <p className="text-sm text-destructive">{errors.state_member}</p>}
                                 </div>
 
                                 {/* State */}

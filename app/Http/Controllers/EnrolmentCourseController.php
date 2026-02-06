@@ -77,6 +77,7 @@ class EnrolmentCourseController extends Controller
             'course_id' => 'required|exists:courses,id',
             'meeting_count' => 'required|numeric',
             'state' => 'required|in:on_progress,completed,cancelled',
+            'state_member' => 'required|in:new,old',
         ]);
 
 
@@ -147,6 +148,7 @@ class EnrolmentCourseController extends Controller
                 'meeting_count' => 'required|numeric',
                 'course_id' => 'required|exists:courses,id',
                 'state' => 'required|in:on_progress,completed,cancelled',
+                'state_member' => 'required|in:new,old',
             ]);
 
             $course = Course::findOrFail($validated['course_id']);

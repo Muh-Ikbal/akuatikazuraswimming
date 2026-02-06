@@ -16,7 +16,7 @@ class ReportMemberController extends Controller
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
         $status = $request->input('status');
 
-        $query = EnrolmentCourse::with(['member', 'class_session', 'course', 'payment.promo', 'attendance'])
+        $query = EnrolmentCourse::with(['member', 'class_session', 'course', 'payments.promo', 'attendance'])
             ->whereDate('created_at', '>=', $startDate)
             ->whereDate('created_at', '<=', $endDate);
 
@@ -27,19 +27,28 @@ class ReportMemberController extends Controller
         $enrolments = $query->latest()->get()->map(function ($enrolment) {
             $member = $enrolment->member;
             
-            // Logic for Description (Keterangan)
-            $firstEnrolment = EnrolmentCourse::where('member_id', $member->id)->orderBy('id')->first();
+            // Filter valid payments (not cancelled)
+            $validPayments = $enrolment->payments->filter(function ($payment) {
+                return $payment->state !== 'cancel';
+            });
+
+            $payment_paid = $validPayments->sum('amount_paid');
             
             $isNew = false;
             // Check if this enrolment is the first one
-            if ($firstEnrolment && $firstEnrolment->id == $enrolment->id) {
+            if ($enrolment->state_member === 'new') {
                 $isNew = true;
             }
 
             $courseName = $enrolment->class_session ? $enrolment->class_session->title : '-';
             // "jumlah pertemuan kursus yang diikuti (dari tabel courses)"
             $meetingCount = $enrolment->course ? $enrolment->course->total_meeting : $enrolment->meeting_count;
-            $paymentNote = $enrolment->payment->promo ? $enrolment->payment->promo->title : ' ';
+            
+            // Get promo title from the first valid payment that has a promo, or default to empty
+            $firstPaymentWithPromo = $validPayments->first(function ($payment) {
+                return $payment->promo;
+            });
+            $paymentNote = $firstPaymentWithPromo ? $firstPaymentWithPromo->promo->title : ' ';
 
             if ($isNew) {
                 $description = "Baru {$courseName} - {$meetingCount}X Pertemuan - {$paymentNote}";
@@ -54,15 +63,16 @@ class ReportMemberController extends Controller
             // $attended = $enrolment->attendance->count();
             // $remaining = max(0, $totalQuota - $attended);
 
-            // Payment Date
-            $paymentDate = $enrolment->payment ? $enrolment->payment->created_at : $enrolment->created_at;
+            // Payment Date: use the created_at of the first valid payment, or enrolment date if no valid payment
+            $firstValidPayment = $validPayments->first();
+            $paymentDate = $firstValidPayment ? $firstValidPayment->created_at : $enrolment->created_at;
 
             return [
                 'id' => $enrolment->id,
                 'joined_date' => $paymentDate->format('Y-m-d'), // Renamed usage in frontend to Tanggal Pembayaran
                 'name' => $member->name, // Nama
                 'description' => $description, // Keterangan
-                'amount' => $enrolment->payment ? $enrolment->payment->amount_paid : 0, // Jumlah Bayar
+                'amount' => $payment_paid, // Jumlah Bayar
                 'remaining_sessions' => $totalQuota, // Sisa Pertemuan
                 'phone_number' => $member->phone_number,
                 'enrolment_date' => $enrolment->created_at->format('Y-m-d'), // For reference

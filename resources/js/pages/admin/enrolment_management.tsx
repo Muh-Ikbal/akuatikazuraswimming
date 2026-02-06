@@ -16,7 +16,9 @@ import {
     Clock,
     CheckCircle,
     XCircle,
-    AlertCircle
+    AlertCircle,
+    UserCheck,
+    UserPlus
 } from 'lucide-react';
 import {
     Table,
@@ -59,6 +61,7 @@ interface Enrolment {
         price: number;
     };
     meeting_count: number;
+    state_member: 'new' | 'old';
     created_at: string;
 }
 
@@ -161,17 +164,40 @@ export default function EnrolmentManagement(props: props) {
         }
     };
 
-    // Stats
-    const totalEnrolments = enrolments.length;
-    const onProgressCount = enrolments.filter(e => e.state === 'on_progress').length;
-    const completedCount = enrolments.filter(e => e.state === 'completed').length;
-    const cancelledCount = enrolments.filter(e => e.state === 'cancelled').length;
+    const getStateMemberDisplay = (state: string) => {
+        switch (state) {
+            case 'new':
+                return {
+                    label: 'Baru',
+                    icon: <UserPlus className="w-3 h-3" />,
+                    className: 'bg-blue-100 text-blue-900'
+                };
+            case 'old':
+                return {
+                    label: 'Lama',
+                    icon: <UserCheck className="w-3 h-3" />,
+                    className: 'bg-green-100 text-green-900'
+                };
+            default:
+                return {
+                    label: state,
+                    icon: <AlertCircle className="w-3 h-3" />,
+                    className: 'bg-gray-100 text-gray-900'
+                };
+        }
+    }
+
+    // // Stats
+    // const totalEnrolments = enrolments.length;
+    // const onProgressCount = enrolments.filter(e => e.state === 'on_progress').length;
+    // const completedCount = enrolments.filter(e => e.state === 'completed').length;
+    // const cancelledCount = enrolments.filter(e => e.state === 'cancelled').length;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Enrolment Management" />
             <div className="p-6 space-y-6">
-                <AlerInformation flash={flash} />
+                {/* <AlerInformation flash={flash} /> */}
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
@@ -280,6 +306,7 @@ export default function EnrolmentManagement(props: props) {
                                         <TableHead className="hidden md:table-cell">Kelas</TableHead>
                                         <TableHead className="hidden lg:table-cell">Kursus</TableHead>
                                         <TableHead>Pertemuan</TableHead>
+                                        <TableHead>Status Member</TableHead>
                                         <TableHead>Status</TableHead>
                                         <TableHead className="text-right">Aksi</TableHead>
                                     </TableRow>
@@ -287,6 +314,7 @@ export default function EnrolmentManagement(props: props) {
                                 <TableBody>
                                     {filteredEnrolments.map((enrolment) => {
                                         const stateDisplay = getStateDisplay(enrolment.state);
+                                        const stateMemberDisplay = getStateMemberDisplay(enrolment.state_member);
                                         return (
                                             <TableRow key={enrolment.id}>
                                                 <TableCell>
@@ -316,6 +344,12 @@ export default function EnrolmentManagement(props: props) {
                                                 </TableCell>
                                                 <TableCell>
                                                     <div>{enrolment.meeting_count}/{enrolment.course?.total_meeting}</div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${stateMemberDisplay.className}`}>
+                                                        {stateMemberDisplay.icon}
+                                                        {stateMemberDisplay.label}
+                                                    </span>
                                                 </TableCell>
                                                 <TableCell>
                                                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${stateDisplay.className}`}>

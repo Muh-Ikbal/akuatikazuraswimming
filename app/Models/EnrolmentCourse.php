@@ -16,7 +16,8 @@ class EnrolmentCourse extends Model
         'class_session_id',
         'course_id',
         'meeting_count',
-        'state'
+        'state',
+        'state_member'
     ];
 
     public function member(){
@@ -33,6 +34,10 @@ class EnrolmentCourse extends Model
 
     public function payment(){
         return $this->hasOne(Payment::class);
+    }
+
+    public function payments(){
+        return $this->hasMany(Payment::class);
     }
 
     public function attendance(){
