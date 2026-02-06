@@ -75,7 +75,7 @@ interface Props {
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Management User',
+        title: 'Management Pengguna',
         href: '/management-user',
     },
 ];
@@ -152,7 +152,7 @@ export default function UserManagement({ users, roles, stats, filters }: Props) 
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
                         <h1 className="text-2xl font-bold text-foreground">
-                            Manajemen User
+                            Manajemen Pengguna
                         </h1>
                         <p className="text-muted-foreground">
                             Kelola pengguna dan hak akses sistem
