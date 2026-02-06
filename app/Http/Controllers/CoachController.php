@@ -58,7 +58,7 @@ class CoachController extends Controller
             'phone_number' => 'required|string|max:20',
             'birth_date' => 'required|date',
             'gender' => 'required|in:male,female',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|max:5048',
             'address' => 'required|string',
             'birthplace' => 'required|string',
             // User data
@@ -68,7 +68,7 @@ class CoachController extends Controller
             'certificates' => 'nullable|array',
             'certificates.*.title' => 'required_with:certificates|string|max:255',
             'certificates.*.description' => 'nullable|string',
-            'certificates.*.image' => 'nullable|image|max:2048',
+            'certificates.*.image' => 'nullable|image|max:5048',
         ]);
 
         try {
@@ -166,14 +166,14 @@ class CoachController extends Controller
             'birthplace' => 'required|string',
             'birth_date' => 'required|date',
             'gender' => 'required|in:male,female',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|max:5048',
             'user_id' => 'nullable|exists:users,id',
             // Certificates
             'certificates' => 'nullable|array',
             'certificates.*.id' => 'nullable|exists:certificate_coaches,id',
             'certificates.*.title' => 'required_with:certificates|string|max:255',
             'certificates.*.description' => 'nullable|string',
-            'certificates.*.image' => 'nullable|image|max:2048',
+            'certificates.*.image' => 'nullable|image|max:5048',
             'deleted_certificates' => 'nullable|array',
             'deleted_certificates.*' => 'exists:certificate_coaches,id',
         ]);

@@ -26,7 +26,7 @@ class CmsGalleryController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5048',
             'title' => 'nullable|string|max:255',
         ]);
 

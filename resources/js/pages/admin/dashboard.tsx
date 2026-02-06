@@ -21,12 +21,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-interface payments {
-    id: number;
-    amount: string;
-    amount_paid: string;
-    created_at: string;
-}
+
 
 interface schedule {
     time: string;
@@ -52,29 +47,15 @@ export default function Dashboard(props: {
     members: number,
     coaches: number,
     courses: number,
-    payments: payments[],
+    monthly_income: number,
+    last_month_income: number,
     class_sessions: classSession[],
     revenue_per_course: RevenuePerCourse[]
 }) {
 
     const class_sessions = props.class_sessions;
     const revenuePerCourse = props.revenue_per_course || [];
-    const now = new Date();
-    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    const firstDayOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const lastDayOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
 
-
-    // const totalPayments = props.payments.reduce((total, payment) => total + payment.amount, 0);
-    const totalPaymentsThisMonth = props.payments.filter((payment) => {
-        const paymentDate = new Date(payment.created_at);
-        return paymentDate >= firstDayOfMonth && paymentDate <= lastDayOfMonth;
-    }).reduce((total, payment) => total + parseFloat(payment.amount_paid), 0);
-    const totalPaymentsLastMonth = props.payments.filter((payment) => {
-        const paymentDate = new Date(payment.created_at);
-        return paymentDate >= firstDayOfLastMonth && paymentDate <= lastDayOfLastMonth;
-    }).reduce((total, payment) => total + parseFloat(payment.amount), 0);
     // Data statistik (akan diganti dengan data asli dari backend)
 
     const stats = {
@@ -83,8 +64,8 @@ export default function Dashboard(props: {
         totalCoach: props.coaches,
         totalCourse: props.courses,
         jadwalHariIni: class_sessions.length,
-        pendapatanBulanIni: totalPaymentsThisMonth,
-        pendapatanBulanLalu: totalPaymentsLastMonth,
+        pendapatanBulanIni: props.monthly_income,
+        pendapatanBulanLalu: props.last_month_income,
     };
 
     // Calculate max revenue for progress bar

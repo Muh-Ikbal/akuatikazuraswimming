@@ -39,7 +39,7 @@ class CmsHeroController extends Controller
         $request->validate([
             'hero_title' => 'required|string|max:255',
             'hero_subtitle' => 'required|string|max:500',
-            'hero_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'hero_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5048',
             'satisfaction_rate' => 'required|numeric|min:0|max:100',
         ]);
 

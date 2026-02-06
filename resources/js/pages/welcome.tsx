@@ -560,6 +560,7 @@ export default function Welcome({
                                                             <span>{course.total_meeting} pertemuan</span>
                                                         </div>
                                                         <h3 className="text-lg font-bold text-slate-800 mb-1.5">{course.title}</h3>
+
                                                         <p className="text-slate-600 mb-4 line-clamp-2 leading-relaxed text-sm">{course.description}</p>
                                                         <div>
                                                             <div className="text-xs text-slate-500">Mulai dari</div>
@@ -586,7 +587,7 @@ export default function Welcome({
                                                     {courses.slice(colIndex * 2, colIndex * 2 + 2).map((course) => (
                                                         <div
                                                             key={course.id}
-                                                            className="group bg-white rounded-3xl p-6 transition-all duration-300 hover:-translate-y-1 shadow-xl shadow-blue-900/10 hover:shadow-2xl hover:shadow-blue-900/20 h-[330px] flex flex-col"
+                                                            className="group bg-white rounded-3xl p-6 transition-all duration-300 hover:-translate-y-1 shadow-xl shadow-blue-900/10 hover:shadow-2xl hover:shadow-blue-900/20 h-[380px] flex flex-col"
                                                         >
                                                             {course.image ? (
                                                                 <img

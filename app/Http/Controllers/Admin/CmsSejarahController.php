@@ -31,7 +31,7 @@ class CmsSejarahController extends Controller
         $request->validate([
             'sejarah_title' => 'required|string|max:255',
             'sejarah_content' => 'required|string|max:3000',
-            'sejarah_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'sejarah_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5048',
         ]);
 
         try {

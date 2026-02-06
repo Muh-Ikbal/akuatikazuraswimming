@@ -23,7 +23,19 @@ class DashboardController extends Controller
                 $members = Member::count();
                 $coaches = Coach::count();
                 $courses = Course::count();
-                $payments = Payment::where('state', ['paid','partial_paid'])->get();
+                // $payments = Payment::where('state', ['paid','partial_paid'])->get(); // Removed to improve performance
+
+                // Backend calculation for income
+                $totalPaymentsThisMonth = Payment::whereIn('state', ['paid', 'partial_paid'])
+                    ->whereYear('created_at', now()->year)
+                    ->whereMonth('created_at', now()->month)
+                    ->sum('amount_paid');
+
+                $totalPaymentsLastMonth = Payment::whereIn('state', ['paid', 'partial_paid'])
+                    ->whereYear('created_at', now()->subMonth()->year)
+                    ->whereMonth('created_at', now()->subMonth()->month)
+                    ->sum('amount_paid');
+
                 $class_sessions = ClassSession::whereHas('schedule',function($query){
                     $query->whereDate('date',today()->toDateString())->orderBy('time','asc');
                 })->with([
@@ -59,7 +71,8 @@ class DashboardController extends Controller
                     'members'=>$members,
                     'coaches'=>$coaches,
                     'courses'=>$courses,
-                    'payments'=>$payments,
+                    'monthly_income'=>$totalPaymentsThisMonth,
+                    'last_month_income'=>$totalPaymentsLastMonth,
                     'class_sessions'=>$class_sessions,
                     'revenue_per_course'=>$revenuePerCourse
                 ]);
