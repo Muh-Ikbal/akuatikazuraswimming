@@ -16,6 +16,7 @@ class Payment extends Model
         'promo_id',
         'discount_amount',
         'notes',
+        'created_at',
     ];
 
     public function enrolment_course(){

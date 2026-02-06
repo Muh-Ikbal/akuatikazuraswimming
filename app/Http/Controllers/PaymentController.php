@@ -80,6 +80,7 @@ class PaymentController extends Controller
             'amount_paid' => 'required|numeric|min:0',
             'payment_method' => 'required|string|max:50',
             'promo_id' => 'nullable|exists:promos,id',
+            'created_at' => 'required|date',
         ]);
         try {
             $discountAmount = 0;
@@ -182,6 +183,7 @@ class PaymentController extends Controller
                 'amount_paid' => 'required|numeric|min:0',
                 'payment_method' => 'required|string|max:50',
                 'promo_id' => 'nullable|exists:promos,id',
+                'created_at' => 'required|date',
                 // 'state' => 'required|in:pending,paid,failed',
             ]);
 

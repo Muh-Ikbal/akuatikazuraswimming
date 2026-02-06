@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Save, User, Banknote, CreditCard, Tag } from 'lucide-react';
+import { ArrowLeft, Save, User, Banknote, CreditCard, Tag, Calendar } from 'lucide-react';
 
 interface Enrolment {
     id: number;
@@ -28,6 +28,7 @@ interface Payment {
     payment_method: string;
     amount_paid: number;
     state: string;
+    created_at?: string;
 }
 
 interface Props {
@@ -57,6 +58,7 @@ export default function CreatePayment({ payment, enrolments, promos = [] }: Prop
         amount_paid: payment?.amount_paid || '',
         state: payment?.state || 'pending',
         promo_id: '',
+        created_at: payment?.created_at ? new Date(payment.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
     });
 
     const [discountAmount, setDiscountAmount] = useState(0);
@@ -241,6 +243,26 @@ export default function CreatePayment({ payment, enrolments, promos = [] }: Prop
                                         />
                                     </div>
                                     {errors.amount_paid && <p className="text-sm text-destructive">{errors.amount_paid}</p>}
+                                </div>
+
+                                {/* Date */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="created_at" className="text-sm">
+                                        Tanggal Pembayaran <span className="text-destructive">*</span>
+                                    </Label>
+                                    <div className="relative">
+                                        <div className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground flex items-center justify-center">
+                                            <Calendar className="w-4 h-4" />
+                                        </div>
+                                        <Input
+                                            id="created_at"
+                                            type="date"
+                                            className={`pl-10 ${errors.created_at ? 'border-destructive' : ''}`}
+                                            value={data.created_at}
+                                            onChange={(e) => setData('created_at', e.target.value)}
+                                        />
+                                    </div>
+                                    {errors.created_at && <p className="text-sm text-destructive">{errors.created_at}</p>}
                                 </div>
 
 
