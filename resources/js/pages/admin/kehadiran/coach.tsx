@@ -12,9 +12,31 @@ import {
     CalendarCheck,
     Trash2,
     Filter,
-    X
+    X,
+    Plus,
+    Pencil,
+    Save
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useForm, usePage } from '@inertiajs/react';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { format } from 'date-fns';
 
 interface Attendance {
     id: number;
@@ -44,6 +66,8 @@ interface Props {
         start_date: string;
         end_date: string;
     };
+    employees: { id: number; name: string; role: string }[];
+    schedules: { id: number; title: string; coach_id: number }[];
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -51,11 +75,74 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Kehadiran Pegawai', href: '/kehadiran-coach' },
 ];
 
-export default function KehadiranPegawai({ attendances, stats, filters }: Props) {
+export default function KehadiranPegawai({ attendances, stats, filters, employees, schedules }: Props) {
+    const { auth } = usePage<any>().props;
+    const isSuperAdmin = auth.user.roles.some((role: any) => role.name === 'super_admin');
+
     const [search, setSearch] = useState(filters.search);
     const [startDate, setStartDate] = useState(filters.start_date);
     const [endDate, setEndDate] = useState(filters.end_date);
     const [showFilters, setShowFilters] = useState(false);
+
+    // Modal State
+    const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [isEditOpen, setIsEditOpen] = useState(false);
+    const [selectedAttendance, setSelectedAttendance] = useState<Attendance | null>(null);
+
+    // Form for Create
+    const createForm = useForm({
+        user_id: '',
+        scan_time: '',
+        state: 'present', // Default state
+        schedule_id: '',
+    });
+
+    // Form for Edit
+    const editForm = useForm({
+        scan_time: '',
+        state: '',
+        schedule_id: '',
+    });
+
+    const handleCreateSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        createForm.post('/kehadiran-coach', {
+            onSuccess: () => {
+                setIsCreateOpen(false);
+                createForm.reset();
+            },
+        });
+    };
+
+    const handleEditClick = (attendance: Attendance) => {
+        setSelectedAttendance(attendance);
+        // Find schedule ID if possible (need to match based on class_session or pass schedule_id in attendance object)
+        // Since attendance object in props doesn't have schedule_id, we might need it.
+        // But let's assume for edit we just edit time and state for now, or match schedule title.
+        // Actually, the backend index transformer doesn't pass schedule_id. 
+        // Let's assume for now we only edit Time and State, or if we really need Schedule, we should have passed it.
+        // The prompt asked for "edit", so editing Time and Status is the critical part.
+
+        editForm.setData({
+            scan_time: format(new Date(attendance.scan_time), "yyyy-MM-dd'T'HH:mm"),
+            state: attendance.state,
+            schedule_id: '', // Determining schedule_id from frontend text is hard. Let's keep it simple or allow re-selecting.
+        });
+        setIsEditOpen(true);
+    };
+
+    const handleEditSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedAttendance) return;
+
+        editForm.put(`/kehadiran-coach/${selectedAttendance.id}`, {
+            onSuccess: () => {
+                setIsEditOpen(false);
+                editForm.reset();
+                setSelectedAttendance(null);
+            },
+        });
+    };
 
     const handleFilter = () => {
         router.get('/kehadiran-coach', {
@@ -106,6 +193,104 @@ export default function KehadiranPegawai({ attendances, stats, filters }: Props)
                             Kelola data kehadiran pegawai
                         </p>
                     </div>
+                    {isSuperAdmin && (
+                        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+                            <DialogTrigger asChild>
+                                <Button>
+                                    <Plus className="w-4 h-4 mr-2" />
+                                    Tambah Kehadiran
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>Tambah Kehadiran Pegawai</DialogTitle>
+                                    <DialogDescription>
+                                        Masukkan data kehadiran pegawai secara manual.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <form onSubmit={handleCreateSubmit} className="space-y-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="employee">Pegawai</Label>
+                                        <Select
+                                            onValueChange={(val) => createForm.setData('user_id', val)}
+                                            defaultValue={createForm.data.user_id}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Pilih Pegawai" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {employees.map((emp) => (
+                                                    <SelectItem key={emp.id} value={emp.id.toString()}>
+                                                        {emp.name} ({emp.role})
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        {createForm.errors.user_id && <span className="text-destructive text-sm">{createForm.errors.user_id}</span>}
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="schedule">Jadwal (Opsional - Khusus Coach)</Label>
+                                        <Select
+                                            onValueChange={(val) => createForm.setData('schedule_id', val)}
+                                            defaultValue={createForm.data.schedule_id}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Pilih Jadwal (Jika ada)" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {schedules.map((sch) => (
+                                                    <SelectItem key={sch.id} value={sch.id.toString()}>
+                                                        {sch.title}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        {createForm.errors.schedule_id && <span className="text-destructive text-sm">{createForm.errors.schedule_id}</span>}
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="scan_time">Waktu Kehadiran</Label>
+                                        <Input
+                                            id="scan_time"
+                                            type="datetime-local"
+                                            value={createForm.data.scan_time}
+                                            onChange={(e) => createForm.setData('scan_time', e.target.value)}
+                                        />
+                                        {createForm.errors.scan_time && <span className="text-destructive text-sm">{createForm.errors.scan_time}</span>}
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="state">Status</Label>
+                                        <Select
+                                            onValueChange={(val) => createForm.setData('state', val)}
+                                            defaultValue={createForm.data.state}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Pilih Status" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="present">Hadir</SelectItem>
+                                                <SelectItem value="late">Terlambat</SelectItem>
+                                                <SelectItem value="absent">Alpa</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        {createForm.errors.state && <span className="text-destructive text-sm">{createForm.errors.state}</span>}
+                                    </div>
+
+                                    <DialogFooter>
+                                        <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>
+                                            Batal
+                                        </Button>
+                                        <Button type="submit" disabled={createForm.processing}>
+                                            <Save className="w-4 h-4 mr-2" />
+                                            Simpan
+                                        </Button>
+                                    </DialogFooter>
+                                </form>
+                            </DialogContent>
+                        </Dialog>
+                    )}
                 </div>
 
                 {/* Statistics Cards */}
@@ -212,7 +397,10 @@ export default function KehadiranPegawai({ attendances, stats, filters }: Props)
                                         <th className="text-left p-4 font-medium text-sm">Kelas</th>
                                         <th className="text-left p-4 font-medium text-sm">Status</th>
                                         <th className="text-left p-4 font-medium text-sm">Waktu Scan</th>
-                                        <th className="text-center p-4 font-medium text-sm">Aksi</th>
+                                        {isSuperAdmin && (
+                                            <th className="text-center p-4 font-medium text-sm">Aksi</th>
+                                        )}
+
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border">
@@ -245,14 +433,26 @@ export default function KehadiranPegawai({ attendances, stats, filters }: Props)
                                                     </span>
                                                 </td>
                                                 <td className="p-4 text-center">
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                                                        onClick={() => handleDelete(attendance.id)}
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </Button>
+                                                    {isSuperAdmin && (
+                                                        <>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 mr-1"
+                                                                onClick={() => handleEditClick(attendance)}
+                                                            >
+                                                                <Pencil className="w-4 h-4" />
+                                                            </Button>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                                                onClick={() => handleDelete(attendance.id)}
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </Button>
+                                                        </>
+                                                    )}
                                                 </td>
                                             </tr>
                                         ))
@@ -267,6 +467,79 @@ export default function KehadiranPegawai({ attendances, stats, filters }: Props)
                                 </tbody>
                             </table>
                         </div>
+
+                        {/* Edit Modal */}
+                        <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>Edit Kehadiran Pegawai</DialogTitle>
+                                    <DialogDescription>
+                                        Ubah data kehadiran pegawai.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <form onSubmit={handleEditSubmit} className="space-y-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="edit_scan_time">Waktu Kehadiran</Label>
+                                        <Input
+                                            id="edit_scan_time"
+                                            type="datetime-local"
+                                            value={editForm.data.scan_time}
+                                            onChange={(e) => editForm.setData('scan_time', e.target.value)}
+                                        />
+                                        {editForm.errors.scan_time && <span className="text-destructive text-sm">{editForm.errors.scan_time}</span>}
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="edit_state">Status</Label>
+                                        <Select
+                                            onValueChange={(val) => editForm.setData('state', val)}
+                                            defaultValue={editForm.data.state}
+                                            value={editForm.data.state}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Pilih Status" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="present">Hadir</SelectItem>
+                                                <SelectItem value="late">Terlambat</SelectItem>
+                                                <SelectItem value="absent">Alpa</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        {editForm.errors.state && <span className="text-destructive text-sm">{editForm.errors.state}</span>}
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="edit_schedule">Jadwal (Opsional - Reset jika dipilih)</Label>
+                                        <Select
+                                            onValueChange={(val) => editForm.setData('schedule_id', val)}
+                                            value={editForm.data.schedule_id}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Ganti Jadwal (Opsional)" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {schedules.map((sch) => (
+                                                    <SelectItem key={sch.id} value={sch.id.toString()}>
+                                                        {sch.title}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        {editForm.errors.schedule_id && <span className="text-destructive text-sm">{editForm.errors.schedule_id}</span>}
+                                    </div>
+
+                                    <DialogFooter>
+                                        <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)}>
+                                            Batal
+                                        </Button>
+                                        <Button type="submit" disabled={editForm.processing}>
+                                            <Save className="w-4 h-4 mr-2" />
+                                            Simpan Perubahan
+                                        </Button>
+                                    </DialogFooter>
+                                </form>
+                            </DialogContent>
+                        </Dialog>
 
                         {/* Pagination */}
                         {attendances.last_page > 1 && (

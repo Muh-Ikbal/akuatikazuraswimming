@@ -12,9 +12,31 @@ import {
     CalendarCheck,
     Trash2,
     Filter,
-    X
+    X,
+    Plus,
+    Pencil,
+    Save
 } from 'lucide-react';
 import { useState } from 'react';
+import { useForm, usePage } from '@inertiajs/react';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { format } from 'date-fns';
 
 interface Attendance {
     id: number;
@@ -51,6 +73,8 @@ interface Props {
         end_date: string;
         class_session_id: string;
     };
+    members: { user_id: number; name: string }[];
+    schedules: { id: number; title: string; class_session_id: number }[];
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -58,12 +82,63 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Kehadiran Member', href: '/kehadiran-member' },
 ];
 
-export default function KehadiranMember({ attendances, class_sessions, stats, filters }: Props) {
+export default function KehadiranMember({ attendances, class_sessions, stats, filters, members, schedules }: Props) {
+    const { auth } = usePage<any>().props;
+    const isSuperAdmin = auth.user.roles.some((role: any) => role.name === 'super_admin');
+
     const [search, setSearch] = useState(filters.search);
     const [startDate, setStartDate] = useState(filters.start_date);
     const [endDate, setEndDate] = useState(filters.end_date);
     const [classSessionId, setClassSessionId] = useState(filters.class_session_id);
     const [showFilters, setShowFilters] = useState(false);
+
+    // Modal State
+    const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [isEditOpen, setIsEditOpen] = useState(false);
+    const [selectedAttendance, setSelectedAttendance] = useState<Attendance | null>(null);
+
+    // Form for Create
+    const createForm = useForm({
+        user_id: '',
+        scan_time: '',
+        schedule_id: '',
+    });
+
+    // Form for Edit
+    const editForm = useForm({
+        scan_time: '',
+    });
+
+    const handleCreateSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        createForm.post('/kehadiran-member', {
+            onSuccess: () => {
+                setIsCreateOpen(false);
+                createForm.reset();
+            },
+        });
+    };
+
+    const handleEditClick = (attendance: Attendance) => {
+        setSelectedAttendance(attendance);
+        editForm.setData({
+            scan_time: format(new Date(attendance.scan_time), "yyyy-MM-dd'T'HH:mm"),
+        });
+        setIsEditOpen(true);
+    };
+
+    const handleEditSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedAttendance) return;
+
+        editForm.put(`/kehadiran-member/${selectedAttendance.id}`, {
+            onSuccess: () => {
+                setIsEditOpen(false);
+                editForm.reset();
+                setSelectedAttendance(null);
+            },
+        });
+    };
 
     const handleFilter = () => {
         router.get('/kehadiran-member', {
@@ -116,6 +191,86 @@ export default function KehadiranMember({ attendances, class_sessions, stats, fi
                             Kelola data kehadiran member
                         </p>
                     </div>
+                    {isSuperAdmin && (
+                        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+                            <DialogTrigger asChild>
+                                <Button>
+                                    <Plus className="w-4 h-4 mr-2" />
+                                    Tambah Kehadiran
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>Tambah Kehadiran Member</DialogTitle>
+                                    <DialogDescription>
+                                        Masukkan data kehadiran member secara manual.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <form onSubmit={handleCreateSubmit} className="space-y-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="member">Member</Label>
+                                        <Select
+                                            onValueChange={(val) => createForm.setData('user_id', val)}
+                                            defaultValue={createForm.data.user_id}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Pilih Member" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {members.map((member) => (
+                                                    <SelectItem key={member.user_id} value={member.user_id.toString()}>
+                                                        {member.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        {createForm.errors.user_id && <span className="text-destructive text-sm">{createForm.errors.user_id}</span>}
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="schedule">Jadwal Kelas</Label>
+                                        <Select
+                                            onValueChange={(val) => createForm.setData('schedule_id', val)}
+                                            defaultValue={createForm.data.schedule_id}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Pilih Jadwal" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {schedules.map((sch) => (
+                                                    <SelectItem key={sch.id} value={sch.id.toString()}>
+                                                        {sch.title}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        {createForm.errors.schedule_id && <span className="text-destructive text-sm">{createForm.errors.schedule_id}</span>}
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="scan_time">Waktu Kehadiran</Label>
+                                        <Input
+                                            id="scan_time"
+                                            type="datetime-local"
+                                            value={createForm.data.scan_time}
+                                            onChange={(e) => createForm.setData('scan_time', e.target.value)}
+                                        />
+                                        {createForm.errors.scan_time && <span className="text-destructive text-sm">{createForm.errors.scan_time}</span>}
+                                    </div>
+
+                                    <DialogFooter>
+                                        <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>
+                                            Batal
+                                        </Button>
+                                        <Button type="submit" disabled={createForm.processing}>
+                                            <Save className="w-4 h-4 mr-2" />
+                                            Simpan
+                                        </Button>
+                                    </DialogFooter>
+                                </form>
+                            </DialogContent>
+                        </Dialog>
+                    )}
                 </div>
 
                 {/* Statistics Cards */}
@@ -233,7 +388,9 @@ export default function KehadiranMember({ attendances, class_sessions, stats, fi
                                         <th className="text-left p-4 font-medium text-sm">Kelas</th>
                                         <th className="text-left p-4 font-medium text-sm">Kursus</th>
                                         <th className="text-left p-4 font-medium text-sm">Waktu Scan</th>
-                                        <th className="text-center p-4 font-medium text-sm">Aksi</th>
+                                        {isSuperAdmin && (
+                                            <th className="text-center p-4 font-medium text-sm">Aksi</th>
+                                        )}
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border">
@@ -252,14 +409,26 @@ export default function KehadiranMember({ attendances, class_sessions, stats, fi
                                                     </span>
                                                 </td>
                                                 <td className="p-4 text-center">
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                                                        onClick={() => handleDelete(attendance.id)}
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </Button>
+                                                    {isSuperAdmin && (
+                                                        <>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 mr-1"
+                                                                onClick={() => handleEditClick(attendance)}
+                                                            >
+                                                                <Pencil className="w-4 h-4" />
+                                                            </Button>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                                                onClick={() => handleDelete(attendance.id)}
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </Button>
+                                                        </>
+                                                    )}
                                                 </td>
                                             </tr>
                                         ))
@@ -274,6 +443,40 @@ export default function KehadiranMember({ attendances, class_sessions, stats, fi
                                 </tbody>
                             </table>
                         </div>
+
+                        {/* Edit Modal */}
+                        <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>Edit Kehadiran Member</DialogTitle>
+                                    <DialogDescription>
+                                        Ubah waktu kehadiran member.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <form onSubmit={handleEditSubmit} className="space-y-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="edit_scan_time">Waktu Kehadiran</Label>
+                                        <Input
+                                            id="edit_scan_time"
+                                            type="datetime-local"
+                                            value={editForm.data.scan_time}
+                                            onChange={(e) => editForm.setData('scan_time', e.target.value)}
+                                        />
+                                        {editForm.errors.scan_time && <span className="text-destructive text-sm">{editForm.errors.scan_time}</span>}
+                                    </div>
+
+                                    <DialogFooter>
+                                        <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)}>
+                                            Batal
+                                        </Button>
+                                        <Button type="submit" disabled={editForm.processing}>
+                                            <Save className="w-4 h-4 mr-2" />
+                                            Simpan Perubahan
+                                        </Button>
+                                    </DialogFooter>
+                                </form>
+                            </DialogContent>
+                        </Dialog>
 
                         {/* Pagination */}
                         {attendances.last_page > 1 && (

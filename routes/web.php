@@ -150,11 +150,9 @@ Route::middleware(['auth', 'verified','role:super_admin|admin'])->group(function
 
     // Kehadiran Member
     Route::get('kehadiran-member', [\App\Http\Controllers\AdminMemberAttendanceController::class, 'index'])->name('kehadiran-member');
-    Route::delete('kehadiran-member/{id}', [\App\Http\Controllers\AdminMemberAttendanceController::class, 'destroy'])->name('kehadiran-member.destroy');
 
     // Kehadiran Coach
     Route::get('kehadiran-coach', [\App\Http\Controllers\AdminCoachAttendanceController::class, 'index'])->name('kehadiran-coach');
-    Route::delete('kehadiran-coach/{id}', [\App\Http\Controllers\AdminCoachAttendanceController::class, 'destroy'])->name('kehadiran-coach.destroy');
 
     // Management Promo
     Route::get('management-promo', [\App\Http\Controllers\PromoController::class,'index'])->name('management-promo');
@@ -197,6 +195,15 @@ Route::middleware(['auth', 'verified','role:super_admin'])->group(function () {
     Route::get('/download-backup', [\App\Http\Controllers\BackupDatabase::class, 'backupDatabase'])->name('super-admin.download-backup');
     Route::get('logging', [\App\Http\Controllers\LogController::class, 'index'])->name('logging');
     Route::get('logging/download', [\App\Http\Controllers\LogController::class, 'download'])->name('logging.download');
+    // crud kehadiran coach
+    Route::post('kehadiran-coach', [\App\Http\Controllers\AdminCoachAttendanceController::class, 'store'])->name('kehadiran-coach.store');
+    Route::put('kehadiran-coach/{id}', [\App\Http\Controllers\AdminCoachAttendanceController::class, 'update'])->name('kehadiran-coach.update');
+    Route::delete('kehadiran-coach/{id}', [\App\Http\Controllers\AdminCoachAttendanceController::class, 'destroy'])->name('kehadiran-coach.destroy');
+
+    // crud kehadiran member
+    Route::post('kehadiran-member', [\App\Http\Controllers\AdminMemberAttendanceController::class, 'store'])->name('kehadiran-member.store');
+    Route::put('kehadiran-member/{id}', [\App\Http\Controllers\AdminMemberAttendanceController::class, 'update'])->name('kehadiran-member.update');
+    Route::delete('kehadiran-member/{id}', [\App\Http\Controllers\AdminMemberAttendanceController::class, 'destroy'])->name('kehadiran-member.destroy');
 });
 
 

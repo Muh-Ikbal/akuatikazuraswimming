@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\AttandanceEmployee;
 use Carbon\Carbon;
+use App\Models\Schedule;
+use App\Models\User;
 
 class AdminCoachAttendanceController extends Controller
 {
@@ -19,6 +21,30 @@ class AdminCoachAttendanceController extends Controller
             ])->whereHas('user.roles', function ($q) {
                 $q->where('name', '!=', 'member');
             });
+            
+            // Get employees for dropdown (for create modal)
+            $employees = User::with('roles')->whereHas('roles', function($q){
+                $q->where('name', '!=', 'member');
+            })->get()->map(function($user){
+                return [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'role' => $user->roles->first()->name
+                ];
+            });
+
+            // Get schedules for dropdown
+            $schedules = Schedule::with('class_session')
+                ->whereDate('date', '>=', now()->subMonths(1)) // limit to recent schedules
+                ->orderBy('date', 'desc')
+                ->get()
+                ->map(function($schedule){
+                    return [
+                        'id' => $schedule->id,
+                        'title' => $schedule->class_session->title . ' - ' . Carbon::parse($schedule->date)->format('d M Y') . ' ' . $schedule->time,
+                        'coach_id' => $schedule->coach_id
+                    ];
+                });
     
             // Filter by date range
             if ($request->has('start_date') && $request->start_date) {
@@ -72,6 +98,8 @@ class AdminCoachAttendanceController extends Controller
             return Inertia::render('admin/kehadiran/coach', [
                 'attendances' => $attendanceData,
                 'stats' => $stats,
+                'employees' => $employees,
+                'schedules' => $schedules,
                 'filters' => [
                     'search' => $request->search ?? '',
                     'start_date' => $request->start_date ?? '',
@@ -90,6 +118,65 @@ class AdminCoachAttendanceController extends Controller
             $attendance->delete();
     
             return redirect()->back()->with('success', 'Data kehadiran berhasil dihapus');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
+    }
+
+    public function store(Request $request)
+    {
+        // Only super_admin can add
+        if (!auth()->user()->hasRole('super_admin')) {
+             return redirect()->back()->with('error', 'Unauthorized action.');
+        }
+
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'scan_time' => 'required|date',
+            'state' => 'required|in:present,late,absent',
+            'schedule_id' => 'nullable|exists:schedules,id',
+        ]);
+
+        try {
+            // Check for existing attendance on same day for same user? 
+            // Maybe not strictly required if they check in multiple times, but let's allow multiple for now or just create.
+            
+            AttandanceEmployee::create([
+                'user_id' => $request->user_id,
+                'scan_time' => Carbon::parse($request->scan_time),
+                'state' => $request->state,
+                'schedule_id' => $request->schedule_id,
+            ]);
+
+            return redirect()->back()->with('success', 'Data kehadiran berhasil ditambahkan');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
+    }
+
+    public function update(Request $request, $id)
+    {
+        // Only super_admin can update
+        if (!auth()->user()->hasRole('super_admin')) {
+             return redirect()->back()->with('error', 'Unauthorized action.');
+        }
+
+        $request->validate([
+            'scan_time' => 'required|date',
+            'state' => 'required|in:present,late,absent',
+            'schedule_id' => 'nullable|exists:schedules,id',
+        ]);
+
+        try {
+            $attendance = AttandanceEmployee::findOrFail($id);
+            
+            $attendance->update([
+                'scan_time' => Carbon::parse($request->scan_time),
+                'state' => $request->state,
+                'schedule_id' => $request->schedule_id,
+            ]);
+
+            return redirect()->back()->with('success', 'Data kehadiran berhasil diperbarui');
         } catch (\Throwable $th) {
             return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
         }

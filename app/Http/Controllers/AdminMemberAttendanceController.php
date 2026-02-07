@@ -76,11 +76,34 @@ class AdminMemberAttendanceController extends Controller
                 'today' => Attendance::whereHas('user.member')->whereDate('scan_time', $today)->count(),
                 'this_month' => Attendance::whereHas('user.member')->where('scan_time', '>=', $thisMonth)->count(),
             ];
+
+            // Get members for dropdown (user_id and name)
+            $members = Member::with('user')->get()->map(function($member){
+                 return [
+                     'user_id' => $member->user_id,
+                     'name' => $member->name
+                 ];
+            });
+
+            // Get schedules for dropdown
+            $schedules = \App\Models\Schedule::with('class_session')
+                ->whereDate('date', '>=', now()->subMonths(1))
+                ->orderBy('date', 'desc')
+                ->get()
+                ->map(function($schedule){
+                    return [
+                        'id' => $schedule->id,
+                        'title' => $schedule->class_session->title . ' - ' . Carbon::parse($schedule->date)->format('d M Y') . ' ' . $schedule->time,
+                        'class_session_id' => $schedule->class_session_id
+                    ];
+                });
     
             return Inertia::render('admin/kehadiran/member', [
                 'attendances' => $attendanceData,
                 'class_sessions' => $classSessions,
                 'stats' => $stats,
+                'members' => $members,
+                'schedules' => $schedules,
                 'filters' => [
                     'search' => $request->search ?? '',
                     'start_date' => $request->start_date ?? '',
@@ -100,6 +123,82 @@ class AdminMemberAttendanceController extends Controller
             $attendance->delete();
     
             return redirect()->back()->with('success', 'Data kehadiran berhasil dihapus');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
+    }
+
+    public function store(Request $request)
+    {
+        // Only super_admin can add
+        if (!auth()->user()->hasRole('super_admin')) {
+             return redirect()->back()->with('error', 'Unauthorized action.');
+        }
+
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'schedule_id' => 'required|exists:schedules,id',
+            'scan_time' => 'required|date',
+        ]);
+
+        try {
+            $schedule = \App\Models\Schedule::findOrFail($request->schedule_id);
+            $member = Member::where('user_id', $request->user_id)->firstOrFail();
+            
+            // Try to find enrolment
+            $enrolment = \App\Models\EnrolmentCourse::where('member_id', $member->id)
+                ->where('class_session_id', $schedule->class_session_id)
+                ->where('state', 'on_progress')
+                ->first();
+                
+            if (!$enrolment) {
+                 // Try to find any enrolment
+                 $enrolment = \App\Models\EnrolmentCourse::where('member_id', $member->id)
+                    ->where('class_session_id', $schedule->class_session_id)
+                    ->first();
+            }
+
+            // If strict: fail if no enrolment? 
+            // For now, let's allow but maybe warn or just set null if schema allows.
+            // But schema likely expects enrolment_course_id. 
+            // If manual entry, we really should have an enrolment.
+            
+            if (!$enrolment) {
+                return redirect()->back()->with('error', 'Member tidak terdaftar di kelas sesi jadwal ini.');
+            }
+
+            Attendance::create([
+                'user_id' => $request->user_id,
+                'class_session_id' => $schedule->class_session_id,
+                'schedule_id' => $schedule->id,
+                'enrolment_course_id' => $enrolment->id,
+                'scan_time' => Carbon::parse($request->scan_time),
+            ]);
+
+            return redirect()->back()->with('success', 'Data kehadiran berhasil ditambahkan');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
+    }
+
+    public function update(Request $request, $id)
+    {
+        // Only super_admin can update
+        if (!auth()->user()->hasRole('super_admin')) {
+             return redirect()->back()->with('error', 'Unauthorized action.');
+        }
+
+        $request->validate([
+            'scan_time' => 'required|date',
+        ]);
+
+        try {
+            $attendance = Attendance::findOrFail($id);
+            $attendance->update([
+                'scan_time' => Carbon::parse($request->scan_time),
+            ]);
+
+            return redirect()->back()->with('success', 'Data kehadiran berhasil diperbarui');
         } catch (\Throwable $th) {
             return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
         }
