@@ -18,7 +18,9 @@ import {
     Filter,
     Trash2,
     LayoutGrid,
-    List
+    List,
+    X,
+    Check
 } from 'lucide-react';
 import {
     Table,
@@ -60,7 +62,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function CourseManagement(props: { courses: any }) {
+export default function CourseManagement(props: { courses: any, total_course: number, total_active: number, total_inactive: number }) {
     const [searchQuery, setSearchQuery] = useState("");
     const [filterStatus, setFilterStatus] = useState<string>("all");
     const [viewMode, setViewMode] = useState<"card" | "table">("card");
@@ -130,7 +132,7 @@ export default function CourseManagement(props: { courses: any }) {
                                 <BookOpen className="w-6 h-6 text-primary" />
                             </div>
                             <div>
-                                <div className="text-2xl font-bold">{courses.length}</div>
+                                <div className="text-2xl font-bold">{props.total_course}</div>
                                 <div className="text-sm text-muted-foreground">Total Kursus</div>
                             </div>
                         </CardContent>
@@ -138,13 +140,26 @@ export default function CourseManagement(props: { courses: any }) {
                     <Card>
                         <CardContent className="p-4 flex items-center gap-4">
                             <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
-                                <Calendar className="w-6 h-6 text-green-600" />
+                                <Check className="w-6 h-6 text-green-600" />
                             </div>
                             <div>
                                 <div className="text-2xl font-bold">
-                                    {courses.reduce((acc, c) => acc + c.total_meeting, 0)}
+                                    {props.total_active}
                                 </div>
-                                <div className="text-sm text-muted-foreground">Total Pertemuan</div>
+                                <div className="text-sm text-muted-foreground">Total Aktif</div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardContent className="p-4 flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center">
+                                <X className="w-6 h-6 text-red-600" />
+                            </div>
+                            <div>
+                                <div className="text-2xl font-bold">
+                                    {props.total_inactive}
+                                </div>
+                                <div className="text-sm text-muted-foreground">Total Tidak Aktif</div>
                             </div>
                         </CardContent>
                     </Card>

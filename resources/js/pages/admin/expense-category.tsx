@@ -43,7 +43,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function ExpenseCategoryManagement(props: { expensesCategory: any }) {
+export default function ExpenseCategoryManagement(props: { expensesCategory: any, expenseCategory_count: number }) {
     const [searchQuery, setSearchQuery] = useState("");
 
     const categories: ExpenseCategory[] = props.expensesCategory.data;
@@ -96,7 +96,7 @@ export default function ExpenseCategoryManagement(props: { expensesCategory: any
                                 <HandCoins className="w-6 h-6 text-primary" />
                             </div>
                             <div>
-                                <div className="text-2xl font-bold">{categories.length}</div>
+                                <div className="text-2xl font-bold">{props.expenseCategory_count}</div>
                                 <div className="text-sm text-muted-foreground">Total Kategori</div>
                             </div>
                         </CardContent>

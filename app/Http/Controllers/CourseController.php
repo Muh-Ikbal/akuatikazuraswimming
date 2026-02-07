@@ -11,8 +11,15 @@ class CourseController extends Controller
     public function index(){
         try {
             $courses = Course::paginate(10);
+            $total_course = Course::count();
+            // $total_meeting = Course::sum('total_meeting');
+            $total_active = Course::where('state', 'active')->count();
+            $total_inactive = Course::where('state', 'inactive')->count();
             return Inertia::render('admin/course_management',[
-                'courses' => $courses
+                'courses' => $courses,
+                'total_course' => $total_course,
+                'total_active' => $total_active,
+                'total_inactive' => $total_inactive
             ]);
         } catch (\Throwable $th) {
             return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());

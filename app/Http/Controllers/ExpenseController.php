@@ -13,8 +13,12 @@ class ExpenseController extends Controller
     {
         try {
             $expenses = Expense::with('expense_category')->paginate(10);
+            $expense_count = Expense::count();
+            $expense_amount = Expense::sum('amount');
             return Inertia::render('admin/expense_management', [
-                'expenses' => $expenses
+                'expenses' => $expenses,
+                'expense_count' => $expense_count,
+                'expense_amount' => $expense_amount
             ]);
         } catch (\Throwable $th) {
             return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());

@@ -9,7 +9,9 @@ import {
     Search,
     Edit,
     Percent,
-    Tag
+    Tag,
+    X,
+    Check
 } from 'lucide-react';
 import {
     Table,
@@ -51,6 +53,8 @@ interface Props {
         prev_page_url: string | null;
         next_page_url: string | null;
     };
+    promo_active: number;
+    promo_inactive: number;
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -60,7 +64,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function PromoManagement({ promos }: Props) {
+export default function PromoManagement({ promos, promo_active, promo_inactive }: Props) {
     const [searchQuery, setSearchQuery] = useState("");
 
     const filteredPromos = promos.data.filter((p) => {
@@ -127,13 +131,26 @@ export default function PromoManagement({ promos }: Props) {
                     <Card>
                         <CardContent className="p-4 flex items-center gap-4">
                             <div className="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                                <Tag className="w-6 h-6 text-green-600" />
+                                <Check className="w-6 h-6 text-green-600" />
                             </div>
                             <div>
                                 <div className="text-2xl font-bold">
-                                    {promos.data.filter(p => p.state === 'active').length}
+                                    {promo_active}
                                 </div>
                                 <div className="text-sm text-muted-foreground">Promo Aktif</div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardContent className="p-4 flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                                <X className="w-6 h-6 text-red-600" />
+                            </div>
+                            <div>
+                                <div className="text-2xl font-bold">
+                                    {promo_inactive}
+                                </div>
+                                <div className="text-sm text-muted-foreground">Promo Tidak Aktif</div>
                             </div>
                         </CardContent>
                     </Card>
@@ -195,8 +212,8 @@ export default function PromoManagement({ promos }: Props) {
                                             </TableCell>
                                             <TableCell>
                                                 <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${promo.discount_type === 'percentage'
-                                                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                                                        : 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
+                                                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                                                    : 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
                                                     }`}>
                                                     {promo.discount_type === 'percentage' ? 'Persentase' : 'Nominal'}
                                                 </span>
@@ -208,8 +225,8 @@ export default function PromoManagement({ promos }: Props) {
                                             </TableCell>
                                             <TableCell>
                                                 <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${promo.state === 'active'
-                                                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                                        : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                                    : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
                                                     }`}>
                                                     {promo.state === 'active' ? 'Aktif' : 'Tidak Aktif'}
                                                 </span>

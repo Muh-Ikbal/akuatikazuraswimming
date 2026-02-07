@@ -11,8 +11,10 @@ class ExpenseCategoryController extends Controller
     public function index(){
         try {
             $expensesCategory = ExpenseCategory::paginate(10);
+            $expenseCategory_count = ExpenseCategory::count();
             return Inertia::render('admin/expense-category',[
-                'expensesCategory' => $expensesCategory
+                'expensesCategory' => $expensesCategory,
+                'expenseCategory_count' => $expenseCategory_count
             ]);
         } catch (\Throwable $th) {
             return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());

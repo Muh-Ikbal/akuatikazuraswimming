@@ -15,9 +15,11 @@ class ClassSessionController extends Controller
         try {
             $class_session = ClassSession::paginate(10);
             $total_student = EnrolmentCourse::all();
+            $total_class = ClassSession::count();
             return Inertia::render('admin/class_session', [
                 'class_session' => $class_session,
-                'total_student' => $total_student
+                'total_student' => $total_student,
+                'total_class' => $total_class
             ]);
         } catch (\Throwable $th) {
             return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());

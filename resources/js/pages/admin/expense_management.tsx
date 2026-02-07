@@ -51,7 +51,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function ExpenseManagement(props: { expenses: any }) {
+export default function ExpenseManagement(props: { expenses: any, expense_count: number, expense_amount: number }) {
     const [searchQuery, setSearchQuery] = useState("");
 
     const expenses: Expense[] = props.expenses.data;
@@ -116,7 +116,7 @@ export default function ExpenseManagement(props: { expenses: any }) {
                                 <TrendingDown className="w-6 h-6 text-red-600" />
                             </div>
                             <div>
-                                <div className="text-lg font-bold text-red-600">{formatCurrency(totalExpense)}</div>
+                                <div className="text-lg font-bold text-red-600">{formatCurrency(props.expense_amount)}</div>
                                 <div className="text-sm text-muted-foreground">Total Pengeluaran</div>
                             </div>
                         </CardContent>
@@ -127,7 +127,7 @@ export default function ExpenseManagement(props: { expenses: any }) {
                                 <Banknote className="w-6 h-6 text-primary" />
                             </div>
                             <div>
-                                <div className="text-2xl font-bold">{expenses.length}</div>
+                                <div className="text-2xl font-bold">{props.expense_count}</div>
                                 <div className="text-sm text-muted-foreground">Total Transaksi</div>
                             </div>
                         </CardContent>

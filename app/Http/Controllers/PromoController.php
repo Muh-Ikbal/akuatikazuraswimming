@@ -12,8 +12,12 @@ class PromoController extends Controller
     {
         try {
             $promos = Promo::orderBy('created_at', 'desc')->paginate(10);
+            $promo_active = Promo::where('state', 'active')->count();
+            $promo_inactive = Promo::where('state', 'inactive')->count();
             return Inertia::render('admin/promo_management', [
-                'promos' => $promos
+                'promos' => $promos,
+                'promo_active' => $promo_active,
+                'promo_inactive' => $promo_inactive,
             ]);
         } catch (\Throwable $th) {
             return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());

@@ -20,9 +20,16 @@ class ScheduleController extends Controller
                     'status' => 'completed'
                 ]);
             $schedules = Schedule::with('class_session','coach')->orderBy('date', 'desc')->orderBy('time', 'desc')->paginate(10);
+
+            $schedule_count = Schedule::count();
+            $schedule_on_going = Schedule::where('status', 'published')->count();
+            $schedule_completed = Schedule::where('status', 'completed')->count();
                    
             
             return Inertia::render('admin/schedule_management', [
+                'schedule_count' => $schedule_count,
+                'schedule_on_going' => $schedule_on_going,
+                'schedule_completed' => $schedule_completed,
                 'schedules' => $schedules
             ]);
         } catch (\Throwable $th) {

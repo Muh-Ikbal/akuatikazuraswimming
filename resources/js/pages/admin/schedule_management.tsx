@@ -72,7 +72,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function ScheduleManagement(props: { schedules: any }) {
+export default function ScheduleManagement(props: { schedules: any, schedule_count: number, schedule_on_going: number, schedule_completed: number }) {
     const { flash } = usePage().props as any;
 
     // auto close alert
@@ -149,10 +149,10 @@ export default function ScheduleManagement(props: { schedules: any }) {
         }
     };
 
-    // Stats
-    const publishedCount = schedules.filter(s => s.status === 'published').length;
-    const onGoingCount = schedules.filter(s => s.status === 'on_going').length;
-    const completedCount = schedules.filter(s => s.status === 'completed').length;
+    // // Stats
+    // const publishedCount = schedules.filter(s => s.status === 'published').length;
+    // const onGoingCount = schedules.filter(s => s.status === 'on_going').length;
+    // const completedCount = schedules.filter(s => s.status === 'completed').length;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -204,7 +204,7 @@ export default function ScheduleManagement(props: { schedules: any }) {
                                 <Calendar className="w-6 h-6 text-primary" />
                             </div>
                             <div>
-                                <div className="text-2xl font-bold">{schedules.length}</div>
+                                <div className="text-2xl font-bold">{props.schedule_count}</div>
                                 <div className="text-sm text-muted-foreground">Total Jadwal</div>
                             </div>
                         </CardContent>
@@ -215,7 +215,7 @@ export default function ScheduleManagement(props: { schedules: any }) {
                                 <FileText className="w-6 h-6 text-blue-600" />
                             </div>
                             <div>
-                                <div className="text-2xl font-bold">{publishedCount}</div>
+                                <div className="text-2xl font-bold">{props.schedule_on_going}</div>
                                 <div className="text-sm text-muted-foreground">Dijadwalkan</div>
                             </div>
                         </CardContent>
@@ -227,7 +227,7 @@ export default function ScheduleManagement(props: { schedules: any }) {
                                 <CheckCircle className="w-6 h-6 text-green-600" />
                             </div>
                             <div>
-                                <div className="text-2xl font-bold">{completedCount}</div>
+                                <div className="text-2xl font-bold">{props.schedule_completed}</div>
                                 <div className="text-sm text-muted-foreground">Selesai</div>
                             </div>
                         </CardContent>

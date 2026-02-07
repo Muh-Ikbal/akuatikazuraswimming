@@ -57,7 +57,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function CoachManagement(props: { class_session: any, total_student: any }) {
+export default function CoachManagement(props: { class_session: any, total_student: any, total_class: number }) {
     const [searchQuery, setSearchQuery] = useState("");
 
     const class_sessions: ClassSession[] = props.class_session.data;
@@ -86,11 +86,11 @@ export default function CoachManagement(props: { class_session: any, total_stude
     };
 
     // Stats
-    const totalClass = class_sessions.length;
+    const totalClass = props.total_class;
     // const studentPerClass = 
     const totalStudents = total_student.length;
-    const totalCapacity = class_sessions.reduce((total, session) => total + session.capacity, 0);
-    const availableCapacity = totalCapacity - totalStudents;
+    // const totalCapacity = class_sessions.reduce((total, session) => total + session.capacity, 0);
+    // const availableCapacity = totalCapacity - totalStudents;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -130,17 +130,7 @@ export default function CoachManagement(props: { class_session: any, total_stude
                             </div>
                         </CardContent>
                     </Card>
-                    <Card>
-                        <CardContent className="p-4 flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                                <User className="w-6 h-6 text-blue-600" />
-                            </div>
-                            <div>
-                                <div className="text-2xl font-bold">{totalCapacity}</div>
-                                <div className="text-sm text-muted-foreground">Total Kapasitas</div>
-                            </div>
-                        </CardContent>
-                    </Card>
+
                     <Card>
                         <CardContent className="p-4 flex items-center gap-4">
                             <div className="w-12 h-12 rounded-xl bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center">
@@ -152,17 +142,7 @@ export default function CoachManagement(props: { class_session: any, total_stude
                             </div>
                         </CardContent>
                     </Card>
-                    <Card>
-                        <CardContent className="p-4 flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-xl bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center">
-                                <User className="w-6 h-6 text-pink-600" />
-                            </div>
-                            <div>
-                                <div className="text-2xl font-bold">{availableCapacity}</div>
-                                <div className="text-sm text-muted-foreground">Kapasitas Tersisa</div>
-                            </div>
-                        </CardContent>
-                    </Card>
+
                 </div>
 
                 {/* Search & Filter */}
