@@ -45,6 +45,7 @@ interface RevenuePerCourse {
 
 export default function Dashboard(props: {
     members: number,
+    new_members: number,
     coaches: number,
     courses: number,
     monthly_income: number,
@@ -60,7 +61,7 @@ export default function Dashboard(props: {
 
     const stats = {
         totalPeserta: props.members,
-        pesertaBaru: 12,
+        pesertaBaru: props.new_members,
         totalCoach: props.coaches,
         totalCourse: props.courses,
         jadwalHariIni: class_sessions.length,

@@ -24,6 +24,9 @@ class DashboardController extends Controller
                 $coaches = Coach::count();
                 $courses = Course::count();
                 // $payments = Payment::where('state', ['paid','partial_paid'])->get(); // Removed to improve performance
+                $newMembers = Member::whereYear('entry_date', now()->year)
+                    ->whereMonth('entry_date', now()->month)
+                    ->count();
 
                 // Backend calculation for income
                 $totalPaymentsThisMonth = Payment::whereIn('state', ['paid', 'partial_paid'])
@@ -70,6 +73,7 @@ class DashboardController extends Controller
                 return Inertia::render('admin/dashboard',[
                     'members'=>$members,
                     'coaches'=>$coaches,
+                    'new_members'=>$newMembers,
                     'courses'=>$courses,
                     'monthly_income'=>$totalPaymentsThisMonth,
                     'last_month_income'=>$totalPaymentsLastMonth,

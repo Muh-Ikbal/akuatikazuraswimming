@@ -168,7 +168,7 @@ class CoachController extends Controller
             'gender' => 'required|in:male,female',
             'image' => 'nullable|image|max:5048',
             'user_id' => 'nullable|exists:users,id',
-            // Certificates
+            // validasi sertifikat
             'certificates' => 'nullable|array',
             'certificates.*.id' => 'nullable|exists:certificate_coaches,id',
             'certificates.*.title' => 'required_with:certificates|string|max:255',
