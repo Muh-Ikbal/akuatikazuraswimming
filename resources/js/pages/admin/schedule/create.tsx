@@ -90,7 +90,7 @@ export default function CreateSchedule({ schedule, class_sessions, coaches }: Pr
                 </div>
 
                 <form onSubmit={handleSubmit}>
-                    <div className="grid gap-4 sm:gap-6 max-w-2xl">
+                    <div className="grid gap-4 sm:gap-6">
                         {/* Data Jadwal */}
                         <Card>
                             <CardHeader className="p-4 sm:p-6">

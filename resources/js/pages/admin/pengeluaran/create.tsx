@@ -78,7 +78,7 @@ export default function CreateExpense({ expense, expenseCategories }: Props) {
                 </div>
 
                 <form onSubmit={handleSubmit}>
-                    <div className="grid gap-4 sm:gap-6 max-w-2xl">
+                    <div className="grid gap-4 sm:gap-6">
                         {/* Data Pengeluaran */}
                         <Card>
                             <CardHeader className="p-4 sm:p-6">

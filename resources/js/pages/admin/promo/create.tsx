@@ -74,7 +74,7 @@ export default function CreatePromo({ promo }: Props) {
                 </div>
 
                 <form onSubmit={handleSubmit}>
-                    <div className="grid gap-4 sm:gap-6 max-w-xl">
+                    <div className="grid gap-4 sm:gap-6">
                         {/* Data Promo */}
                         <Card>
                             <CardHeader className="p-4 sm:p-6">

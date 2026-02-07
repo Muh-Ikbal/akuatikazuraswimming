@@ -154,7 +154,7 @@ export default function CreateEnrolment({ enrolment, members, class_sessions = [
                 </div>
 
                 <form onSubmit={handleSubmit}>
-                    <div className="grid gap-4 sm:gap-6 max-w-2xl">
+                    <div className="grid gap-4 sm:gap-6 ">
                         {/* Data Enrolment */}
                         <Card>
                             <CardHeader className="p-4 sm:p-6">
