@@ -1,235 +1,96 @@
+
 import AppLayout from '@/layouts/app-layout';
-import { Head, usePage } from '@inertiajs/react';
+import { Head, usePage, Link } from '@inertiajs/react';
 import { type SharedData, type BreadcrumbItem } from '@/types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calendar, School, Users, MapPin, Clock, Book } from 'lucide-react';
-import { dashboard } from '@/routes';
-
-interface Schedule {
-    id: number;
-    date: string;
-    time: string;
-    location: string;
-    class_title: string;
-    course_title: string;
-}
-
-interface CourseEnrolment {
-    id: number;
-    course_title: string;
-    class_title: string;
-    meeting_count: number;
-    state: string;
-}
-
-interface DashboardProps {
-    stats: {
-        total_attendance: number;
-        total_courses: number;
-    };
-    upcomingSchedules: Schedule[];
-    historyCourses: CourseEnrolment[];
-    currentEnrolments: CourseEnrolment[];
-}
+import { Card, CardContent } from '@/components/ui/card';
+import { Calendar, Clock, QrCode, ArrowRight } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Dashboard',
-        href: dashboard().url,
+        href: '/dashboard',
     },
 ];
 
-export default function Dashboard({ stats, upcomingSchedules, historyCourses, currentEnrolments }: DashboardProps) {
+export default function Dashboard() {
     const { auth } = usePage<SharedData>().props;
+
+    const menuItems = [
+        {
+            title: 'Jadwal Saya',
+            description: 'Lihat jadwal latihan dan kelas Anda',
+            icon: Calendar,
+            href: '/jadwal-member',
+            color: 'text-blue-600',
+            bgColor: 'bg-blue-100 dark:bg-blue-900/30',
+        },
+        {
+            title: 'Riwayat Absensi',
+            description: 'Cek catatan kehadiran Anda',
+            icon: Clock,
+            href: '/riwayat-absensi',
+            color: 'text-green-600',
+            bgColor: 'bg-green-100 dark:bg-green-900/30',
+        },
+        {
+            title: 'QR Code',
+            description: 'Tunjukkan untuk absensi kelas',
+            icon: QrCode,
+            href: '/qr-code',
+            color: 'text-purple-600',
+            bgColor: 'bg-purple-100 dark:bg-purple-900/30',
+        },
+    ];
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
 
-            <div className="flex h-full flex-1 flex-col gap-6 p-6">
+            <div className="flex h-full flex-1 flex-col gap-8 p-6 lg:p-10 max-w-7xl mx-auto w-full">
                 {/* Welcome Section */}
-                <div>
-                    <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-                    <p className="text-muted-foreground">
-                        Selamat Datang, {auth.user.name}! Berikut ringkasan aktivitas renang Anda.
+                <div className="space-y-2">
+                    <h1 className="text-3xl font-bold tracking-tight text-foreground">
+                        Halo, {auth.user.name.split(' ')[0]}! 👋
+                    </h1>
+                    <p className="text-muted-foreground text-lg">
+                        Selamat datang kembali di Dashboard Anda.
                     </p>
                 </div>
 
-                {/* Stats Grid */}
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">
-                                Total Kehadiran
-                            </CardTitle>
-                            <Users className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{stats?.total_attendance || 0}</div>
-                            <p className="text-xs text-muted-foreground">
-                                Sesi latihan dihadiri
-                            </p>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">
-                                Kursus Diikuti
-                            </CardTitle>
-                            <School className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{stats?.total_courses || 0}</div>
-                            <p className="text-xs text-muted-foreground">
-                                Kelas aktif saat ini
-                            </p>
-                        </CardContent>
-                    </Card>
-                </div>
+                {/* Menu Grid */}
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {menuItems.map((item, index) => (
+                        <Link key={index} href={item.href}>
+                            <Card className="h-full hover:shadow-lg transition-all duration-300 border-2 hover:border-primary/20 group cursor-pointer relative overflow-hidden">
+                                <CardContent className="p-6 flex flex-col h-full gap-4">
+                                    <div className={`w-14 h-14 rounded-2xl ${item.bgColor} flex items-center justify-center transition-transform group-hover:scale-110 duration-300`}>
+                                        <item.icon className={`h-7 w-7 ${item.color}`} />
+                                    </div>
 
-                {/* Upcoming Schedules */}
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Jadwal Mendatang</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-4">
-                                {upcomingSchedules && upcomingSchedules.length > 0 ? (
-                                    upcomingSchedules.map((schedule) => (
-                                        <div
-                                            key={schedule.id}
-                                            className="flex items-center justify-between p-4 border rounded-lg bg-card text-card-foreground shadow-sm"
-                                        >
-                                            <div className="flex items-center space-x-4">
-                                                <div className="p-2 bg-primary/10 rounded-full">
-                                                    <Calendar className="h-4 w-4 text-primary" />
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm font-medium leading-none">
-                                                        {schedule.class_title}
-                                                    </p>
-                                                    <p className="text-sm text-muted-foreground mt-1">
-                                                        {schedule.course_title}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                                                <div className="flex items-center">
-                                                    <Clock className="mr-1 h-3 w-3" />
-                                                    {schedule.time}
-                                                </div>
-                                                <div className="flex items-center">
-                                                    <MapPin className="mr-1 h-3 w-3" />
-                                                    {schedule.location}
-                                                </div>
-                                                <div className="font-medium text-foreground">
-                                                    {schedule.date}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="text-center py-4 text-muted-foreground">
-                                        Tidak ada jadwal mendatang.
+                                    <div className="space-y-2 flex-1">
+                                        <h3 className="font-bold text-xl group-hover:text-primary transition-colors">
+                                            {item.title}
+                                        </h3>
+                                        <p className="text-muted-foreground text-sm leading-relaxed">
+                                            {item.description}
+                                        </p>
                                     </div>
-                                )}
-                            </div>
-                        </CardContent>
-                    </Card>
-                    {/* Current Enrolments */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Kursus Yang Diikuti Saat Ini</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-4">
-                                {currentEnrolments && currentEnrolments.length > 0 ? (
-                                    currentEnrolments.map((enrolment) => (
-                                        <div
-                                            key={enrolment.id}
-                                            className="flex items-center justify-between p-4 border rounded-lg bg-card text-card-foreground shadow-sm"
-                                        >
-                                            <div className="flex items-center space-x-4">
-                                                <div className="p-2 bg-green-500/10 rounded-full">
-                                                    <School className="h-4 w-4 text-green-600" />
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm font-medium leading-none">
-                                                        {enrolment.course_title}
-                                                    </p>
-                                                    <p className="text-sm text-muted-foreground mt-1">
-                                                        Kelas: {enrolment.class_title}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="text-sm font-medium text-green-600">
-                                                    Aktif
-                                                </p>
-                                                <p className="text-xs text-muted-foreground">
-                                                    {enrolment.meeting_count} pertemuan
-                                                </p>
-                                            </div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="text-center py-4 text-muted-foreground">
-                                        Tidak ada kursus yang sedang diikuti.
-                                    </div>
-                                )}
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
 
-                {/* History Courses */}
-                <div className="grid gap-4">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Riwayat Kursus Yang Pernah Diikuti</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-4">
-                                {historyCourses && historyCourses.length > 0 ? (
-                                    historyCourses.map((course) => (
-                                        <div
-                                            key={course.id}
-                                            className="flex items-center justify-between p-4 border rounded-lg bg-card text-card-foreground shadow-sm"
-                                        >
-                                            <div className="flex items-center space-x-4">
-                                                <div className="p-2 bg-primary/10 rounded-full">
-                                                    <Book className="h-4 w-4 text-primary" />
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm font-medium leading-none">
-                                                        {course.course_title}
-                                                    </p>
-                                                    <p className="text-sm text-muted-foreground mt-1">
-                                                        Kelas: {course.class_title}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="text-sm font-medium text-blue-600">
-                                                    Selesai
-                                                </p>
-                                                <p className="text-xs text-muted-foreground">
-                                                    {course.meeting_count} pertemuan
-                                                </p>
-                                            </div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="text-center py-4 text-muted-foreground">
-                                        Tidak ada riwayat kursus yang pernah diikuti.
+                                    <div className="flex items-center text-sm font-medium text-primary mt-2 group-hover:underline decoration-2 underline-offset-4">
+                                        Buka Menu
+                                        <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                                     </div>
-                                )}
-                            </div>
-                        </CardContent>
-                    </Card>
+
+                                    {/* Decorative background element */}
+                                    <div className="absolute -right-6 -bottom-6 opacity-[0.03] transform rotate-12 group-hover:opacity-[0.07] transition-opacity duration-300 pointer-events-none">
+                                        <item.icon className="w-32 h-32" />
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </Link>
+                    ))}
                 </div>
             </div>
-        </AppLayout >
+        </AppLayout>
     );
 }
