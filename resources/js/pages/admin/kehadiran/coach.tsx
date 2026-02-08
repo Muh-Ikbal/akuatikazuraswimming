@@ -46,6 +46,7 @@ interface Attendance {
     scan_time: string;
     date: string;
     state: string;
+    schedule_date: string;
 }
 
 interface Props {
@@ -397,6 +398,7 @@ export default function KehadiranPegawai({ attendances, stats, filters, employee
                                         <th className="text-left p-4 font-medium text-sm">Kelas</th>
                                         <th className="text-left p-4 font-medium text-sm">Status</th>
                                         <th className="text-left p-4 font-medium text-sm">Waktu Scan</th>
+                                        <th className="text-left p-4 font-medium text-sm">Jadwal</th>
                                         {isSuperAdmin && (
                                             <th className="text-center p-4 font-medium text-sm">Aksi</th>
                                         )}
@@ -430,6 +432,12 @@ export default function KehadiranPegawai({ attendances, stats, filters, employee
                                                     <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs font-medium">
                                                         <CalendarCheck className="w-3 h-3" />
                                                         {attendance.scan_time}
+                                                    </span>
+                                                </td>
+                                                <td className="p-4">
+                                                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium">
+                                                        <Calendar className="w-3 h-3" />
+                                                        {attendance.schedule_date}
                                                     </span>
                                                 </td>
                                                 <td className="p-4 text-center">

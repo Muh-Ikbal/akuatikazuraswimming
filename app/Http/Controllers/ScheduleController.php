@@ -7,6 +7,7 @@ use Inertia\Inertia;
 use App\Models\Schedule;
 use App\Models\ClassSession;
 use App\Models\Course;
+use App\Models\AttandanceEmployee;
 use App\Models\Coach;
 use Carbon\Carbon;
 
@@ -14,11 +15,35 @@ class ScheduleController extends Controller
 {
     public function index(){
         try {
-            Schedule::whereDate('date', '<=', today())
-                ->whereTime('end_time', '<=', now())
+            Schedule::where('status', '!=', 'completed')
+                ->where(function ($query) {
+                    $query->whereDate('date', '<', now()->toDateString())
+                        ->orWhere(function ($subQuery) {
+                            $subQuery->whereDate('date', now()->toDateString())
+                                     ->whereNotNull('end_time')
+                                     ->whereTime('end_time', '<=', now()->format('H:i:s'));
+                        });
+                })
                 ->update([
                     'status' => 'completed'
                 ]);
+            
+            // Check for missing schedules and create alpha attendance
+            $missingSchedules = Schedule::with('coach.user')
+                ->whereDoesntHave('attendanceEmployee')
+                ->where('status', 'completed')
+                ->get();
+
+            foreach ($missingSchedules as $schedule) {
+                if ($schedule->coach && $schedule->coach->user) {
+                    AttandanceEmployee::create([
+                        'user_id' => $schedule->coach->user->id,
+                        'schedule_id' => $schedule->id,
+                        'state' => 'alpha',
+                        'scan_time' => null,
+                    ]);
+                }
+            }
             $schedules = Schedule::with('class_session','coach')->orderBy('date', 'desc')->orderBy('time', 'desc')->paginate(10);
 
             $schedule_count = Schedule::count();

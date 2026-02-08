@@ -15,6 +15,23 @@ class AdminCoachAttendanceController extends Controller
     public function index(Request $request)
     {
         try {
+            // Check for missing schedules and create alpha attendance
+            $missingSchedules = Schedule::with('coach.user')
+                ->whereDoesntHave('attendanceEmployee')
+                ->where('status', 'completed')
+                ->get();
+
+            foreach ($missingSchedules as $schedule) {
+                if ($schedule->coach && $schedule->coach->user) {
+                    AttandanceEmployee::create([
+                        'user_id' => $schedule->coach->user->id,
+                        'schedule_id' => $schedule->id,
+                        'state' => 'alpha',
+                        'scan_time' => null,
+                    ]);
+                }
+            }
+
             $query = AttandanceEmployee::with([
                 'user.roles',
                 'schedule.class_session'
@@ -48,10 +65,10 @@ class AdminCoachAttendanceController extends Controller
     
             // Filter by date range
             if ($request->has('start_date') && $request->start_date) {
-                $query->whereDate('scan_time', '>=', $request->start_date);
+                $query->whereDate('created_at', '>=', $request->start_date);
             }
             if ($request->has('end_date') && $request->end_date) {
-                $query->whereDate('scan_time', '<=', $request->end_date);
+                $query->whereDate('created_at', '<=', $request->end_date);
             }
     
             // Search by user name
@@ -62,7 +79,7 @@ class AdminCoachAttendanceController extends Controller
                 });
             }
     
-            $attendances = $query->orderBy('scan_time', 'desc')->paginate(15);
+            $attendances = $query->orderBy('created_at', 'desc')->paginate(15);
     
             // Transform data for frontend
             $attendanceData = $attendances->through(function ($attendance) {
@@ -79,9 +96,10 @@ class AdminCoachAttendanceController extends Controller
                     'employee_name' => $attendance->user->name ?? '-',
                     'role' => $userRole,
                     'class_session' => $classSessionTitle,
-                    'scan_time' => Carbon::parse($attendance->scan_time)->format('d M Y H:i'),
-                    'date' => Carbon::parse($attendance->scan_time)->format('Y-m-d'),
+                    'scan_time' => $attendance->scan_time ? Carbon::parse($attendance->scan_time)->format('d M Y H:i') : '-',
+                    'date' => $attendance->scan_time ? Carbon::parse($attendance->scan_time)->format('Y-m-d') : ($attendance->schedule ? $attendance->schedule->date : '-'),
                     'state' => $attendance->state,
+                    'schedule_date' => $attendance->schedule ? $attendance->schedule->date : '-',
                 ];
             });
     
