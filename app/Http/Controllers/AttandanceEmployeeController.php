@@ -26,6 +26,21 @@ class AttandanceEmployeeController extends Controller
 
     public function verify(Request $request)
     {
+        $missingSchedules = Schedule::with('coach.user')
+                ->whereDoesntHave('attendanceEmployee')
+                ->where('status', 'completed')
+                ->get();
+
+            foreach ($missingSchedules as $schedule) {
+                if ($schedule->coach && $schedule->coach->user) {
+                    AttandanceEmployee::create([
+                        'user_id' => $schedule->coach->user->id,
+                        'schedule_id' => $schedule->id,
+                        'state' => 'alpha',
+                        'scan_time' => null,
+                    ]);
+                }
+            }
         $request->validate([
             'qr_code' => 'required|string',
         ]);
@@ -89,6 +104,7 @@ class AttandanceEmployeeController extends Controller
             $session = \App\Models\EmployeeAttendanceSession::where('start_time', '<=', $currentTime)
                 ->where('end_time', '>=', $currentTime)
                 ->first();
+            // dd($session);
 
             if (!$session) {
                 return back()->with('scan_result', [

@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\AttandanceEmployee;
+
 
 class EmployeeAttendanceSession extends Model
 {
@@ -16,4 +18,9 @@ class EmployeeAttendanceSession extends Model
         'late_threshold',
         'alpha_threshold',
     ];
+
+    public function attendanceEmployee()
+    {
+        return $this->hasMany(AttandanceEmployee::class);
+    }
 }

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
 use App\Models\Schedule;
+use App\Models\EmployeeAttendanceSession;
 
 class AttandanceEmployee extends Model
 {
@@ -12,6 +13,7 @@ class AttandanceEmployee extends Model
         'user_id',
         'scan_time',
         'schedule_id',
+        'employee_attendance_session_id',
         'state',
     ];
 
@@ -23,5 +25,10 @@ class AttandanceEmployee extends Model
     public function schedule()
     {
         return $this->belongsTo(Schedule::class);
+    }
+
+    public function employeeAttendanceSession()
+    {
+        return $this->belongsTo(EmployeeAttendanceSession::class);
     }
 }
