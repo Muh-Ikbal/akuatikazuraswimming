@@ -72,7 +72,14 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function ScheduleManagement(props: { schedules: any, schedule_count: number, schedule_on_going: number, schedule_completed: number }) {
+export default function ScheduleManagement(props: {
+    schedules: any,
+    schedule_count: number,
+    schedule_on_going: number,
+    schedule_completed: number,
+    coaches: any[],
+    filters: { date?: string, coach_id?: string, search?: string, status?: string }
+}) {
     const { flash } = usePage().props as any;
 
     // auto close alert
@@ -84,18 +91,49 @@ export default function ScheduleManagement(props: { schedules: any, schedule_cou
         }
     }, [flash]);
 
-    const [searchQuery, setSearchQuery] = useState("");
-    const [filterStatus, setFilterStatus] = useState<string>("all");
+    // Initialize state from props.filters
+    const [searchQuery, setSearchQuery] = useState(props.filters?.search || "");
+    const [filterStatus, setFilterStatus] = useState<string>(props.filters?.status || "all");
+    const [dateFilter, setDateFilter] = useState(props.filters?.date || "");
+    const [coachFilter, setCoachFilter] = useState(props.filters?.coach_id || "");
+
+    // Generic filter handler
+    const handleFilterChange = (key: string, value: string) => {
+        // Update local state immediately
+        if (key === 'date') setDateFilter(value);
+        if (key === 'coach_id') setCoachFilter(value);
+        if (key === 'status') setFilterStatus(value);
+        if (key === 'search') setSearchQuery(value);
+
+        // Prepare the payload for router.get
+        const payload = {
+            date: key === 'date' ? value : dateFilter,
+            coach_id: key === 'coach_id' ? value : coachFilter,
+            status: key === 'status' ? value : filterStatus,
+            search: key === 'search' ? value : searchQuery,
+        };
+
+        router.get('/management-jadwal', payload, {
+            preserveState: true,
+            replace: true,
+        });
+    };
+
+    // Debounce search
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            // Only trigger search if it's different from what's potentially in the URL (handled by props.filters.search)
+            if (searchQuery !== (props.filters?.search || "")) {
+                handleFilterChange('search', searchQuery);
+            }
+        }, 500);
+
+        return () => clearTimeout(timeoutId);
+    }, [searchQuery]);
 
     const schedules: Schedule[] = props.schedules.data;
 
-    const filteredSchedules = schedules.filter((s) => {
-        const matchesSearch =
-            s.class_session?.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            s.location.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesStatus = filterStatus === "all" || s.status === filterStatus;
-        return matchesSearch && matchesStatus;
-    });
+    const filteredSchedules = schedules;
 
     const handleDelete = (id: number) => {
         router.delete(`/management-jadwal/${id}`);
@@ -247,7 +285,25 @@ export default function ScheduleManagement(props: { schedules: any, schedule_cou
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                 />
                             </div>
-                            <div className="flex gap-2">
+                            <div className="flex flex-wrap gap-2">
+                                <Input
+                                    type="date"
+                                    className="w-auto"
+                                    value={dateFilter}
+                                    onChange={(e) => handleFilterChange('date', e.target.value)}
+                                />
+                                <select
+                                    className="px-4 py-2 border border-input rounded-md bg-background text-sm"
+                                    value={coachFilter}
+                                    onChange={(e) => handleFilterChange('coach_id', e.target.value)}
+                                >
+                                    <option value="">Semua Coach</option>
+                                    {props.coaches.map((coach: any) => (
+                                        <option key={coach.id} value={coach.id}>
+                                            {coach.name}
+                                        </option>
+                                    ))}
+                                </select>
                                 <select
                                     className="px-4 py-2 border border-input rounded-md bg-background text-sm"
                                     value={filterStatus}

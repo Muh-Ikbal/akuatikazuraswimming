@@ -15,23 +15,6 @@ class AdminCoachAttendanceController extends Controller
     public function index(Request $request)
     {
         try {
-            // Check for missing schedules and create alpha attendance
-            $missingSchedules = Schedule::with('coach.user')
-                ->whereDoesntHave('attendanceEmployee')
-                ->where('status', 'completed')
-                ->get();
-
-            foreach ($missingSchedules as $schedule) {
-                if ($schedule->coach && $schedule->coach->user) {
-                    AttandanceEmployee::create([
-                        'user_id' => $schedule->coach->user->id,
-                        'schedule_id' => $schedule->id,
-                        'state' => 'alpha',
-                        'scan_time' => null,
-                    ]);
-                }
-            }
-
             $query = AttandanceEmployee::with([
                 'user.roles',
                 'schedule.class_session'
