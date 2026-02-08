@@ -14,19 +14,7 @@ class AttandanceEmployeeController extends Controller
     public function index()
     {
         try {
-            $attendanceToday = AttandanceEmployee::whereDate('scan_time', today())->count();
-            
-            return Inertia::render('operator/scan-qr-employee', [
-                'attendanceToday' => $attendanceToday,
-            ]);
-        } catch (\Throwable $th) {
-            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
-        }
-    }
-
-    public function verify(Request $request)
-    {
-        $missingSchedules = Schedule::with('coach.user')
+            $missingSchedules = Schedule::with('coach.user')
                 ->whereDoesntHave('attendanceEmployee')
                 ->where('status', 'completed')
                 ->get();
@@ -41,6 +29,19 @@ class AttandanceEmployeeController extends Controller
                     ]);
                 }
             }
+            $attendanceToday = AttandanceEmployee::whereDate('scan_time', today())->count();
+            
+            return Inertia::render('operator/scan-qr-employee', [
+                'attendanceToday' => $attendanceToday,
+            ]);
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
+    }
+
+    public function verify(Request $request)
+    {
+        
         $request->validate([
             'qr_code' => 'required|string',
         ]);

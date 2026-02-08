@@ -28,6 +28,21 @@ class ScheduleController extends Controller
                     'status' => 'completed'
                 ]);
             
+            $missingSchedules = Schedule::with('coach.user')
+                ->whereDoesntHave('attendanceEmployee')
+                ->where('status', 'completed')
+                ->get();
+
+            foreach ($missingSchedules as $schedule) {
+                if ($schedule->coach && $schedule->coach->user) {
+                    AttandanceEmployee::create([
+                        'user_id' => $schedule->coach->user->id,
+                        'schedule_id' => $schedule->id,
+                        'state' => 'alpha',
+                        'scan_time' => null,
+                    ]);
+                }
+            }
             $query = Schedule::with('class_session','coach')->orderBy('date', 'desc')->orderBy('time', 'desc');
 
             if ($request->has('search') && $request->search != null) {
