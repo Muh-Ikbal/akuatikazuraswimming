@@ -42,6 +42,7 @@ interface Attendance {
     id: number;
     employee_name: string;
     user_id: number;
+    schedule_id: number | null;
     role: string;
     class_session: string;
     scan_time: string;
@@ -70,7 +71,7 @@ interface Props {
         end_date: string;
     };
     employees: { id: number; name: string; role: string }[];
-    schedules: { id: number; title: string; coach_id: number }[];
+    schedules: { id: number; title: string; coach_id: number; coach_user_id: number | null }[];
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -133,7 +134,7 @@ export default function KehadiranPegawai({ attendances, stats, filters, employee
         editForm.setData({
             scan_time: formattedTime,
             state: attendance.state,
-            schedule_id: '', // Reset schedule selection or logic as required
+            schedule_id: attendance.schedule_id ? attendance.schedule_id.toString() : '',
         });
         setIsEditOpen(true);
     };
@@ -533,7 +534,7 @@ export default function KehadiranPegawai({ attendances, stats, filters, employee
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {schedules
-                                                    .filter(sch => !selectedAttendance || sch.coach_id === selectedAttendance.user_id)
+                                                    .filter(sch => !selectedAttendance || sch.coach_user_id === selectedAttendance.user_id)
                                                     .map((sch) => (
                                                         <SelectItem key={sch.id} value={sch.id.toString()}>
                                                             {sch.title}

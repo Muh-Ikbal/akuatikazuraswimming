@@ -141,12 +141,15 @@ class AttandanceEmployeeController extends Controller
                 $scheduleToday = Schedule::where('coach_id', $coach->id)
                     ->whereDate('date', today())
                     ->whereTime('end_time', '>=', now())
+                    ->whereTime('time', '>=', $session->start_time)
+                    ->whereTime('time', '<=', $session->end_time)
+                    ->orderBy('time', 'asc')
                     ->first();
 
                 if (!$scheduleToday) {
                     return back()->with('scan_result', [
                         'success' => false,
-                        'message' => 'Anda tidak memiliki jadwal mengajar saat ini',
+                        'message' => 'Anda tidak memiliki jadwal mengajar pada sesi absensi ini (' . $session->start_time . ' - ' . $session->end_time . ')',
                         'employee' => $user->name,
                         'attendanceToday' => $attendanceToday,
                     ]);

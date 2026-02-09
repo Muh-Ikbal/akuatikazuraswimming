@@ -34,15 +34,17 @@ class AdminCoachAttendanceController extends Controller
             });
 
             // Get schedules for dropdown
-            $schedules = Schedule::with('class_session')
+            // Get schedules for dropdown
+            $schedules = Schedule::with(['class_session', 'coach'])
                 ->whereDate('date', '>=', now()->subMonths(1)) // limit to recent schedules
                 ->orderBy('date', 'desc')
                 ->get()
                 ->map(function($schedule){
                     return [
                         'id' => $schedule->id,
-                        'title' => $schedule->class_session->title . ' - ' . Carbon::parse($schedule->date)->format('d M Y') . ' ' . $schedule->time,
-                        'coach_id' => $schedule->coach_id
+                        'title' => ($schedule->class_session ? $schedule->class_session->title : 'Unknown Class') . ' - ' . Carbon::parse($schedule->date)->format('d M Y') . ' ' . $schedule->time,
+                        'coach_id' => $schedule->coach_id,
+                        'coach_user_id' => $schedule->coach ? $schedule->coach->user_id : null,
                     ];
                 });
     
@@ -77,6 +79,7 @@ class AdminCoachAttendanceController extends Controller
                 return [
                     'id' => $attendance->id,
                     'user_id' => $attendance->user_id,
+                    'schedule_id' => $attendance->schedule_id,
                     'employee_name' => $attendance->user->name ?? '-',
                     'role' => $userRole,
                     'class_session' => $classSessionTitle,
