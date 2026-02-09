@@ -41,9 +41,11 @@ import { format } from 'date-fns';
 interface Attendance {
     id: number;
     employee_name: string;
+    user_id: number;
     role: string;
     class_session: string;
     scan_time: string;
+    scan_time_raw: string | null;
     date: string;
     state: string;
     schedule_date: string;
@@ -117,17 +119,21 @@ export default function KehadiranPegawai({ attendances, stats, filters, employee
 
     const handleEditClick = (attendance: Attendance) => {
         setSelectedAttendance(attendance);
-        // Find schedule ID if possible (need to match based on class_session or pass schedule_id in attendance object)
-        // Since attendance object in props doesn't have schedule_id, we might need it.
-        // But let's assume for edit we just edit time and state for now, or match schedule title.
-        // Actually, the backend index transformer doesn't pass schedule_id. 
-        // Let's assume for now we only edit Time and State, or if we really need Schedule, we should have passed it.
-        // The prompt asked for "edit", so editing Time and Status is the critical part.
+
+        // Use scan_time_raw for editing to avoid format errors with localized/formatted strings
+        let formattedTime = '';
+        if (attendance.scan_time_raw) {
+            try {
+                formattedTime = format(new Date(attendance.scan_time_raw), "yyyy-MM-dd'T'HH:mm");
+            } catch (e) {
+                console.error("Invalid time value for edit:", attendance.scan_time_raw);
+            }
+        }
 
         editForm.setData({
-            scan_time: format(new Date(attendance.scan_time), "yyyy-MM-dd'T'HH:mm"),
+            scan_time: formattedTime,
             state: attendance.state,
-            schedule_id: '', // Determining schedule_id from frontend text is hard. Let's keep it simple or allow re-selecting.
+            schedule_id: '', // Reset schedule selection or logic as required
         });
         setIsEditOpen(true);
     };
@@ -526,11 +532,13 @@ export default function KehadiranPegawai({ attendances, stats, filters, employee
                                                 <SelectValue placeholder="Ganti Jadwal (Opsional)" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {schedules.map((sch) => (
-                                                    <SelectItem key={sch.id} value={sch.id.toString()}>
-                                                        {sch.title}
-                                                    </SelectItem>
-                                                ))}
+                                                {schedules
+                                                    .filter(sch => !selectedAttendance || sch.coach_id === selectedAttendance.user_id)
+                                                    .map((sch) => (
+                                                        <SelectItem key={sch.id} value={sch.id.toString()}>
+                                                            {sch.title}
+                                                        </SelectItem>
+                                                    ))}
                                             </SelectContent>
                                         </Select>
                                         {editForm.errors.schedule_id && <span className="text-destructive text-sm">{editForm.errors.schedule_id}</span>}

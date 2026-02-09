@@ -76,10 +76,13 @@ class AdminCoachAttendanceController extends Controller
     
                 return [
                     'id' => $attendance->id,
+                    'user_id' => $attendance->user_id,
                     'employee_name' => $attendance->user->name ?? '-',
                     'role' => $userRole,
                     'class_session' => $classSessionTitle,
+                    'classification_id' => $attendance->id, // Add this just in case needed, but mostly we need scan_time_raw
                     'scan_time' => $attendance->scan_time ? Carbon::parse($attendance->scan_time)->format('d M Y H:i') : '-',
+                    'scan_time_raw' => $attendance->scan_time,
                     'date' => $attendance->scan_time ? Carbon::parse($attendance->scan_time)->format('Y-m-d') : ($attendance->schedule ? $attendance->schedule->date : '-'),
                     'state' => $attendance->state,
                     'schedule_date' => $attendance->schedule ? $attendance->schedule->date : '-',
