@@ -23,9 +23,12 @@ import {
     Instagram,
     History,
     Image as ImageIcon,
+    ArrowUp,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { useState, useEffect } from 'react';
 
 const FadeInUp = ({ children, delay = 0, className = "" }: { children: React.ReactNode, delay?: number, className?: string }) => (
     <motion.div
@@ -65,6 +68,10 @@ interface Course {
 interface Coach {
     id: number;
     name: string;
+    phone_number: string;
+    birth_date: string;
+    address: string;
+    birthplace: string;
     image: string | null;
     gender: string;
     certificate_coaches: Certificate[];
@@ -136,15 +143,38 @@ const formatPrice = (price: number) => {
 };
 
 export default function Welcome({
-    canRegister = true,
+    canRegister,
     settings,
-    features,
+    features = [],
     courses = [],
     coaches = [],
     galleries = [],
-    stats,
+    stats
 }: WelcomeProps) {
-    const { auth } = usePage<SharedData>().props;
+    const { props } = usePage<SharedData>();
+    const [selectedCoach, setSelectedCoach] = useState<Coach | null>(null);
+    const [selectedGalleryImage, setSelectedGalleryImage] = useState<Gallery | null>(null);
+    const [showBackToTop, setShowBackToTop] = useState(false);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            if (window.scrollY > 300) {
+                setShowBackToTop(true);
+            } else {
+                setShowBackToTop(false);
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    const scrollToTop = () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth',
+        });
+    };
 
     // Default values if settings are not set
     const heroTitle = settings?.hero_title || 'Belajar Berenang dengan Menyenangkan';
@@ -234,7 +264,7 @@ export default function Welcome({
 
                             {/* Auth Buttons */}
                             <div className="flex items-center gap-3">
-                                {auth.user ? (
+                                {props.auth.user ? (
                                     <Link href={dashboard().url}>
                                         <Button className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/25 transition-all duration-300">
                                             Dashboard
@@ -536,39 +566,37 @@ export default function Welcome({
                                 <>
                                     {/* Mobile: Horizontal Scroll Carousel */}
                                     <div className="md:hidden">
-                                        <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth px-4 pb-4 -mx-0 scrollbar-hide items-start" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                                            {Array.from({ length: Math.ceil(courses.length / 2) }).map((_, colIndex) => (
-                                                <div key={colIndex} className="flex-shrink-0 w-[85%] snap-center flex flex-col gap-4">
-                                                    {courses.slice(colIndex * 2, colIndex * 2 + 2).map((course) => (
-                                                        <div
-                                                            key={course.id}
-                                                            className="group bg-white rounded-3xl p-5 transition-all duration-300 shadow-xl shadow-blue-900/10 h-full flex flex-col"
-                                                        >
-                                                            {course.image ? (
-                                                                <img
-                                                                    src={`/storage/${course.image}`}
-                                                                    alt={course.title}
-                                                                    className="w-full h-36 object-cover rounded-2xl mb-4 shadow-lg flex-shrink-0"
-                                                                    loading="lazy"
-                                                                />
-                                                            ) : (
-                                                                <div className="w-full h-36 rounded-2xl mb-4 bg-blue-50 flex items-center justify-center border border-blue-200 flex-shrink-0">
-                                                                    <Waves className="w-12 h-12 text-blue-400" />
-                                                                </div>
-                                                            )}
-                                                            <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium mb-2 w-fit flex-shrink-0">
-                                                                <Calendar className="w-3 h-3" />
-                                                                <span>{course.total_meeting} pertemuan</span>
+                                        <div className="grid grid-rows-[auto_auto] grid-flow-col gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth px-4 pb-4 -mx-0 scrollbar-hide auto-cols-[70%]" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                                            {courses.map((course) => (
+                                                <div
+                                                    key={course.id}
+                                                    className="snap-center h-full"
+                                                >
+                                                    <div className="group bg-white rounded-3xl p-4 transition-all duration-300 shadow-xl shadow-blue-900/10 h-full flex flex-col">
+                                                        {course.image ? (
+                                                            <img
+                                                                src={`/storage/${course.image}`}
+                                                                alt={course.title}
+                                                                className="w-full h-28 object-cover rounded-2xl mb-2 shadow-lg flex-shrink-0"
+                                                                loading="lazy"
+                                                            />
+                                                        ) : (
+                                                            <div className="w-full h-28 rounded-2xl mb-2 bg-blue-50 flex items-center justify-center border border-blue-200 flex-shrink-0">
+                                                                <Waves className="w-12 h-12 text-blue-400" />
                                                             </div>
-                                                            <h3 className="text-lg font-bold text-slate-800 mb-1.5 flex-shrink-0">{course.title}</h3>
-
-                                                            <p className="text-slate-600 mb-4 line-clamp-2 leading-relaxed text-sm flex-grow">{course.description}</p>
-                                                            <div className="mt-auto flex-shrink-0 pt-2">
-                                                                <div className="text-xs text-slate-500">Mulai dari</div>
-                                                                <div className="text-xl font-bold text-blue-600">{formatPrice(course.price)}</div>
-                                                            </div>
+                                                        )}
+                                                        <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-100 text-blue-700 text-[10px] font-medium mb-1.5 w-fit flex-shrink-0">
+                                                            <Calendar className="w-3 h-3" />
+                                                            <span>{course.total_meeting} pertemuan</span>
                                                         </div>
-                                                    ))}
+                                                        <h3 className="text-base font-bold text-slate-800 mb-1 flex-shrink-0">{course.title}</h3>
+
+                                                        <p className="text-slate-600 mb-2 line-clamp-2 leading-relaxed text-xs flex-grow">{course.description}</p>
+                                                        <div className="mt-auto flex-shrink-0 pt-1">
+                                                            <div className="text-[10px] text-slate-500">Mulai dari</div>
+                                                            <div className="text-lg font-bold text-blue-600">{formatPrice(course.price)}</div>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             ))}
                                         </div>
@@ -589,8 +617,9 @@ export default function Welcome({
                                                     {courses.slice(colIndex * 2, colIndex * 2 + 2).map((course) => (
                                                         <div
                                                             key={course.id}
-                                                            className="group bg-white rounded-3xl p-6 transition-all duration-300 hover:-translate-y-1 shadow-xl shadow-blue-900/10 hover:shadow-2xl hover:shadow-blue-900/20 h-[380px] flex flex-col"
+                                                            className="group bg-white rounded-3xl p-8 transition-all duration-300 hover:-translate-y-2 shadow-xl shadow-blue-900/5 hover:shadow-2xl hover:shadow-blue-900/15 h-[420px] flex flex-col border border-slate-50 relative overflow-hidden"
                                                         >
+                                                            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-[100px] -z-10 group-hover:bg-blue-100 transition-colors duration-500"></div>
                                                             {course.image ? (
                                                                 <img
                                                                     src={`/storage/${course.image}`}
@@ -666,9 +695,10 @@ export default function Welcome({
                                                     {coaches.slice(colIndex * 2, colIndex * 2 + 2).map((coach) => (
                                                         <div
                                                             key={coach.id}
-                                                            className="group bg-white rounded-2xl border border-blue-100 overflow-hidden shadow-lg shadow-blue-50 h-full flex flex-col"
+                                                            className="group bg-white rounded-2xl border border-blue-100 overflow-hidden shadow-lg shadow-blue-50 h-full flex flex-col cursor-pointer hover:ring-2 hover:ring-blue-400 transition-all"
+                                                            onClick={() => setSelectedCoach(coach)}
                                                         >
-                                                            <div className="aspect-[4/5] bg-blue-50 flex items-center justify-center overflow-hidden flex-shrink-0">
+                                                            <div className="aspect-[4/5] bg-blue-50 flex items-center justify-center overflow-hidden flex-shrink-0 relative">
                                                                 {coach.image ? (
                                                                     <img
                                                                         src={`/storage/${coach.image}`}
@@ -685,19 +715,15 @@ export default function Welcome({
                                                                             }`} />
                                                                     </div>
                                                                 )}
+                                                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                                                    <span className="bg-white/90 text-blue-600 px-3 py-1 rounded-full text-xs font-bold backdrop-blur-sm transform scale-0 group-hover:scale-100 transition-transform">
+                                                                        Lihat Profil
+                                                                    </span>
+                                                                </div>
                                                             </div>
-                                                            <div className="p-3 text-center flex-grow">
+                                                            <div className="p-3 text-center flex-grow flex flex-col justify-center">
                                                                 <h3 className="font-semibold text-slate-800 mb-0.5 text-sm truncate">{coach.name}</h3>
                                                                 <p className="text-xs text-blue-600 font-medium">Coach</p>
-                                                                {coach.certificate_coaches && coach.certificate_coaches.length > 0 && (
-                                                                    <div className="flex flex-wrap items-center justify-center gap-1 mt-2">
-                                                                        {coach.certificate_coaches.slice(0, 2).map((cert, idx) => (
-                                                                            <Badge key={idx} variant="secondary" className="text-[8px] px-1.5 py-0.5 bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-100">
-                                                                                {cert.title}
-                                                                            </Badge>
-                                                                        ))}
-                                                                    </div>
-                                                                )}
                                                             </div>
                                                         </div>
                                                     ))}
@@ -719,8 +745,12 @@ export default function Welcome({
                                             {Array.from({ length: Math.ceil(coaches.length / 2) }).map((_, colIndex) => (
                                                 <div key={colIndex} className="flex-shrink-0 w-[220px] lg:w-[260px] snap-start flex flex-col gap-5">
                                                     {coaches.slice(colIndex * 2, colIndex * 2 + 2).map((coach) => (
-                                                        <div key={coach.id} className="group bg-white rounded-2xl border border-blue-100 overflow-hidden hover:border-blue-200 transition-all duration-300 hover:-translate-y-1 shadow-lg shadow-blue-50 card-hover">
-                                                            <div className="aspect-[4/3] bg-blue-50 flex items-center justify-center overflow-hidden">
+                                                        <div
+                                                            key={coach.id}
+                                                            className="group bg-white rounded-2xl border border-blue-100 overflow-hidden hover:border-blue-200 transition-all duration-300 hover:-translate-y-1 shadow-lg shadow-blue-50 card-hover h-[280px] flex flex-col cursor-pointer"
+                                                            onClick={() => setSelectedCoach(coach)}
+                                                        >
+                                                            <div className="aspect-[4/3] bg-blue-50 flex items-center justify-center overflow-hidden relative">
                                                                 {coach.image ? (
                                                                     <img
                                                                         src={`/storage/${coach.image}`}
@@ -737,19 +767,15 @@ export default function Welcome({
                                                                             }`} />
                                                                     </div>
                                                                 )}
+                                                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 z-10">
+                                                                    <span className="bg-white text-blue-600 px-4 py-1.5 rounded-full text-sm font-bold shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                                                                        Lihat Profil
+                                                                    </span>
+                                                                </div>
                                                             </div>
-                                                            <div className="p-4 text-center">
-                                                                <h3 className="font-semibold text-slate-800 mb-1 group-hover:text-blue-600 transition-colors text-sm">{coach.name}</h3>
-                                                                <p className="text-xs text-blue-600 font-medium">Coach</p>
-                                                                {coach.certificate_coaches && coach.certificate_coaches.length > 0 && (
-                                                                    <div className="flex flex-wrap items-center justify-center gap-1 mt-2">
-                                                                        {coach.certificate_coaches.slice(0, 2).map((cert, idx) => (
-                                                                            <Badge key={idx} variant="secondary" className="text-[9px] px-1.5 py-0.5 bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-100">
-                                                                                {cert.title}
-                                                                            </Badge>
-                                                                        ))}
-                                                                    </div>
-                                                                )}
+                                                            <div className="p-4 text-center flex flex-col justify-center flex-grow bg-white relative z-20">
+                                                                <h3 className="font-semibold text-slate-800 mb-1 group-hover:text-blue-600 transition-colors text-base">{coach.name}</h3>
+                                                                <p className="text-sm text-blue-600 font-medium">Coach</p>
                                                             </div>
                                                         </div>
                                                     ))}
@@ -788,21 +814,26 @@ export default function Welcome({
                         {galleries.length > 0 ? (
                             <div className="columns-2 md:columns-3 lg:columns-4 gap-0 space-y-0">
                                 {galleries.map((gallery) => (
-                                    <div key={gallery.id} className="break-inside-avoid group relative overflow-hidden">
+                                    <div
+                                        key={gallery.id}
+                                        className="break-inside-avoid group relative overflow-hidden cursor-pointer"
+                                        onClick={() => setSelectedGalleryImage(gallery)}
+                                    >
                                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 flex items-center justify-center">
                                             <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                                                <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white">
-                                                    <ImageIcon className="w-5 h-5" />
+                                                <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/30 transition-colors">
+                                                    <ImageIcon className="w-6 h-6" />
                                                 </div>
                                             </div>
                                         </div>
                                         <img
                                             src={`/storage/${gallery.image}`}
                                             alt={gallery.title || 'Gallery Image'}
-                                            className="w-full h-auto object-cover transform group-hover:scale-110 transition-transform duration-500 block"
+                                            className="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-700 block"
+                                            loading="lazy"
                                         />
                                         {gallery.title && (
-                                            <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent z-20">
+                                            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                                 <p className="text-white font-medium text-sm truncate">{gallery.title}</p>
                                             </div>
                                         )}
@@ -932,17 +963,165 @@ export default function Welcome({
                             </div>
                         </div>
 
-                        <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-                            <p className="text-slate-500 text-sm">
-                                © {new Date().getFullYear()} Akuatik Azura. All rights reserved.
+                        <div className="border-t border-slate-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-6">
+                            <p className="text-slate-400 text-sm text-center md:text-left">
+                                © {new Date().getFullYear()} Akuatik Azura Swimming. All rights reserved.
                             </p>
-                            <div className="flex gap-6 text-sm text-slate-500">
-                                <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-                                <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
+                            <div className="flex items-center gap-6">
+                                <a href="#" className="text-slate-400 hover:text-white text-sm transition-colors duration-300">Privacy Policy</a>
+                                <a href="#" className="text-slate-400 hover:text-white text-sm transition-colors duration-300">Terms of Service</a>
+                                <a href="#" className="text-slate-400 hover:text-white text-sm transition-colors duration-300">Cookie Policy</a>
                             </div>
                         </div>
                     </div>
                 </footer>
+
+                {/* Coach Profile Modal - Moved to root level */}
+                <Dialog open={!!selectedCoach} onOpenChange={(open) => !open && setSelectedCoach(null)}>
+                    <DialogContent className="sm:max-w-2xl lg:max-w-4xl bg-white p-0 overflow-hidden gap-0 border-none shadow-2xl transition-all duration-300">
+                        <DialogHeader className="p-6 pb-2 bg-slate-50 border-b border-slate-100 flex-shrink-0">
+                            <DialogTitle className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                                {selectedCoach?.name}
+                                {selectedCoach?.gender === 'female' ? (
+                                    <Badge className="bg-pink-100 text-pink-700 hover:bg-pink-100 border-none">Female</Badge>
+                                ) : (
+                                    <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-none">Male</Badge>
+                                )}
+                            </DialogTitle>
+                            <DialogDescription className="text-blue-600 font-medium text-base">
+                                Professional Swimming Coach
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <div className="grid md:grid-cols-[240px_1fr] lg:grid-cols-[280px_1fr] h-[500px] md:h-auto overflow-y-auto md:overflow-visible">
+                            {/* Left Side: Image */}
+                            <div className="bg-slate-50 p-6 flex flex-col items-center border-r border-slate-100">
+                                <div className="w-40 h-40 lg:w-48 lg:h-48 rounded-full border-4 border-white shadow-lg overflow-hidden mb-4 shrink-0">
+                                    {selectedCoach?.image ? (
+                                        <img
+                                            src={`/storage/${selectedCoach.image}`}
+                                            alt={selectedCoach.name}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className={`w-full h-full flex items-center justify-center ${selectedCoach?.gender === 'male' ? 'bg-blue-100' : 'bg-pink-100'}`}>
+                                            <User className={`w-16 h-16 ${selectedCoach?.gender === 'male' ? 'text-blue-500' : 'text-pink-500'}`} />
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="w-full space-y-3">
+                                    <div className="flex items-center gap-3 text-sm text-slate-600 bg-white p-2.5 rounded-lg shadow-sm border border-slate-100">
+                                        <Phone className="w-4 h-4 text-blue-500 shrink-0" />
+                                        <span className="truncate">{selectedCoach?.phone_number || '-'}</span>
+                                    </div>
+                                    <div className="flex items-center gap-3 text-sm text-slate-600 bg-white p-2.5 rounded-lg shadow-sm border border-slate-100">
+                                        <Calendar className="w-4 h-4 text-blue-500 shrink-0" />
+                                        <div className="flex flex-col text-xs">
+                                            <span className="font-medium text-slate-900">Tempat, Tanggal Lahir</span>
+                                            <span>{selectedCoach?.birthplace || '-'}, {selectedCoach?.birth_date || '-'}</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-3 text-sm text-slate-600 bg-white p-2.5 rounded-lg shadow-sm border border-slate-100">
+                                        <MapPin className="w-4 h-4 text-blue-500 shrink-0" />
+                                        <span className="truncate">{selectedCoach?.address || '-'}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Right Side: Details & Certs */}
+                            <div className="p-6 lg:p-8 flex flex-col h-full relative">
+                                <h4 className="font-semibold text-slate-900 mb-6 flex items-center gap-3 text-xl border-b border-slate-100 pb-4">
+                                    <Award className="w-6 h-6 text-blue-600" />
+                                    <span>Sertifikasi & Keahlian</span>
+                                </h4>
+
+                                <div className="flex-grow overflow-y-auto pr-2 custom-scrollbar -mr-2 mb-4">
+                                    {selectedCoach?.certificate_coaches && selectedCoach.certificate_coaches.length > 0 ? (
+                                        <div className="grid grid-cols-1 gap-4">
+                                            {selectedCoach.certificate_coaches.map((cert) => (
+                                                <div key={cert.id} className="group bg-white rounded-xl p-4 border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all duration-300 flex gap-4 items-start">
+                                                    {cert.image ? (
+                                                        <div className="w-16 h-16 rounded-lg bg-slate-50 border border-slate-100 overflow-hidden flex-shrink-0 relative group-hover:scale-105 transition-transform duration-300">
+                                                            <img src={`/storage/${cert.image}`} alt={cert.title} className="w-full h-full object-cover" />
+                                                        </div>
+                                                    ) : (
+                                                        <div className="w-16 h-16 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-100 transition-colors">
+                                                            <Award className="w-8 h-8 text-blue-500" />
+                                                        </div>
+                                                    )}
+                                                    <div className="flex-1 min-w-0">
+                                                        <h5 className="font-bold text-slate-800 text-sm mb-1 group-hover:text-blue-700 transition-colors line-clamp-1">{cert.title}</h5>
+                                                        <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">{cert.description}</p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="h-full flex flex-col items-center justify-center text-center py-12 text-slate-400 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200">
+                                            <Award className="w-12 h-12 text-slate-300 mb-2" />
+                                            <p className="text-sm font-medium">Belum ada data sertifikasi</p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="mt-auto pt-4 border-t border-slate-100 flex justify-end">
+                                    <Button onClick={() => setSelectedCoach(null)} className="bg-slate-900 hover:bg-slate-800 text-white px-6">
+                                        Tutup
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                    </DialogContent>
+                </Dialog>
+
+                {/* Gallery Lightbox Modal */}
+                <Dialog open={!!selectedGalleryImage} onOpenChange={(open) => !open && setSelectedGalleryImage(null)}>
+                    <DialogContent className="max-w-[95vw] max-h-[95vh] w-auto h-auto bg-transparent border-none shadow-none p-0 flex flex-col items-center justify-center outline-none">
+                        <div className="relative flex flex-col items-center justify-center">
+                            {selectedGalleryImage && (
+                                <img
+                                    src={`/storage/${selectedGalleryImage.image}`}
+                                    alt={selectedGalleryImage.title || 'Gallery Image'}
+                                    className="max-w-[90vw] max-h-[85vh] object-contain rounded-md shadow-2xl"
+                                />
+                            )}
+
+                            {/* Mobile Close Button (Overlay) */}
+                            <button
+                                onClick={() => setSelectedGalleryImage(null)}
+                                className="absolute top-4 right-4 p-2 rounded-full bg-black/50 text-white/70 hover:text-white hover:bg-black/80 transition-all backdrop-blur-sm z-50 ring-1 ring-white/10 md:hidden"
+                            >
+                                <span className="sr-only">Close</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+                            </button>
+
+                            {/* Desktop Close Button (Outside) */}
+                            <button
+                                onClick={() => setSelectedGalleryImage(null)}
+                                className="hidden md:flex absolute -top-10 -right-10 p-2 text-white/70 hover:text-white transition-colors z-50"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+                            </button>
+                        </div>
+
+                        {selectedGalleryImage?.title && (
+                            <div className="mt-4 p-3 bg-black/60 backdrop-blur-md rounded-lg text-center max-w-[90vw]">
+                                <p className="text-white font-medium text-lg tracking-wide">{selectedGalleryImage.title}</p>
+                            </div>
+                        )}
+                    </DialogContent>
+                </Dialog>
+
+                {/* Back to Top Button */}
+                <button
+                    onClick={scrollToTop}
+                    className={`fixed bottom-6 right-6 p-4 rounded-full bg-blue-600 text-white shadow-lg transition-all duration-300 z-50 hover:bg-blue-700 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${showBackToTop ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'
+                        }`}
+                    aria-label="Back to Top"
+                >
+                    <ArrowUp className="w-6 h-6" />
+                </button>
             </div>
         </>
     );
