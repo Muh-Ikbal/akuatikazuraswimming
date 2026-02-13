@@ -536,43 +536,45 @@ export default function Welcome({
                                 <>
                                     {/* Mobile: Horizontal Scroll Carousel */}
                                     <div className="md:hidden">
-                                        <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth px-4 pb-4 -mx-0 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                                            {courses.map((course) => (
-                                                <div
-                                                    key={course.id}
-                                                    className="flex-shrink-0 w-[85%] snap-center"
-                                                >
-                                                    <div className="group bg-white rounded-3xl p-5 transition-all duration-300 shadow-xl shadow-blue-900/10 h-full">
-                                                        {course.image ? (
-                                                            <img
-                                                                src={`/storage/${course.image}`}
-                                                                alt={course.title}
-                                                                className="w-full h-36 object-cover rounded-2xl mb-4 shadow-lg"
-                                                                loading="lazy"
-                                                            />
-                                                        ) : (
-                                                            <div className="w-full h-36 rounded-2xl mb-4 bg-blue-50 flex items-center justify-center border border-blue-200">
-                                                                <Waves className="w-12 h-12 text-blue-400" />
+                                        <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth px-4 pb-4 -mx-0 scrollbar-hide items-start" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                                            {Array.from({ length: Math.ceil(courses.length / 2) }).map((_, colIndex) => (
+                                                <div key={colIndex} className="flex-shrink-0 w-[85%] snap-center flex flex-col gap-4">
+                                                    {courses.slice(colIndex * 2, colIndex * 2 + 2).map((course) => (
+                                                        <div
+                                                            key={course.id}
+                                                            className="group bg-white rounded-3xl p-5 transition-all duration-300 shadow-xl shadow-blue-900/10 h-full flex flex-col"
+                                                        >
+                                                            {course.image ? (
+                                                                <img
+                                                                    src={`/storage/${course.image}`}
+                                                                    alt={course.title}
+                                                                    className="w-full h-36 object-cover rounded-2xl mb-4 shadow-lg flex-shrink-0"
+                                                                    loading="lazy"
+                                                                />
+                                                            ) : (
+                                                                <div className="w-full h-36 rounded-2xl mb-4 bg-blue-50 flex items-center justify-center border border-blue-200 flex-shrink-0">
+                                                                    <Waves className="w-12 h-12 text-blue-400" />
+                                                                </div>
+                                                            )}
+                                                            <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium mb-2 w-fit flex-shrink-0">
+                                                                <Calendar className="w-3 h-3" />
+                                                                <span>{course.total_meeting} pertemuan</span>
                                                             </div>
-                                                        )}
-                                                        <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium mb-2">
-                                                            <Calendar className="w-3 h-3" />
-                                                            <span>{course.total_meeting} pertemuan</span>
-                                                        </div>
-                                                        <h3 className="text-lg font-bold text-slate-800 mb-1.5">{course.title}</h3>
+                                                            <h3 className="text-lg font-bold text-slate-800 mb-1.5 flex-shrink-0">{course.title}</h3>
 
-                                                        <p className="text-slate-600 mb-4 line-clamp-2 leading-relaxed text-sm">{course.description}</p>
-                                                        <div>
-                                                            <div className="text-xs text-slate-500">Mulai dari</div>
-                                                            <div className="text-xl font-bold text-blue-600">{formatPrice(course.price)}</div>
+                                                            <p className="text-slate-600 mb-4 line-clamp-2 leading-relaxed text-sm flex-grow">{course.description}</p>
+                                                            <div className="mt-auto flex-shrink-0 pt-2">
+                                                                <div className="text-xs text-slate-500">Mulai dari</div>
+                                                                <div className="text-xl font-bold text-blue-600">{formatPrice(course.price)}</div>
+                                                            </div>
                                                         </div>
-                                                    </div>
+                                                    ))}
                                                 </div>
                                             ))}
                                         </div>
                                         {/* Pagination Dots */}
                                         <div className="flex justify-center gap-2 mt-4 px-4">
-                                            {courses.map((_, idx) => (
+                                            {Array.from({ length: Math.ceil(courses.length / 2) }).map((_, idx) => (
                                                 <div key={idx} className="w-2 h-2 rounded-full bg-white/40"></div>
                                             ))}
                                         </div>
@@ -658,51 +660,53 @@ export default function Welcome({
                                 <>
                                     {/* Mobile: Horizontal Scroll Carousel */}
                                     <div className="md:hidden">
-                                        <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory scroll-smooth px-4 pb-4 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                                            {coaches.map((coach) => (
-                                                <div
-                                                    key={coach.id}
-                                                    className="flex-shrink-0 w-[45%] snap-center"
-                                                >
-                                                    <div className="group bg-white rounded-2xl border border-blue-100 overflow-hidden shadow-lg shadow-blue-50 h-full">
-                                                        <div className="aspect-[4/5] bg-blue-50 flex items-center justify-center overflow-hidden">
-                                                            {coach.image ? (
-                                                                <img
-                                                                    src={`/storage/${coach.image}`}
-                                                                    alt={coach.name}
-                                                                    className="w-full h-full object-cover"
-                                                                    loading="lazy"
-                                                                />
-                                                            ) : (
-                                                                <div className={`w-full h-full flex items-center justify-center ${coach.gender === 'male'
-                                                                    ? 'bg-blue-100'
-                                                                    : 'bg-pink-100'
-                                                                    }`}>
-                                                                    <User className={`w-12 h-12 ${coach.gender === 'male' ? 'text-blue-500' : 'text-pink-500'
-                                                                        }`} />
-                                                                </div>
-                                                            )}
+                                        <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth px-4 pb-4 scrollbar-hide items-start" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                                            {Array.from({ length: Math.ceil(coaches.length / 2) }).map((_, colIndex) => (
+                                                <div key={colIndex} className="flex-shrink-0 w-[45%] snap-center flex flex-col gap-4">
+                                                    {coaches.slice(colIndex * 2, colIndex * 2 + 2).map((coach) => (
+                                                        <div
+                                                            key={coach.id}
+                                                            className="group bg-white rounded-2xl border border-blue-100 overflow-hidden shadow-lg shadow-blue-50 h-full flex flex-col"
+                                                        >
+                                                            <div className="aspect-[4/5] bg-blue-50 flex items-center justify-center overflow-hidden flex-shrink-0">
+                                                                {coach.image ? (
+                                                                    <img
+                                                                        src={`/storage/${coach.image}`}
+                                                                        alt={coach.name}
+                                                                        className="w-full h-full object-cover"
+                                                                        loading="lazy"
+                                                                    />
+                                                                ) : (
+                                                                    <div className={`w-full h-full flex items-center justify-center ${coach.gender === 'male'
+                                                                        ? 'bg-blue-100'
+                                                                        : 'bg-pink-100'
+                                                                        }`}>
+                                                                        <User className={`w-12 h-12 ${coach.gender === 'male' ? 'text-blue-500' : 'text-pink-500'
+                                                                            }`} />
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            <div className="p-3 text-center flex-grow">
+                                                                <h3 className="font-semibold text-slate-800 mb-0.5 text-sm truncate">{coach.name}</h3>
+                                                                <p className="text-xs text-blue-600 font-medium">Coach</p>
+                                                                {coach.certificate_coaches && coach.certificate_coaches.length > 0 && (
+                                                                    <div className="flex flex-wrap items-center justify-center gap-1 mt-2">
+                                                                        {coach.certificate_coaches.slice(0, 2).map((cert, idx) => (
+                                                                            <Badge key={idx} variant="secondary" className="text-[8px] px-1.5 py-0.5 bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-100">
+                                                                                {cert.title}
+                                                                            </Badge>
+                                                                        ))}
+                                                                    </div>
+                                                                )}
+                                                            </div>
                                                         </div>
-                                                        <div className="p-3 text-center">
-                                                            <h3 className="font-semibold text-slate-800 mb-0.5 text-sm truncate">{coach.name}</h3>
-                                                            <p className="text-xs text-blue-600 font-medium">Coach</p>
-                                                            {coach.certificate_coaches && coach.certificate_coaches.length > 0 && (
-                                                                <div className="flex flex-wrap items-center justify-center gap-1 mt-2">
-                                                                    {coach.certificate_coaches.slice(0, 2).map((cert, idx) => (
-                                                                        <Badge key={idx} variant="secondary" className="text-[8px] px-1.5 py-0.5 bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-100">
-                                                                            {cert.title}
-                                                                        </Badge>
-                                                                    ))}
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    </div>
+                                                    ))}
                                                 </div>
                                             ))}
                                         </div>
                                         {/* Pagination Dots */}
                                         <div className="flex justify-center gap-2 mt-4 px-4">
-                                            {coaches.map((_, idx) => (
+                                            {Array.from({ length: Math.ceil(coaches.length / 2) }).map((_, idx) => (
                                                 <div key={idx} className="w-2 h-2 rounded-full bg-blue-200"></div>
                                             ))}
                                         </div>
