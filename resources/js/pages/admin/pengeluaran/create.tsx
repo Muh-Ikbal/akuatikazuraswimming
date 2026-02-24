@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Save, Banknote, Tag } from 'lucide-react';
+import { ArrowLeft, Save, Banknote, Tag, CalendarDays } from 'lucide-react';
 
 interface ExpenseCategory {
     id: number;
@@ -19,6 +19,7 @@ interface Expense {
     description: string;
     amount: number;
     expense_category_id: number;
+    date: string;
 }
 
 interface Props {
@@ -45,6 +46,7 @@ export default function CreateExpense({ expense, expenseCategories }: Props) {
         description: expense?.description || '',
         amount: expense?.amount || '',
         expense_category_id: expense?.expense_category_id || '',
+        date: expense?.date || new Date().toISOString().split('T')[0],
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -145,6 +147,24 @@ export default function CreateExpense({ expense, expenseCategories }: Props) {
                                         />
                                     </div>
                                     {errors.amount && <p className="text-sm text-destructive">{errors.amount}</p>}
+                                </div>
+
+                                {/* Tanggal */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="date" className="text-sm">
+                                        Tanggal <span className="text-destructive">*</span>
+                                    </Label>
+                                    <div className="relative">
+                                        <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                        <Input
+                                            id="date"
+                                            type="date"
+                                            value={data.date}
+                                            onChange={(e) => setData('date', e.target.value)}
+                                            className={`h-10 sm:h-11 pl-10 ${errors.date ? 'border-destructive' : ''}`}
+                                        />
+                                    </div>
+                                    {errors.date && <p className="text-sm text-destructive">{errors.date}</p>}
                                 </div>
 
                                 {/* Description */}

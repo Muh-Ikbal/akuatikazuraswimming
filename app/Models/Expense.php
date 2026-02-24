@@ -10,7 +10,12 @@ class Expense extends Model
         'name',
         'description',
         'amount',
-        'expense_category_id'
+        'expense_category_id',
+        'date'
+    ];
+
+    protected $casts = [
+        'date' => 'date',
     ];
 
     public function expense_category()

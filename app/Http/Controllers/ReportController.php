@@ -66,7 +66,7 @@ class ReportController extends Controller
             default: // all_time
                 // Find earliest date from payments or expenses
                 $firstPayment = Payment::min('created_at');
-                $firstExpense = Expense::min('created_at');
+                $firstExpense = Expense::min('date');
                 
                 $earliest = $firstPayment;
                 if ($firstExpense && (!$earliest || $firstExpense < $earliest)) {
@@ -94,10 +94,10 @@ class ReportController extends Controller
             ->sum('amount_paid');
         
         // Total Expense
-        $totalExpense = Expense::whereBetween('created_at', [$startDate, $endDate])
+        $totalExpense = Expense::whereBetween('date', [$startDate, $endDate])
             ->sum('amount');
         
-        $prevTotalExpense = Expense::whereBetween('created_at', [$prevStartDate, $prevEndDate])
+        $prevTotalExpense = Expense::whereBetween('date', [$prevStartDate, $prevEndDate])
             ->sum('amount');
         
         // Net Profit
@@ -141,7 +141,7 @@ class ReportController extends Controller
         // Expense by Category
         $expenseByCategory = ExpenseCategory::select('expense_categories.id', 'expense_categories.name')
             ->leftJoin('expenses', 'expense_categories.id', '=', 'expenses.expense_category_id')
-            ->whereBetween('expenses.created_at', [$startDate, $endDate])
+            ->whereBetween('expenses.date', [$startDate, $endDate])
             ->groupBy('expense_categories.id', 'expense_categories.name')
             ->selectRaw('COALESCE(SUM(expenses.amount), 0) as amount')
             ->orderByDesc('amount')

@@ -10,7 +10,9 @@ import {
     Edit,
     Banknote,
     Tag,
-    TrendingDown
+    TrendingDown,
+    Filter,
+    X,
 } from 'lucide-react';
 import {
     Table,
@@ -20,7 +22,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     Pagination,
     PaginationContent,
@@ -31,16 +33,19 @@ import {
 } from "@/components/ui/pagination";
 import AlertDelete from "@/components/alert-delete";
 
+interface ExpenseCategory {
+    id: number;
+    name: string;
+}
+
 interface Expense {
     id: number;
     name: string;
     description: string;
     amount: number;
     expense_category_id: number;
-    expense_category?: {
-        id: number;
-        name: string;
-    };
+    expense_category?: ExpenseCategory;
+    date: string;
     created_at: string;
 }
 
@@ -51,15 +56,45 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function ExpenseManagement(props: { expenses: any, expense_count: number, expense_amount: number }) {
-    const [searchQuery, setSearchQuery] = useState("");
+export default function ExpenseManagement(props: {
+    expenses: any,
+    expense_count: number,
+    expense_amount: number,
+    expense_categories: ExpenseCategory[],
+    filters: {
+        search: string,
+        category: string,
+        start_date: string,
+        end_date: string,
+    },
+}) {
+    const [search, setSearch] = useState(props.filters.search);
+    const [category, setCategory] = useState(props.filters.category);
+    const [startDate, setStartDate] = useState(props.filters.start_date);
+    const [endDate, setEndDate] = useState(props.filters.end_date);
+    const [showFilters, setShowFilters] = useState(false);
 
     const expenses: Expense[] = props.expenses.data;
 
-    const filteredExpenses = expenses.filter((e) => {
-        return e.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            e.expense_category?.name.toLowerCase().includes(searchQuery.toLowerCase());
-    });
+    const handleFilter = () => {
+        const params: Record<string, string> = {};
+        if (search) params.search = search;
+        if (category) params.category = category;
+        if (startDate) params.start_date = startDate;
+        if (endDate) params.end_date = endDate;
+        router.get('/management-pengeluaran', params, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
+    const handleClearFilters = () => {
+        setSearch('');
+        setCategory('');
+        setStartDate('');
+        setEndDate('');
+        router.get('/management-pengeluaran');
+    };
 
     const handleDelete = (id: number) => {
         router.delete(`/management-pengeluaran/${id}`);
@@ -80,9 +115,6 @@ export default function ExpenseManagement(props: { expenses: any, expense_count:
             year: 'numeric'
         });
     };
-
-    // Total expenses
-    const totalExpense = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -134,21 +166,71 @@ export default function ExpenseManagement(props: { expenses: any, expense_count:
                     </Card>
                 </div>
 
-                {/* Search */}
+                {/* Filters */}
                 <Card>
-                    <CardContent className="p-4">
-                        <div className="flex flex-col sm:flex-row gap-4">
-                            <div className="relative flex-1">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                                <Input
-                                    placeholder="Cari nama atau kategori..."
-                                    className="pl-10"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                />
-                            </div>
+                    <CardHeader className={`p-4 ${showFilters ? 'pb-0' : ''}`}>
+                        <div className="flex items-center justify-between">
+                            <CardTitle className="text-base flex items-center gap-2">
+                                <Filter className="w-4 h-4" />
+                                Filter
+                            </CardTitle>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setShowFilters(!showFilters)}
+                            >
+                                {showFilters ? 'Sembunyikan' : 'Tampilkan'}
+                            </Button>
                         </div>
-                    </CardContent>
+                    </CardHeader>
+                    {showFilters && (
+                        <CardContent className="p-4 pt-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                    <Input
+                                        placeholder="Cari nama atau kategori..."
+                                        value={search}
+                                        onChange={(e) => setSearch(e.target.value)}
+                                        className="pl-10"
+                                    />
+                                </div>
+                                <Input
+                                    type="date"
+                                    value={startDate}
+                                    onChange={(e) => setStartDate(e.target.value)}
+                                    placeholder="Tanggal Mulai"
+                                />
+                                <Input
+                                    type="date"
+                                    value={endDate}
+                                    onChange={(e) => setEndDate(e.target.value)}
+                                    placeholder="Tanggal Akhir"
+                                />
+                                <select
+                                    className="h-10 px-3 border rounded-md bg-background text-sm border-input"
+                                    value={category}
+                                    onChange={(e) => setCategory(e.target.value)}
+                                >
+                                    <option value="">Semua Kategori</option>
+                                    {props.expense_categories.map((cat) => (
+                                        <option key={cat.id} value={cat.id}>
+                                            {cat.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                <div className="flex gap-2">
+                                    <Button onClick={handleFilter} className="flex-1">
+                                        <Search className="w-4 h-4 mr-2" />
+                                        Filter
+                                    </Button>
+                                    <Button variant="outline" onClick={handleClearFilters}>
+                                        <X className="w-4 h-4" />
+                                    </Button>
+                                </div>
+                            </div>
+                        </CardContent>
+                    )}
                 </Card>
 
                 {/* Table */}
@@ -166,7 +248,7 @@ export default function ExpenseManagement(props: { expenses: any, expense_count:
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {filteredExpenses.map((expense) => (
+                                    {expenses.map((expense) => (
                                         <TableRow key={expense.id}>
                                             <TableCell>
                                                 <div>
@@ -197,7 +279,7 @@ export default function ExpenseManagement(props: { expenses: any, expense_count:
                                             </TableCell>
                                             <TableCell className="hidden lg:table-cell">
                                                 <span className="text-sm text-muted-foreground">
-                                                    {formatDate(expense.created_at)}
+                                                    {formatDate(expense.date || expense.created_at)}
                                                 </span>
                                             </TableCell>
                                             <TableCell className="text-right">
@@ -216,7 +298,7 @@ export default function ExpenseManagement(props: { expenses: any, expense_count:
                                             </TableCell>
                                         </TableRow>
                                     ))}
-                                    {filteredExpenses.length === 0 && (
+                                    {expenses.length === 0 && (
                                         <TableRow>
                                             <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                                                 Tidak ada pengeluaran ditemukan
