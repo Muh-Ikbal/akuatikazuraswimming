@@ -131,9 +131,28 @@ class MemberController extends Controller
     {
         try {
             $member = Member::with('user')->findOrFail($id);
+
+            $enrolments = EnrolmentCourse::where('member_id', $member->id)
+                ->with(['course', 'class_session', 'attendance'])
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(function ($enrolment) {
+                    return [
+                        'id' => $enrolment->id,
+                        'course_title' => $enrolment->course?->title ?? '-',
+                        'class_title' => $enrolment->class_session?->title ?? '-',
+                        'meeting_count' => $enrolment->meeting_count,
+                        'state' => $enrolment->state,
+                        'state_member' => $enrolment->state_member,
+                        'attendance_count' => $enrolment->attendance->count(),
+                        'report_member' => $enrolment->report_member,
+                        'created_at' => $enrolment->created_at?->format('d M Y'),
+                    ];
+                });
             
             return Inertia::render('admin/member/show', [
-                'member' => $member
+                'member' => $member,
+                'enrolments' => $enrolments,
             ]);
         } catch (\Throwable $th) {
             return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
@@ -215,6 +234,31 @@ class MemberController extends Controller
             $member->delete();
 
             return redirect('/management-member')->with('success', 'Member berhasil dihapus');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
+    }
+
+    public function storeReport(Request $request, $memberId, $enrolmentId)
+    {
+        try {
+            $request->validate([
+                'report_member' => 'required|string',
+            ]);
+
+            $enrolment = EnrolmentCourse::where('id', $enrolmentId)
+                ->where('member_id', $memberId)
+                ->firstOrFail();
+
+            if ($enrolment->state !== 'completed') {
+                return redirect()->back()->with('error', 'Laporan hanya bisa ditambahkan pada enrolment yang sudah selesai.');
+            }
+
+            $enrolment->update([
+                'report_member' => $request->report_member,
+            ]);
+
+            return redirect()->back()->with('success', 'Laporan member berhasil disimpan.');
         } catch (\Throwable $th) {
             return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
         }

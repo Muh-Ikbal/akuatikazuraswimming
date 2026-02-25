@@ -173,6 +173,11 @@ const memberNavItems: NavGroup[] = [
                 icon: Calendar,
             },
             {
+                title: 'Riwayat Kelas',
+                href: '/riwayat-enrolment-member',
+                icon: BookOpen,
+            },
+            {
                 title: 'QR Code',
                 href: '/qr-code',
                 icon: QrCode,
@@ -202,6 +207,11 @@ const coachNavItems: NavGroup[] = [
                 title: 'Riwayat Absensi',
                 href: '/riwayat-absensi-coach',
                 icon: Calendar,
+            },
+            {
+                title: 'Siswa',
+                href: '/siswa-coach',
+                icon: Users,
             },
             {
                 title: 'QR Code',

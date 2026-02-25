@@ -17,7 +17,8 @@ class EnrolmentCourse extends Model
         'course_id',
         'meeting_count',
         'state',
-        'state_member'
+        'state_member',
+        'report_member',
     ];
 
     public function member(){

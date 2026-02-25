@@ -53,6 +53,7 @@ Route::middleware(['auth', 'verified','role:super_admin|admin'])->group(function
     Route::get('management-member/edit/{id}', [MemberController::class,'edit'])->name('management-member.edit');
     Route::put('management-member/update/{id}', [MemberController::class,'update'])->name('management-member.update');
     Route::delete('management-member/{id}', [MemberController::class,'destroy'])->name('management-member.destroy');
+    Route::post('management-member/{memberId}/enrolment/{enrolmentId}/report', [MemberController::class,'storeReport'])->name('management-member.report');
     
     // management coach
     Route::get('management-coach', [CoachController::class,'index'])->name('management-coach');
@@ -173,6 +174,7 @@ Route::middleware(['auth', 'verified','role:super_admin|admin'])->group(function
 Route::middleware(['auth', 'verified','role:member'])->group(function () {
     Route::get('jadwal-member', [\App\Http\Controllers\Member\MemberScheduleController::class, 'index'])->name('jadwal-member');
     Route::get('riwayat-absensi', [\App\Http\Controllers\Member\MemberAttendanceController::class, 'index'])->name('riwayat-absensi');
+    Route::get('riwayat-enrolment-member', [\App\Http\Controllers\Member\MemberEnrolmentController::class, 'index'])->name('riwayat-enrolment-member');
 });
 
 Route::middleware(['auth', 'verified','role:operator'])->group(function () {
@@ -188,6 +190,8 @@ Route::middleware(['auth', 'verified','role:coach'])->group(function () {
     Route::get('jadwal-coach', [\App\Http\Controllers\Coach\CoachScheduleController::class, 'index'])->name('jadwal-coach');
     Route::get('riwayat-absensi-coach', [\App\Http\Controllers\Coach\CoachAttendanceHistoryController::class, 'index'])->name('riwayat-absensi-coach');
     Route::get('siswa-coach', [\App\Http\Controllers\Coach\CoachStudentController::class, 'index'])->name('siswa-coach');
+    Route::get('siswa-coach/{id}', [\App\Http\Controllers\Coach\CoachStudentController::class, 'show'])->name('siswa-coach.show');
+    Route::post('siswa-coach/{id}/report', [\App\Http\Controllers\Coach\CoachStudentController::class, 'storeReport'])->name('siswa-coach.report');
 });
 
 Route::middleware(['auth', 'verified','role:super_admin'])->group(function () {

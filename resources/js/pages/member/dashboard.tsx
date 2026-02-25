@@ -3,7 +3,7 @@ import AppLayout from '@/layouts/app-layout';
 import { Head, usePage, Link } from '@inertiajs/react';
 import { type SharedData, type BreadcrumbItem } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
-import { Calendar, Clock, QrCode, ArrowRight } from 'lucide-react';
+import { Calendar, Clock, QrCode, BookOpen, ArrowRight } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -39,6 +39,14 @@ export default function Dashboard() {
             href: '/qr-code',
             color: 'text-purple-600',
             bgColor: 'bg-purple-100 dark:bg-purple-900/30',
+        },
+        {
+            title: 'Riwayat Kelas',
+            description: 'Lihat riwayat pendaftaran dan laporan coach',
+            icon: BookOpen,
+            href: '/riwayat-enrolment-member',
+            color: 'text-orange-600',
+            bgColor: 'bg-orange-100 dark:bg-orange-900/30',
         },
     ];
 

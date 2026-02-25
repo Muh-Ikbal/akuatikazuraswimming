@@ -1,12 +1,13 @@
+import { useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     ArrowLeft,
     Edit,
-    Trash2,
     Calendar,
     Phone,
     MapPin,
@@ -14,8 +15,29 @@ import {
     Users,
     Mail,
     CheckCircle,
-    XCircle
+    XCircle,
+    BookOpen,
+    School,
+    Clock,
+    FileText,
+    Pencil,
 } from 'lucide-react';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import AlertDelete from '@/components/alert-delete';
 
 interface Member {
@@ -39,11 +61,31 @@ interface Member {
     updated_at?: string;
 }
 
-interface ShowMemberProps {
-    member: Member;
+interface Enrolment {
+    id: number;
+    course_title: string;
+    class_title: string;
+    meeting_count: number;
+    state: string;
+    state_member: string | null;
+    attendance_count: number;
+    report_member: string | null;
+    created_at: string;
 }
 
-export default function ShowMember({ member }: ShowMemberProps) {
+interface ShowMemberProps {
+    member: Member;
+    enrolments: Enrolment[];
+}
+
+export default function ShowMember({ member, enrolments }: ShowMemberProps) {
+    const [reportDialogOpen, setReportDialogOpen] = useState(false);
+    const [selectedEnrolment, setSelectedEnrolment] = useState<Enrolment | null>(null);
+
+    const form = useForm({
+        report_member: '',
+    });
+
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: 'Member Management',
@@ -77,6 +119,58 @@ export default function ShowMember({ member }: ShowMemberProps) {
 
     const handleDelete = () => {
         router.delete(`/management-member/${member.id}`);
+    };
+
+    const getStateDisplay = (state: string) => {
+        switch (state) {
+            case 'active':
+                return {
+                    label: 'Aktif',
+                    className: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+                    icon: CheckCircle,
+                };
+            case 'completed':
+                return {
+                    label: 'Selesai',
+                    className: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+                    icon: CheckCircle,
+                };
+            case 'cancelled':
+                return {
+                    label: 'Dibatalkan',
+                    className: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+                    icon: XCircle,
+                };
+            case 'on_progress':
+                return {
+                    label: 'Sedang Berjalan',
+                    className: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+                    icon: Clock,
+                };
+            default:
+                return {
+                    label: state || '-',
+                    className: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
+                    icon: Clock,
+                };
+        }
+    };
+
+    const openReportDialog = (enrolment: Enrolment) => {
+        setSelectedEnrolment(enrolment);
+        form.setData('report_member', enrolment.report_member || '');
+        setReportDialogOpen(true);
+    };
+
+    const submitReport = () => {
+        if (!selectedEnrolment) return;
+        form.post(`/management-member/${member.id}/enrolment/${selectedEnrolment.id}/report`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setReportDialogOpen(false);
+                setSelectedEnrolment(null);
+            },
+        });
     };
 
     return (
@@ -253,6 +347,109 @@ export default function ShowMember({ member }: ShowMemberProps) {
                             </CardContent>
                         </Card>
 
+                        {/* Enrolment History */}
+                        <Card>
+                            <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-3">
+                                <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                                    <BookOpen className="w-5 h-5" />
+                                    Riwayat Kelas
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-0">
+                                <div className="overflow-x-auto">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Kursus</TableHead>
+                                                <TableHead>Kelas</TableHead>
+                                                <TableHead className="hidden sm:table-cell">Pertemuan</TableHead>
+                                                <TableHead>Status</TableHead>
+                                                <TableHead className="hidden md:table-cell">Kehadiran</TableHead>
+                                                <TableHead className="hidden lg:table-cell">Tgl Daftar</TableHead>
+                                                <TableHead>Laporan</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {enrolments.map((enrolment) => {
+                                                const stateDisplay = getStateDisplay(enrolment.state);
+                                                const StateIcon = stateDisplay.icon;
+                                                return (
+                                                    <TableRow key={enrolment.id}>
+                                                        <TableCell>
+                                                            <div className="flex items-center gap-2">
+                                                                <BookOpen className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                                                                <span className="font-medium text-sm">{enrolment.course_title}</span>
+                                                            </div>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <div className="flex items-center gap-2">
+                                                                <School className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                                                                <span className="text-sm">{enrolment.class_title}</span>
+                                                            </div>
+                                                        </TableCell>
+                                                        <TableCell className="hidden sm:table-cell">
+                                                            <span className="text-sm">{enrolment.meeting_count ?? '-'}</span>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${stateDisplay.className}`}>
+                                                                <StateIcon className="w-3 h-3" />
+                                                                {stateDisplay.label}
+                                                            </span>
+                                                        </TableCell>
+                                                        <TableCell className="hidden md:table-cell">
+                                                            <div className="flex items-center gap-2">
+                                                                <Calendar className="w-4 h-4 text-muted-foreground" />
+                                                                <span className="text-sm font-medium">
+                                                                    {enrolment.attendance_count}
+                                                                    {enrolment.meeting_count ? ` / ${enrolment.meeting_count}` : ''}
+                                                                </span>
+                                                            </div>
+                                                        </TableCell>
+                                                        <TableCell className="hidden lg:table-cell">
+                                                            <span className="text-sm text-muted-foreground">
+                                                                {enrolment.created_at}
+                                                            </span>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            {enrolment.state === 'completed' ? (
+                                                                <Button
+                                                                    variant={enrolment.report_member ? "outline" : "default"}
+                                                                    size="sm"
+                                                                    onClick={() => openReportDialog(enrolment)}
+                                                                    className="gap-1"
+                                                                >
+                                                                    {enrolment.report_member ? (
+                                                                        <>
+                                                                            <Pencil className="w-3 h-3" />
+                                                                            <span className="hidden sm:inline">Edit</span>
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            <FileText className="w-3 h-3" />
+                                                                            <span className="hidden sm:inline">Tambah</span>
+                                                                        </>
+                                                                    )}
+                                                                </Button>
+                                                            ) : (
+                                                                <span className="text-sm text-muted-foreground">-</span>
+                                                            )}
+                                                        </TableCell>
+                                                    </TableRow>
+                                                );
+                                            })}
+                                            {enrolments.length === 0 && (
+                                                <TableRow>
+                                                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                                                        Belum ada riwayat enrolment
+                                                    </TableCell>
+                                                </TableRow>
+                                            )}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                            </CardContent>
+                        </Card>
+
                         {(member.created_at || member.updated_at) && (
                             <Card>
                                 <CardContent className="p-4 sm:p-6">
@@ -276,6 +473,46 @@ export default function ShowMember({ member }: ShowMemberProps) {
                     </div>
                 </div>
             </div>
+
+            {/* Report Dialog */}
+            <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
+                <DialogContent className="sm:max-w-lg">
+                    <DialogHeader>
+                        <DialogTitle>
+                            {selectedEnrolment?.report_member ? 'Edit Laporan Member' : 'Tambah Laporan Member'}
+                        </DialogTitle>
+                        <DialogDescription>
+                            Laporan untuk enrolment <strong>{selectedEnrolment?.course_title}</strong> - <strong>{selectedEnrolment?.class_title}</strong>
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <Textarea
+                            placeholder="Tulis laporan member di sini..."
+                            value={form.data.report_member}
+                            onChange={(e) => form.setData('report_member', e.target.value)}
+                            rows={6}
+                            className="resize-none"
+                        />
+                        {form.errors.report_member && (
+                            <p className="text-sm text-red-500">{form.errors.report_member}</p>
+                        )}
+                    </div>
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setReportDialogOpen(false)}
+                        >
+                            Batal
+                        </Button>
+                        <Button
+                            onClick={submitReport}
+                            disabled={form.processing || !form.data.report_member.trim()}
+                        >
+                            {form.processing ? 'Menyimpan...' : 'Simpan Laporan'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </AppLayout>
     );
 }
