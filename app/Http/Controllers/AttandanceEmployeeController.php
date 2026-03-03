@@ -99,15 +99,16 @@ class AttandanceEmployeeController extends Controller
 
             $scheduleToday = null;
             $state = 'present';
+            $session = null;
             
-            // 1. Find matching session based on current time (Applies to ALL roles)
+            // 1. Find ALL matching sessions based on current time
             $currentTime = now()->format('H:i:s');
-            $session = \App\Models\EmployeeAttendanceSession::where('start_time', '<=', $currentTime)
+            $sessions = \App\Models\EmployeeAttendanceSession::where('start_time', '<=', $currentTime)
                 ->where('end_time', '>=', $currentTime)
-                ->first();
-            // dd($session);
+                ->orderBy('start_time', 'asc')
+                ->get();
 
-            if (!$session) {
+            if ($sessions->isEmpty()) {
                 return back()->with('scan_result', [
                     'success' => false,
                     'message' => 'Diluar jam absensi pegawai yang ditentukan',
@@ -116,14 +117,7 @@ class AttandanceEmployeeController extends Controller
                 ]);
             }
 
-            // 2. Determine state based on session late/alpha threshold
-            if ($session->alpha_threshold && $currentTime > $session->alpha_threshold) {
-                $state = 'alpha';
-            } elseif ($currentTime > $session->late_threshold) {
-                $state = 'late';
-            }
-
-            // 3. Role-specific checks
+            // 2. Role-specific checks
             if ($userRole === 'coach') {
                 // Get coach record
                 $coach = \App\Models\Coach::where('user_id', $user->id)->first();
@@ -137,39 +131,66 @@ class AttandanceEmployeeController extends Controller
                     ]);
                 }
 
-                // Find schedule for this coach today
-                $scheduleToday = Schedule::where('coach_id', $coach->id)
-                    ->whereDate('date', today())
-                    ->whereTime('end_time', '>=', now())
-                    ->whereTime('time', '>=', $session->start_time)
-                    ->whereTime('time', '<=', $session->end_time)
-                    ->orderBy('time', 'asc')
-                    ->first();
+                // Loop through all active sessions to find an unattended schedule
+                foreach ($sessions as $candidateSession) {
+                    $candidateSchedule = Schedule::where('coach_id', $coach->id)
+                        ->whereDate('date', today())
+                        ->whereTime('end_time', '>=', now())
+                        ->whereTime('time', '>=', $candidateSession->start_time)
+                        ->whereTime('time', '<=', $candidateSession->end_time)
+                        ->orderBy('time', 'asc')
+                        ->first();
+
+                    if ($candidateSchedule) {
+                        $alreadyAttend = AttandanceEmployee::where('schedule_id', $candidateSchedule->id)
+                            ->where('user_id', $user->id)
+                            ->exists();
+
+                        if (!$alreadyAttend) {
+                            // Found a valid, unattended schedule in this session
+                            $session = $candidateSession;
+                            $scheduleToday = $candidateSchedule;
+                            break;
+                        }
+                    }
+                }
 
                 if (!$scheduleToday) {
-                    return back()->with('scan_result', [
-                        'success' => false,
-                        'message' => 'Anda tidak memiliki jadwal mengajar pada sesi absensi ini (' . $session->start_time . ' - ' . $session->end_time . ')',
-                        'employee' => $user->name,
-                        'attendanceToday' => $attendanceToday,
-                    ]);
-                }
+                    // Check if any schedule was found at all (but already attended)
+                    $anyScheduleInSessions = false;
+                    foreach ($sessions as $s) {
+                        $exists = Schedule::where('coach_id', $coach->id)
+                            ->whereDate('date', today())
+                            ->whereTime('time', '>=', $s->start_time)
+                            ->whereTime('time', '<=', $s->end_time)
+                            ->exists();
+                        if ($exists) {
+                            $anyScheduleInSessions = true;
+                            break;
+                        }
+                    }
 
-                // Check if already attended for this *schedule*
-                $alreadyAttend = AttandanceEmployee::where('schedule_id', $scheduleToday->id)
-                    ->where('user_id', $user->id)
-                    ->exists();
-
-                if ($alreadyAttend) {
-                    return back()->with('scan_result', [
-                        'success' => false,
-                        'message' => 'Anda sudah melakukan absensi pada sesi ini',
-                        'employee' => $user->name,
-                        'attendanceToday' => $attendanceToday,
-                    ]);
+                    if ($anyScheduleInSessions) {
+                        return back()->with('scan_result', [
+                            'success' => false,
+                            'message' => 'Anda sudah melakukan absensi pada semua sesi hari ini',
+                            'employee' => $user->name,
+                            'attendanceToday' => $attendanceToday,
+                        ]);
+                    } else {
+                        $sessionNames = $sessions->pluck('name')->implode(', ');
+                        return back()->with('scan_result', [
+                            'success' => false,
+                            'message' => 'Anda tidak memiliki jadwal mengajar pada sesi absensi saat ini (' . $sessionNames . ')',
+                            'employee' => $user->name,
+                            'attendanceToday' => $attendanceToday,
+                        ]);
+                    }
                 }
             } else {
-                // Admin/Operator: Check if already attended for this *session* today
+                // Admin/Operator: use the first session
+                $session = $sessions->first();
+
                 $alreadyAttendSession = AttandanceEmployee::where('user_id', $user->id)
                     ->where('employee_attendance_session_id', $session->id)
                     ->whereDate('scan_time', today())
@@ -183,6 +204,13 @@ class AttandanceEmployeeController extends Controller
                         'attendanceToday' => $attendanceToday,
                     ]);
                 }
+            }
+
+            // 3. Determine state based on the selected session's late/alpha threshold
+            if ($session->alpha_threshold && $currentTime > $session->alpha_threshold) {
+                $state = 'alpha';
+            } elseif ($currentTime > $session->late_threshold) {
+                $state = 'late';
             }
 
             // Create attendance record

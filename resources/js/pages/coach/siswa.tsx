@@ -113,7 +113,7 @@ export default function CoachStudents({ students, stats, filters }: Props) {
                             Siswa Saya
                         </h1>
                         <p className="text-muted-foreground">
-                            Daftar member yang Anda ajar. Tekan untuk melihat riwayat enrolment.
+                            Daftar member yang Anda ajar. Tekan untuk melihat riwayat pendaftaran kelas.
                         </p>
                     </div>
                 </div>

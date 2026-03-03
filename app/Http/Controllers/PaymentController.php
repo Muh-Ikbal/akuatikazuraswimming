@@ -31,7 +31,8 @@ class PaymentController extends Controller
             
             $totalIncome = Payment::where('state', 'paid')->sum('amount_paid');
             $allAmount = Payment::whereNot('state', 'failed')->sum('amount');
-            $pendingAmount = $allAmount-$totalIncome;
+            $totalDiscount = Payment::whereNot('state', 'failed')->sum('discount_amount');
+            $pendingAmount = ($allAmount - $totalDiscount)-$totalIncome;
             $totalPaidCount = Payment::where('state','paid')->count();
             
             $promos = Promo::where('state', 'active')->get();
