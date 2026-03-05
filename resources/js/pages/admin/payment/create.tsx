@@ -28,6 +28,8 @@ interface Payment {
     payment_method: string;
     amount_paid: number;
     state: string;
+    promo_id?: number | null;
+    discount_amount?: number;
     created_at?: string;
 }
 
@@ -57,7 +59,7 @@ export default function CreatePayment({ payment, enrolments, promos = [] }: Prop
         payment_method: payment?.payment_method || 'transfer',
         amount_paid: payment?.amount_paid || '',
         state: payment?.state || 'pending',
-        promo_id: '',
+        promo_id: payment?.promo_id ? String(payment.promo_id) : '',
         created_at: payment?.created_at ? new Date(payment.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
     });
 
