@@ -1,11 +1,13 @@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Save, Calendar, Clock, MapPin, School, User } from 'lucide-react';
+import AlertDelete from "@/components/alert-delete";
+
 
 interface ClassSession {
     id: number;
@@ -68,17 +70,25 @@ export default function CreateSchedule({ schedule, class_sessions, coaches }: Pr
         }
     };
 
+    const handleBack = ()=>{
+        
+    }
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={isEdit ? "Edit Jadwal" : "Tambah Jadwal"} />
             <div className="p-4 sm:p-6">
                 {/* Header */}
                 <div className="flex items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
-                    <Link href="/management-jadwal" className="shrink-0">
-                        <Button variant="outline" size="icon" className="h-9 w-9 sm:h-10 sm:w-10">
+                    <AlertDelete 
+                        title={`Batalkan ${isEdit?'mengupdate':'membuat'} jadwal`}
+                        description='Apakah anda yakin membatalkan tindakan ini ?'
+                        action={()=>{router.get('/management-jadwal')}}
+                        trigger={(<Button variant="outline" size="icon" className="h-9 w-9 sm:h-10 sm:w-10">
                             <ArrowLeft className="w-4 h-4" />
-                        </Button>
-                    </Link>
+                        </Button>)}
+
+                    />
                     <div className="min-w-0">
                         <h1 className="text-xl sm:text-2xl font-bold text-foreground truncate">
                             {isEdit ? 'Edit Jadwal' : 'Tambah Jadwal Baru'}
@@ -242,11 +252,15 @@ export default function CreateSchedule({ schedule, class_sessions, coaches }: Pr
 
                         {/* Actions */}
                         <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
-                            <Link href="/management-jadwal" className="w-full sm:w-auto">
-                                <Button type="button" variant="outline" className="w-full sm:w-auto h-11">
+                            <AlertDelete 
+                                title={`Batal ${isEdit? 'mengupdate' : 'membuat'} jadwal`} 
+                                description='Apakah anda yakin membatalkan tindakan ini ?'
+                                action={()=>{router.get('/management-jadwal')}}
+                                trigger= {(<Button type="button" variant="outline" className="w-full sm:w-auto h-11">
                                     Batal
-                                </Button>
-                            </Link>
+                                </Button>)}
+                            
+                            />
                             <Button type="submit" disabled={processing} className="w-full sm:w-auto h-11">
                                 <Save className="w-4 h-4 mr-2" />
                                 {processing ? 'Menyimpan...' : (isEdit ? 'Update Jadwal' : 'Simpan Jadwal')}

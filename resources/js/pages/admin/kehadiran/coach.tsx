@@ -280,7 +280,7 @@ export default function KehadiranPegawai({ attendances, stats, filters, employee
                                             <SelectContent>
                                                 <SelectItem value="present">Hadir</SelectItem>
                                                 <SelectItem value="late">Terlambat</SelectItem>
-                                                <SelectItem value="absent">Alpa</SelectItem>
+                                                <SelectItem value="alpha">Alpa</SelectItem>
                                             </SelectContent>
                                         </Select>
                                         {createForm.errors.state && <span className="text-destructive text-sm">{createForm.errors.state}</span>}
@@ -517,7 +517,7 @@ export default function KehadiranPegawai({ attendances, stats, filters, employee
                                             <SelectContent>
                                                 <SelectItem value="present">Hadir</SelectItem>
                                                 <SelectItem value="late">Terlambat</SelectItem>
-                                                <SelectItem value="absent">Alpa</SelectItem>
+                                                <SelectItem value="alpha">Alpa</SelectItem>
                                             </SelectContent>
                                         </Select>
                                         {editForm.errors.state && <span className="text-destructive text-sm">{editForm.errors.state}</span>}

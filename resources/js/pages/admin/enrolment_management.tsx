@@ -74,12 +74,13 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 interface props {
     enrolments: any;
-    filters: any;
     stats: any;
+    classes:any[];
+    filters: {class_name?: string, search?:string, status?: string};
 }
 
 export default function EnrolmentManagement(props: props) {
-    const [searchQuery, setSearchQuery] = useState(props.filters?.search ?? "");
+    // const [searchQuery, setSearchQuery] = useState(props.filters?.search ?? "");
     const [page, setPage] = useState(props.enrolments.current_page);
     const isTyping = useRef(false);
     const [filterState, setFilterState] = useState<string>("all");
@@ -92,24 +93,30 @@ export default function EnrolmentManagement(props: props) {
         }
     }, [flash]);
 
-    // fitur search
-    const onChangeSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchQuery(e.target.value);
-        isTyping.current = true;
+    // fitur search dan filter
+    const [filters, setFilters] = useState({
+        search: props.filters?.search || "",
+        status: props.filters?.status || "",
+        name_class: props.filters?.class_name || "",
+
+    });
+    
+    const handleFilterChange = (key: string, value: string) => {
+        const newFilters = {
+            ...filters,
+            [key]: value,
+        };
+        setFilters(newFilters);
+
+        // langsung request (tanpa useEffect)
+        debouncedSearch(newFilters);
     };
 
-    useEffect(() => {
-        if (isTyping.current) {
-            setPage(1);
-            isTyping.current = false;
-        }
-    }, [searchQuery])
-
     const debouncedSearch = useMemo(() =>
-        debounce((query: string, page: number) => {
+        debounce((filters) => {
             router.get('/management-enrolment', {
-                search: query,
-                page: page
+                ...filters,
+                
             }, {
                 preserveState: true,
                 replace: true
@@ -119,9 +126,6 @@ export default function EnrolmentManagement(props: props) {
         []
     )
 
-    useEffect(() => {
-        debouncedSearch(searchQuery, page);
-    }, [searchQuery, page])
 
     const enrolments: Enrolment[] = props.enrolments.data;
     const stats = props.stats;
@@ -275,17 +279,33 @@ export default function EnrolmentManagement(props: props) {
                                 <Input
                                     placeholder="Cari member..."
                                     className="pl-10"
-                                    value={searchQuery}
-                                    onChange={onChangeSearch}
+                                    value={filters.search}
+                                    onChange={(e)=> handleFilterChange('search',e.target.value)}
                                 />
                             </div>
                             <div className="flex gap-2">
+                                {/* filter class */}
                                 <select
                                     className="px-4 py-2 border border-input rounded-md bg-background text-sm"
-                                    value={filterState}
-                                    onChange={(e) => setFilterState(e.target.value)}
+                                    value={filters.name_class}
+                                    onChange={(e) => handleFilterChange('name_class',e.target.value)}
                                 >
-                                    <option value="all">Semua Status</option>
+                                    <option value="">Semua Kelas</option>
+                                    {
+                                        props.classes.map((cl:any) => (
+                                            <option key={cl.id} value={cl.id}>{cl.title}</option>
+                                        ))
+                                    }
+                                   
+                                </select>
+
+                                {/* filter status */}
+                                <select
+                                    className="px-4 py-2 border border-input rounded-md bg-background text-sm"
+                                    value={filters.status}
+                                    onChange={(e) => handleFilterChange('status',e.target.value)}
+                                >
+                                    <option value="">Semua Status</option>
                                     <option value="on_progress">Berlangsung</option>
                                     <option value="completed">Selesai</option>
                                     <option value="cancelled">Dibatalkan</option>

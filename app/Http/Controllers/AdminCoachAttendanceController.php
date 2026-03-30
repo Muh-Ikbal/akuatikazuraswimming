@@ -140,7 +140,7 @@ class AdminCoachAttendanceController extends Controller
         $request->validate([
             'user_id' => 'required|exists:users,id',
             'scan_time' => 'required|date',
-            'state' => 'required|in:present,late,absent',
+            'state' => 'required|in:present,late,alpha',
             'schedule_id' => 'nullable|exists:schedules,id',
         ]);
 
@@ -170,7 +170,7 @@ class AdminCoachAttendanceController extends Controller
 
         $request->validate([
             'scan_time' => 'required|date',
-            'state' => 'required|in:present,late,absent',
+            'state' => 'required|in:present,late,alpha',
             'schedule_id' => 'nullable|exists:schedules,id',
         ]);
 

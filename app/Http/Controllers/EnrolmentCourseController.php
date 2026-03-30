@@ -17,7 +17,7 @@ class EnrolmentCourseController extends Controller
     public function index(Request $request)
     {
         try {
-            $search = $request->query('search');
+            // $search = $request->query('search');
             // update status if meeting_count == course.total_meeting
             EnrolmentCourse::where('meeting_count', '>=', function ($query) {
                 $query->select('total_meeting')
@@ -25,27 +25,46 @@ class EnrolmentCourseController extends Controller
                       ->whereColumn('courses.id', 'enrolment_courses.course_id');
             })->update(['state' => 'completed']);
 
-            $enrolments = EnrolmentCourse::with(['member', 'class_session', 'course', 'payment'])
-                ->whereHas('member', function ($q) use ($search) {
-                    $q->where('name', 'like', '%' . $search . '%');
-                })
-                // ->withCount('attendance')
-                ->orderBy('created_at', 'desc')
-                ->paginate(10)
-                ->withQueryString();
+            // enrolments
+            $query = EnrolmentCourse::with(['member', 'class_session', 'course', 'payment'])
+                ->orderBy('created_at', 'desc');
 
-                $enrolmentsStats = EnrolmentCourse::select(
-                    DB::raw('COUNT(*) as total'),
-                    DB::raw('SUM(CASE WHEN state = "on_progress" THEN 1 ELSE 0 END) as on_progress_count'),
-                    DB::raw('SUM(CASE WHEN state = "completed" THEN 1 ELSE 0 END) as completed_count'),
-                    DB::raw('SUM(CASE WHEN state = "cancelled" THEN 1 ELSE 0 END) as cancelled_count'),
-                )
-                ->first();
+            if($request->has('search') && $request->search != null){
+                $search = $request->search;
+                $query->whereHas('member',function ($q) use ($search) {
+                    $q->where('name', 'like', '%'.$search. '%');
+                });
+            }
+
+            if($request->has('status') && $request->status != null){
+                $query->where('state','=',$request->status);
+            }
+
+            if($request->has('name_class') && $request->name_class !=null){
+                $name_class = $request->name_class;
+                $query->whereHas('class_session', function($q) use ($name_class){
+                    $q->where('id', '=',$name_class);
+                });
+            }
+
+            $enrolments = $query->paginate(3)->withQueryString();
+
+            // stats
+            $enrolmentsStats = EnrolmentCourse::select(
+                DB::raw('COUNT(*) as total'),
+                DB::raw('SUM(CASE WHEN state = "on_progress" THEN 1 ELSE 0 END) as on_progress_count'),
+                DB::raw('SUM(CASE WHEN state = "completed" THEN 1 ELSE 0 END) as completed_count'),
+                DB::raw('SUM(CASE WHEN state = "cancelled" THEN 1 ELSE 0 END) as cancelled_count'),
+            )
+            ->first();
+
+            $classes = ClassSession::all();
             
             return Inertia::render('admin/enrolment_management', [
                 'enrolments' => $enrolments,
                 'filters' => $request->only('search'),
-                'stats' => $enrolmentsStats
+                'stats' => $enrolmentsStats,
+                'classes' => $classes
             ]);
         } catch (\Throwable $th) {
             return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());

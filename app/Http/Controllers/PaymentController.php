@@ -30,10 +30,11 @@ class PaymentController extends Controller
                 ->withQueryString();
             
             $totalIncome = Payment::where('state', 'paid')->sum('amount_paid');
-            $pendingAmount = Payment::whereNotIn('state', ['failed', 'paid'])
-                ->selectRaw('COALESCE(SUM(GREATEST(amount - discount_amount - amount_paid, 0)), 0) as pending')
-                ->value('pending');
+            $discountAmount = Payment::where('state','paid')->sum('discount_amount');
+            $totalAllPayment = Payment::where('state','!=','failed')->sum('amount');
+            $pendingAmount = $totalAllPayment-$totalIncome - $discountAmount;
             $totalPaidCount = Payment::where('state','paid')->count();
+            // dd($pendingAmount);
             
             $promos = Promo::where('state', 'active')->get();
 
@@ -53,9 +54,7 @@ class PaymentController extends Controller
     public function create()
     {
         try {
-            // Enrolment muncul jika:
-            // 1. Tidak punya payment sama sekali, ATAU
-            // 2. Tidak ada payment dengan status selain 'failed' (semua payment-nya failed)
+            
             $enrolments = EnrolmentCourse::with(['member', 'course'])
                 ->whereDoesntHave('payment', function($q) {
                     $q->whereIn('state', ['pending', 'paid', 'partial_paid']);

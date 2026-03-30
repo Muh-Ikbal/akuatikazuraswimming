@@ -122,7 +122,6 @@ export default function ScheduleManagement(props: {
     // Debounce search
     useEffect(() => {
         const timeoutId = setTimeout(() => {
-            // Only trigger search if it's different from what's potentially in the URL (handled by props.filters.search)
             if (searchQuery !== (props.filters?.search || "")) {
                 handleFilterChange('search', searchQuery);
             }
@@ -196,22 +195,7 @@ export default function ScheduleManagement(props: {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Management Jadwal" />
             <div className="p-6 space-y-6">
-                {flash.success && (
-                    <Alert variant={'success'} className="bg-green-400" style={{ width: '100%' }}>
-                        <AlertTitle>Success</AlertTitle>
-                        <AlertDescription>
-                            {flash.success}
-                        </AlertDescription>
-                    </Alert>
-                )}
-                {flash.error && (
-                    <Alert variant={'error'} className="bg-red-400" style={{ width: '100%' }}>
-                        <AlertTitle>Error</AlertTitle>
-                        <AlertDescription>
-                            {flash.error}
-                        </AlertDescription>
-                    </Alert>
-                )}
+                
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 
@@ -307,7 +291,7 @@ export default function ScheduleManagement(props: {
                                 <select
                                     className="px-4 py-2 border border-input rounded-md bg-background text-sm"
                                     value={filterStatus}
-                                    onChange={(e) => setFilterStatus(e.target.value)}
+                                    onChange={(e) => handleFilterChange('status',e.target.value)}
                                 >
                                     <option value="all">Semua Status</option>
                                     <option value="published">Dijadwalkan</option>

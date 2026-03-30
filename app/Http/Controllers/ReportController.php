@@ -38,16 +38,17 @@ class ReportController extends Controller
             case 'this_month':
                 $startDate = Carbon::now()->startOfMonth();
                 $endDate = Carbon::now()->endOfMonth();
-                $prevStartDate = Carbon::now()->subMonth()->startOfMonth();
-                $prevEndDate = Carbon::now()->subMonth()->endOfMonth();
+                $prevStartDate = Carbon::now()->subMonthNoOverflow()->startOfMonth();
+                $prevEndDate = Carbon::now()->subMonthNoOverflow()->endOfMonth();
                 $name_period = 'Bulan '.Carbon::now()->format('F').' - '.Carbon::now()->format('Y');
                 break;
             case 'last_month':
-                $startDate = Carbon::now()->subMonth()->startOfMonth();
-                $endDate = Carbon::now()->subMonth()->endOfMonth();
-                $prevStartDate = Carbon::now()->subMonths(2)->startOfMonth();
-                $prevEndDate = Carbon::now()->subMonths(2)->endOfMonth();
-                $name_period = 'Bulan '.Carbon::now()->subMonth()->format('F').' - '.Carbon::now()->subMonth()->format('Y');
+                $startDate = Carbon::now()->subMonthNoOverflow()->startOfMonth();
+                // dd($startDate);
+                $endDate = Carbon::now()->subMonthNoOverflow()->endOfMonth();
+                $prevStartDate = Carbon::now()->subMonthsNoOverflow(2)->startOfMonth();
+                $prevEndDate = Carbon::now()->subMonthsNoOverflow(2)->endOfMonth();
+                $name_period = 'Bulan '.Carbon::now()->subMonthNoOverflow()->format('F').' - '.Carbon::now()->subMonthNoOverflow()->format('Y');
                 break;
             case 'this_quarter':
                 $startDate = Carbon::now()->startOfQuarter();
@@ -104,9 +105,11 @@ class ReportController extends Controller
         $netProfit = $totalIncome - $totalExpense;
         
         // Receivables (pending + partial payments - amount already paid)
-        $receivables = Payment::whereIn('state', ['pending', 'partial_paid'])
-            ->selectRaw('SUM(amount - amount_paid) as total')
-            ->value('total') ?? 0;
+        $totalAmountPayments = Payment::where('state','!=','failed')->whereBetween('created_at',[$startDate, $endDate])->sum('amount');
+        $discount_amount = Payment::where('state','paid')->whereBetween('created_at',[$startDate, $endDate])->sum('discount_amount');
+        
+
+        $receivables = $totalAmountPayments - $totalIncome - $discount_amount;
         
         // Income growth percentage
         $incomeGrowth = $prevTotalIncome > 0 

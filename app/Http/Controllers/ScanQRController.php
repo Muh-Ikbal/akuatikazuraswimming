@@ -36,9 +36,7 @@ class ScanQRController extends Controller
             
             // Check if QR code exists before accessing properties (like user_id)
             if (!$qrCode) {
-                // If we can't find the QR code, we also can't find the user easily unless passed differently, 
-                // but let's assume we need a valid QR code first.
-                // Re-fetch attendance stats for response
+                
                 $attendanceToday = Attendance::whereDate('scan_time', today())->count();
                 
                 return back()->with('scan_result', [
