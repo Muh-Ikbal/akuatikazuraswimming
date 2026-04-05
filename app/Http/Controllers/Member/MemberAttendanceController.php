@@ -31,13 +31,35 @@ class MemberAttendanceController extends Controller
             
             $userAttendances = Attendance::where('user_id', $user->id)->get();
             
+            // Build enrolment filter options & find default (active/on_progress)
+            $enrolmentFilters = [];
+            $defaultEnrolmentId = null;
+            
+            foreach ($enrolments as $enrolment) {
+                $enrolmentFilters[] = [
+                    'id' => $enrolment->id,
+                    'label' => ($enrolment->course->title ?? '-') . ' — ' . ($enrolment->class_session->title ?? '-'),
+                    'state' => $enrolment->state,
+                ];
+                
+                if (!$defaultEnrolmentId && in_array($enrolment->state, ['active', 'on_progress'])) {
+                    $defaultEnrolmentId = $enrolment->id;
+                }
+            }
+            
+            // Fallback to first enrolment if none is active
+            if (!$defaultEnrolmentId && $enrolments->isNotEmpty()) {
+                $defaultEnrolmentId = $enrolments->first()->id;
+            }
+            
+            // Build schedules grouped by enrolment
             $allSchedules = collect();
             foreach ($enrolments as $enrolment) {
                 if ($enrolment->class_session && $enrolment->class_session->schedule) {
-                    $schedules = $enrolment->class_session->schedule;
-                    foreach ($schedules as $schedule) {
+                    foreach ($enrolment->class_session->schedule as $schedule) {
                         $allSchedules->push([
                             'id' => $schedule->id,
+                            'enrolment_id' => $enrolment->id,
                             'date' => $schedule->date,
                             'time' => $schedule->time,
                             'location' => $schedule->location,
@@ -49,7 +71,7 @@ class MemberAttendanceController extends Controller
                 }
             }
             
-            // Calculate statistics based on enrolment meeting_count
+            // Enrolment details for stats cards
             $presentCount = 0;
             $enrolmentDetails = [];
             
@@ -58,6 +80,7 @@ class MemberAttendanceController extends Controller
                 $presentCount += $count;
                 
                 $enrolmentDetails[] = [
+                    'enrolment_id' => $enrolment->id,
                     'course_title' => $enrolment->course->title ?? '-',
                     'class_title' => $enrolment->class_session->title ?? '-',
                     'meeting_count' => $count,
@@ -65,8 +88,8 @@ class MemberAttendanceController extends Controller
                 ];
             }
             
+            // Build detailed attendance with enrolment_id
             $detailedAttendance = [];
-            $meetingNumber = 1;
             
             foreach ($allSchedules->sortByDesc('date') as $schedule) {
                 $attendance = $userAttendances->first(function ($att) use ($schedule) {
@@ -74,20 +97,16 @@ class MemberAttendanceController extends Controller
                 });
                 
                 if ($attendance) {
-                    $status = 'present';
-                    
                     $detailedAttendance[] = [
-                        'meeting_number' => $meetingNumber,
+                        'enrolment_id' => $attendance->enrolment_course_id ?? $schedule['enrolment_id'],
                         'date' => $schedule['date'],
                         'time' => $schedule['time'],
                         'location' => $schedule['location'],
-                        'status' => $status,
+                        'status' => 'present',
                         'schedule_status' => $schedule['status'], 
                         'scan_time' => Carbon::parse($attendance->scan_time)->format('H:i'),
                         'course_title' => $schedule['course_title'],
                     ];
-                    
-                    $meetingNumber++;
                 }
             }
 
@@ -102,6 +121,8 @@ class MemberAttendanceController extends Controller
                     'remaining' => $remainingMeetings,
                     'all_schedules' => $allSchedules->count(),
                 ],
+                'enrolmentFilters' => $enrolmentFilters,
+                'defaultEnrolmentId' => $defaultEnrolmentId,
                 'enrolmentDetails' => $enrolmentDetails,
                 'detailedAttendance' => $detailedAttendance,
             ]);
@@ -110,3 +131,4 @@ class MemberAttendanceController extends Controller
         }
     }
 }
+
