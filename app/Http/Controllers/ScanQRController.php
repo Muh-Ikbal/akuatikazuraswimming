@@ -16,7 +16,10 @@ class ScanQRController extends Controller
     public function index()
     {
         try {
-            $attendance = Attendance::whereDate('scan_time', today())->count();
+            $attendance = Attendance::whereBetween('scan_time', [
+                now()->startOfDay(),
+                now()->endOfDay()
+            ])->count();
             return Inertia::render('operator/scan-qr-member', [
                 'attendance' => $attendance,
             ]);

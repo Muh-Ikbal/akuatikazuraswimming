@@ -7,7 +7,8 @@ import {
     Calendar,
     CheckCircle,
     Clock,
-    AlertTriangle
+    AlertTriangle,
+    MapPin,
 } from 'lucide-react';
 import {
     Table,
@@ -28,8 +29,10 @@ const breadcrumbs: BreadcrumbItem[] = [
 interface AttendanceRecord {
     id: number;
     date: string;
-    check_in_time: string;
-    check_out_time: string | null;
+    scheduled_time: string;
+    check_in_time: string | null;
+    class_title: string;
+    location: string;
     state: 'present' | 'late' | 'alpha';
     status: string;
 }
@@ -159,6 +162,9 @@ export default function RiwayatAbsensiCoach({ attendanceRecords, stats }: Props)
                                     <TableHeader>
                                         <TableRow>
                                             <TableHead>Tanggal</TableHead>
+                                            <TableHead>Kelas</TableHead>
+                                            <TableHead className="hidden sm:table-cell">Lokasi</TableHead>
+                                            <TableHead>Jam Jadwal</TableHead>
                                             <TableHead>Jam Absen</TableHead>
                                             <TableHead>Status</TableHead>
                                         </TableRow>
@@ -170,10 +176,26 @@ export default function RiwayatAbsensiCoach({ attendanceRecords, stats }: Props)
                                                     {formatDate(record.date)}
                                                 </TableCell>
                                                 <TableCell>
-                                                    <div className="flex items-center gap-2 text-blue-600">
-                                                        <Clock className="h-4 w-4" />
-                                                        {record.check_in_time}
+                                                    <span className="text-sm">{record.class_title}</span>
+                                                </TableCell>
+                                                <TableCell className="hidden sm:table-cell">
+                                                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                                        <MapPin className="h-3 w-3" />
+                                                        {record.location}
                                                     </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <span className="text-sm text-muted-foreground">{record.scheduled_time}</span>
+                                                </TableCell>
+                                                <TableCell>
+                                                    {record.check_in_time ? (
+                                                        <div className="flex items-center gap-2 text-blue-600">
+                                                            <Clock className="h-4 w-4" />
+                                                            {record.check_in_time}
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-sm text-muted-foreground">-</span>
+                                                    )}
                                                 </TableCell>
                                                 <TableCell>
                                                     {getStatusBadge(record.state)}
@@ -198,3 +220,4 @@ export default function RiwayatAbsensiCoach({ attendanceRecords, stats }: Props)
         </AppLayout>
     );
 }
+

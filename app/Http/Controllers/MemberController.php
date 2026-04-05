@@ -144,7 +144,7 @@ class MemberController extends Controller
                         'meeting_count' => $enrolment->meeting_count,
                         'state' => $enrolment->state,
                         'state_member' => $enrolment->state_member,
-                        'attendance_count' => $enrolment->attendance->count(),
+                        'attendance_count' => $enrolment->meeting_count,
                         'report_member' => $enrolment->report_member,
                         'created_at' => $enrolment->created_at?->format('d M Y'),
                     ];

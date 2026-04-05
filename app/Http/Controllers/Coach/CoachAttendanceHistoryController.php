@@ -14,8 +14,8 @@ class CoachAttendanceHistoryController extends Controller
     public function index()
     {
         try {
-            $user = auth()->user();
-            $coach = Coach::where('user_id', $user->id)->first();
+            $user = auth()->user()->load('coach');
+            $coach = $user->coach;
             
             $attendanceRecords = collect();
             $stats = [
@@ -26,8 +26,8 @@ class CoachAttendanceHistoryController extends Controller
             ];
             
             if ($coach) {
-                // Get all attendance records for this coach/user from attandance_employees table
                 $attendances = AttandanceEmployee::where('user_id', $user->id)
+                    ->with('schedule.class_session')
                     ->orderBy('scan_time', 'desc')
                     ->get();
                 
@@ -36,12 +36,16 @@ class CoachAttendanceHistoryController extends Controller
                 $stats['total_late'] = $attendances->where('state', 'late')->count();
                 $stats['total_alpha'] = $attendances->where('state', 'alpha')->count();
                 
-                // Each record is a separate attendance entry
                 foreach ($attendances as $attendance) {
+                    $schedule = $attendance->schedule;
+
                     $attendanceRecords->push([
                         'id' => $attendance->id,
-                        'date' => Carbon::parse($attendance->scan_time)->toDateString(),
-                        'check_in_time' => Carbon::parse($attendance->scan_time)->format('H:i:s'),
+                        'date' => $schedule?->date ?? ($attendance->scan_time ? Carbon::parse($attendance->scan_time)->toDateString() : null),
+                        'scheduled_time' => $schedule?->time ? Carbon::parse($schedule->time)->format('H:i') : '-',
+                        'check_in_time' => $attendance->scan_time ? Carbon::parse($attendance->scan_time)->format('H:i:s') : null,
+                        'class_title' => $schedule?->class_session?->title ?? '-',
+                        'location' => $schedule?->location ?? '-',
                         'state' => $attendance->state,
                         'status' => match($attendance->state) {
                             'present' => 'Tepat Waktu',
@@ -62,3 +66,4 @@ class CoachAttendanceHistoryController extends Controller
         }
     }
 }
+

@@ -73,31 +73,31 @@ export default function MemberEnrolmentHistory({ enrolments }: Props) {
             case 'active':
                 return {
                     label: 'Aktif',
-                    className: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+                    className: 'bg-green-100 text-green-700',
                     icon: CheckCircle,
                 };
             case 'completed':
                 return {
                     label: 'Selesai',
-                    className: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+                    className: 'bg-blue-100 text-blue-700',
                     icon: CheckCircle,
                 };
             case 'cancelled':
                 return {
                     label: 'Dibatalkan',
-                    className: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+                    className: 'bg-red-100 text-red-700 ',
                     icon: XCircle,
                 };
             case 'on_progress':
                 return {
                     label: 'Sedang Berjalan',
-                    className: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+                    className: 'bg-yellow-100 text-yellow-700',
                     icon: Clock,
                 };
             default:
                 return {
                     label: state || '-',
-                    className: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
+                    className: 'bg-gray-100 text-gray-700',
                     icon: Clock,
                 };
         }
@@ -127,53 +127,7 @@ export default function MemberEnrolmentHistory({ enrolments }: Props) {
                     </p>
                 </div>
 
-                {/* Stats */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    <Card>
-                        <CardContent className="p-4 flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                                <BookOpen className="w-5 h-5 text-primary" />
-                            </div>
-                            <div>
-                                <div className="text-xl font-bold">{totalEnrolments}</div>
-                                <div className="text-xs text-muted-foreground">Total</div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardContent className="p-4 flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                                <Clock className="w-5 h-5 text-green-600" />
-                            </div>
-                            <div>
-                                <div className="text-xl font-bold">{activeEnrolments}</div>
-                                <div className="text-xs text-muted-foreground">Berjalan</div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardContent className="p-4 flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                                <CheckCircle className="w-5 h-5 text-blue-600" />
-                            </div>
-                            <div>
-                                <div className="text-xl font-bold">{completedEnrolments}</div>
-                                <div className="text-xs text-muted-foreground">Selesai</div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardContent className="p-4 flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-                                <Calendar className="w-5 h-5 text-purple-600" />
-                            </div>
-                            <div>
-                                <div className="text-xl font-bold">{totalAttendance}</div>
-                                <div className="text-xs text-muted-foreground">Kehadiran</div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
+                
 
                 {/* Search */}
                 <Card>
