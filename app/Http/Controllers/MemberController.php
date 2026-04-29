@@ -114,6 +114,7 @@ class MemberController extends Controller
                     'class_session_id' => $validated['class_session_id'],
                     'start_date' => $validated['start_date'],
                     'end_date' => $validated['end_date'],
+                    'state' => (isset($validated['end_date']) && $validated['end_date'] < \Carbon\Carbon::today()->format('Y-m-d')) ? 'completed' : 'on_progress',
                 ]);
 
                 $course = Course::findOrFail($validated['course_id']);

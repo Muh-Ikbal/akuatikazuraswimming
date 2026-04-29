@@ -25,6 +25,13 @@ class EnrolmentCourseController extends Controller
                     ->whereColumn('courses.id', 'enrolment_courses.course_id');
             })->update(['state' => 'completed']);
 
+            $today = \Carbon\Carbon::today()->format('Y-m-d');
+
+            $updated = EnrolmentCourse::where('state', 'on_progress')
+                ->whereNotNull('end_date')
+                ->whereDate('end_date', '<', $today)
+                ->update(['state' => 'completed']);
+
             // enrolments
             $query = EnrolmentCourse::with(['member', 'class_session', 'course', 'payment'])
                 ->orderBy('created_at', 'desc');
@@ -107,6 +114,10 @@ class EnrolmentCourseController extends Controller
             if ($enromentAlready) {
                 return redirect('/management-enrolment')->with('error', 'Member sudah memiliki enrolment yang sedang berlangsung');
             }
+            if (isset($validated['end_date']) && $validated['end_date'] < \Carbon\Carbon::today()->format('Y-m-d')) {
+                $validated['state'] = 'completed';
+            }
+
             DB::transaction(function () use ($validated) {
                 $enrolmentCourse = EnrolmentCourse::create($validated);
 
@@ -181,6 +192,10 @@ class EnrolmentCourseController extends Controller
                 $payment->update([
                     'amount' => $course->price,
                 ]);
+            }
+
+            if (isset($validated['end_date']) && $validated['end_date'] < \Carbon\Carbon::today()->format('Y-m-d')) {
+                $validated['state'] = 'completed';
             }
 
             $enrolment->update($validated);
