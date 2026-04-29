@@ -75,6 +75,8 @@ class MemberController extends Controller
             'password' => ['required', 'nullable', 'confirmed', Password::defaults()],
             'course_id' => 'required|exists:courses,id',
             'class_session_id' => 'required|exists:class_sessions,id',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
 
         ]);
         
@@ -110,6 +112,8 @@ class MemberController extends Controller
                     'member_id' => $memberId,
                     'course_id' => $validated['course_id'],
                     'class_session_id' => $validated['class_session_id'],
+                    'start_date' => $validated['start_date'],
+                    'end_date' => $validated['end_date'],
                 ]);
 
                 $course = Course::findOrFail($validated['course_id']);

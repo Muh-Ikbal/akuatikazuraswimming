@@ -69,6 +69,13 @@ export default function CreateMember({ member, users = [], courses = [], classSe
         },
     ];
 
+    const getLocalDateString = (daysOffset = 0) => {
+        const d = new Date();
+        d.setDate(d.getDate() + daysOffset);
+        d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+        return d.toISOString().split('T')[0];
+    };
+
     const { data, setData, post, put, processing, errors } = useForm({
         name: member?.name || '',
         birth_date: member?.birth_date || '',
@@ -79,13 +86,15 @@ export default function CreateMember({ member, users = [], courses = [], classSe
         parent_phone_number: member?.parent_phone_number || '',
         user_id: member?.user_id || '',
         birth_place: member?.birth_place || '',
-        entry_date: member?.entry_date || '',
+        entry_date: member?.entry_date ? member.entry_date.split('T')[0] : getLocalDateString(0),
         create_user: false,
         email: '',
         password: '',
         password_confirmation: '',
         course_id: '',
-        class_session_id: ''
+        class_session_id: '',
+        start_date: getLocalDateString(0),
+        end_date: getLocalDateString(28),
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -194,22 +203,41 @@ export default function CreateMember({ member, users = [], courses = [], classSe
                                     </div>
                                 </div>
 
-                                {/* Phone */}
-                                <div className="space-y-2">
-                                    <Label htmlFor="phone_number" className="text-sm">
-                                        No HP Siswa <span className="text-destructive">*</span>
-                                    </Label>
-                                    <div className="relative">
-                                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                                        <Input
-                                            id="phone_number"
-                                            placeholder="08xxxxxxxxxx"
-                                            value={data.phone_number}
-                                            onChange={(e) => setData('phone_number', e.target.value)}
-                                            className={`h-10 sm:h-11 pl-10 ${errors.phone_number ? 'border-destructive' : ''}`}
-                                        />
+                                {/* Entry Date & Phone */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="entry_date" className="text-sm">
+                                            Tanggal Masuk <span className="text-destructive">*</span>
+                                        </Label>
+                                        <div className="relative">
+                                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                            <Input
+                                                id="entry_date"
+                                                type="date"
+                                                value={data.entry_date}
+                                                onChange={(e) => setData('entry_date', e.target.value)}
+                                                className={`h-10 sm:h-11 pl-10 ${errors.entry_date ? 'border-destructive' : ''}`}
+                                            />
+                                        </div>
+                                        {errors.entry_date && <p className="text-sm text-destructive">{errors.entry_date}</p>}
                                     </div>
-                                    {errors.phone_number && <p className="text-sm text-destructive">{errors.phone_number}</p>}
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="phone_number" className="text-sm">
+                                            No HP Siswa <span className="text-destructive">*</span>
+                                        </Label>
+                                        <div className="relative">
+                                            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                            <Input
+                                                id="phone_number"
+                                                placeholder="08xxxxxxxxxx"
+                                                value={data.phone_number}
+                                                onChange={(e) => setData('phone_number', e.target.value)}
+                                                className={`h-10 sm:h-11 pl-10 ${errors.phone_number ? 'border-destructive' : ''}`}
+                                            />
+                                        </div>
+                                        {errors.phone_number && <p className="text-sm text-destructive">{errors.phone_number}</p>}
+                                    </div>
                                 </div>
 
                                 {/* Address */}
@@ -230,23 +258,7 @@ export default function CreateMember({ member, users = [], courses = [], classSe
                                     </div>
                                     {errors.address && <p className="text-sm text-destructive">{errors.address}</p>}
                                 </div>
-                                {/* tanggal masuk */}
-                                <div className="space-y-2">
-                                    <Label htmlFor="entry_date" className="text-sm">
-                                        Tanggal Masuk <span className="text-destructive">*</span>
-                                    </Label>
-                                    <div className="relative">
-                                        <Input
-                                            id="entry_date"
-                                            type="date"
-                                            placeholder="Masukkan tanggal masuk"
-                                            value={data.entry_date}
-                                            onChange={(e) => setData('entry_date', e.target.value)}
-                                            className={`h-10 sm:h-11 ${errors.entry_date ? 'border-destructive' : ''}`}
-                                        />
-                                    </div>
-                                    {errors.entry_date && <p className="text-sm text-destructive">{errors.entry_date}</p>}
-                                </div>
+
                             </CardContent>
                         </Card>
 
@@ -444,8 +456,50 @@ export default function CreateMember({ member, users = [], courses = [], classSe
                                             </div>
                                         </div>
 
-
-
+                                        {/* Start Date and End Date */}
+                                        <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="start_date" className="text-sm">
+                                                    Tanggal Mulai <span className="text-destructive">*</span>
+                                                </Label>
+                                                <input
+                                                    type="date"
+                                                    id="start_date"
+                                                    className={`w-full h-10 sm:h-11 px-3 border rounded-md bg-background text-sm ${/* @ts-ignore */ errors.start_date ? 'border-destructive' : 'border-input'}`}
+                                                    value={data.start_date}
+                                                    onChange={(e) => {
+                                                        const newStartDate = e.target.value;
+                                                        const startDateObj = new Date(newStartDate);
+                                                        if (!isNaN(startDateObj.getTime())) {
+                                                            const calculatedEndDate = new Date(startDateObj.getTime() + 28 * 24 * 60 * 60 * 1000 - startDateObj.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+                                                            setData((prevData: any) => ({
+                                                                ...prevData,
+                                                                start_date: newStartDate,
+                                                                end_date: calculatedEndDate,
+                                                            }));
+                                                        } else {
+                                                            setData('start_date', newStartDate);
+                                                        }
+                                                    }}
+                                                />
+                                                {/* @ts-ignore */}
+                                                {errors.start_date && <p className="text-sm text-destructive">{errors.start_date}</p>}
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="end_date" className="text-sm">
+                                                    Tanggal Berakhir <span className="text-destructive">*</span>
+                                                </Label>
+                                                <input
+                                                    type="date"
+                                                    id="end_date"
+                                                    className={`w-full h-10 sm:h-11 px-3 border rounded-md bg-background text-sm ${/* @ts-ignore */ errors.end_date ? 'border-destructive' : 'border-input'}`}
+                                                    value={data.end_date}
+                                                    onChange={(e) => setData('end_date', e.target.value)}
+                                                />
+                                                {/* @ts-ignore */}
+                                                {errors.end_date && <p className="text-sm text-destructive">{errors.end_date}</p>}
+                                            </div>
+                                        </div>
 
                                     </CardContent>
                                 </Card>

@@ -20,6 +20,11 @@ class Member extends Model
         'user_id'
     ];
 
+    protected $casts = [
+        'birth_date' => 'date:Y-m-d',
+        'entry_date' => 'date:Y-m-d',
+    ];
+
     public function user(){
         return $this->belongsTo(User::class);
     }

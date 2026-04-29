@@ -16,6 +16,7 @@ interface User {
     id: number;
     name: string;
     email: string;
+    status: boolean | number;
     roles: Role[];
 }
 
@@ -44,6 +45,7 @@ export default function CreateUser({ user, roles }: Props) {
         password: '',
         password_confirmation: '',
         role: user?.roles?.[0]?.name || 'member',
+        status: user ? !!user.status : true,
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -129,6 +131,24 @@ export default function CreateUser({ user, roles }: Props) {
                                         />
                                     </div>
                                     {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
+                                </div>
+
+                                {/* Status */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="status" className="text-sm">
+                                        Status Akun
+                                    </Label>
+                                    <select
+                                        id="status"
+                                        className="w-full h-10 sm:h-11 px-3 border border-input rounded-md bg-background text-sm"
+                                        value={data.status ? "1" : "0"}
+                                        onChange={(e) => setData('status', e.target.value === "1")}
+                                    >
+                                        <option value="1">Aktif</option>
+                                        <option value="0">Nonaktif</option>
+                                    </select>
+                                    {/* @ts-ignore */}
+                                    {errors.status && <p className="text-sm text-destructive">{errors.status}</p>}
                                 </div>
                             </CardContent>
                         </Card>

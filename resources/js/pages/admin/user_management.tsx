@@ -55,6 +55,7 @@ interface User {
     name: string;
     email: string;
     created_at: string;
+    status: boolean | number;
     roles: { id: number; name: string }[];
 }
 
@@ -321,8 +322,8 @@ export default function UserManagement({ users, roles, stats, filters }: Props) 
                                         </div>
                                     </div>
 
-                                    {/* Role Badge */}
-                                    <div className="mb-4">
+                                    {/* Role Badge & Status */}
+                                    <div className="mb-4 flex items-start justify-between">
                                         <div className="flex flex-wrap gap-2">
                                             {user.roles.map((role) => (
                                                 <span key={role.id}>
@@ -333,7 +334,11 @@ export default function UserManagement({ users, roles, stats, filters }: Props) 
                                                 <span className="text-sm text-muted-foreground">No role assigned</span>
                                             )}
                                         </div>
+                                        <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${user.status ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}`}>
+                                            {user.status ? 'Aktif' : 'Nonaktif'}
+                                        </span>
                                     </div>
+
 
                                     {/* Created Date */}
                                     <p className="text-sm text-muted-foreground mb-4">
@@ -371,6 +376,7 @@ export default function UserManagement({ users, roles, stats, filters }: Props) 
                                             <TableHead>Nama</TableHead>
                                             <TableHead className="hidden md:table-cell">Email</TableHead>
                                             <TableHead>Jabatan</TableHead>
+                                            <TableHead>Status</TableHead>
                                             <TableHead className="hidden sm:table-cell">Bergabung</TableHead>
                                             <TableHead className="text-right">Aksi</TableHead>
                                         </TableRow>
@@ -403,6 +409,11 @@ export default function UserManagement({ users, roles, stats, filters }: Props) 
                                                             <span className="text-sm text-muted-foreground">-</span>
                                                         )}
                                                     </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${user.status ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}`}>
+                                                        {user.status ? 'Aktif' : 'Nonaktif'}
+                                                    </span>
                                                 </TableCell>
                                                 <TableCell className="hidden sm:table-cell">
                                                     <span className="text-muted-foreground">{formatDate(user.created_at)}</span>

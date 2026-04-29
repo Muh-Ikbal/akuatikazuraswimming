@@ -79,12 +79,14 @@ class UserController extends Controller
                 'email' => 'required|string|email|max:255|unique:users',
                 'password' => ['required', 'confirmed', Password::defaults()],
                 'role' => 'required|string|exists:roles,name',
+                'status' => 'boolean',
             ]);
     
             $user = User::create([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'password' => Hash::make($validated['password']),
+                'status' => $validated['status'] ?? true,
             ]);
     
             $user->assignRole($validated['role']);
@@ -116,11 +118,13 @@ class UserController extends Controller
                 'email' => 'required|string|email|max:255|unique:users,email,' . $id,
                 'password' => ['nullable', 'confirmed', Password::defaults()],
                 'role' => 'required|string|exists:roles,name',
+                'status' => 'boolean',
             ]);
     
             $user->update([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
+                'status' => $validated['status'],
             ]);
     
             if (!empty($validated['password'])) {

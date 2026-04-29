@@ -21,33 +21,33 @@ class EnrolmentCourseController extends Controller
             // update status if meeting_count == course.total_meeting
             EnrolmentCourse::where('meeting_count', '>=', function ($query) {
                 $query->select('total_meeting')
-                      ->from('courses')
-                      ->whereColumn('courses.id', 'enrolment_courses.course_id');
+                    ->from('courses')
+                    ->whereColumn('courses.id', 'enrolment_courses.course_id');
             })->update(['state' => 'completed']);
 
             // enrolments
             $query = EnrolmentCourse::with(['member', 'class_session', 'course', 'payment'])
                 ->orderBy('created_at', 'desc');
 
-            if($request->has('search') && $request->search != null){
+            if ($request->has('search') && $request->search != null) {
                 $search = $request->search;
-                $query->whereHas('member',function ($q) use ($search) {
-                    $q->where('name', 'like', '%'.$search. '%');
+                $query->whereHas('member', function ($q) use ($search) {
+                    $q->where('name', 'like', '%' . $search . '%');
                 });
             }
 
-            if($request->has('status') && $request->status != null){
-                $query->where('state','=',$request->status);
+            if ($request->has('status') && $request->status != null) {
+                $query->where('state', '=', $request->status);
             }
 
-            if($request->has('name_class') && $request->name_class !=null){
+            if ($request->has('name_class') && $request->name_class != null) {
                 $name_class = $request->name_class;
-                $query->whereHas('class_session', function($q) use ($name_class){
-                    $q->where('id', '=',$name_class);
+                $query->whereHas('class_session', function ($q) use ($name_class) {
+                    $q->where('id', '=', $name_class);
                 });
             }
 
-            $enrolments = $query->paginate(3)->withQueryString();
+            $enrolments = $query->paginate(10)->withQueryString();
 
             // stats
             $enrolmentsStats = EnrolmentCourse::select(
@@ -56,10 +56,10 @@ class EnrolmentCourseController extends Controller
                 DB::raw('SUM(CASE WHEN state = "completed" THEN 1 ELSE 0 END) as completed_count'),
                 DB::raw('SUM(CASE WHEN state = "cancelled" THEN 1 ELSE 0 END) as cancelled_count'),
             )
-            ->first();
+                ->first();
 
             $classes = ClassSession::all();
-            
+
             return Inertia::render('admin/enrolment_management', [
                 'enrolments' => $enrolments,
                 'filters' => $request->only('search'),
@@ -77,7 +77,7 @@ class EnrolmentCourseController extends Controller
             $members = Member::all(['id', 'name']);
             $class_sessions = ClassSession::get();
             $courses = Course::where('state', 'active')->get(['id', 'title', 'price']);
-            
+
             return Inertia::render('admin/enrolment/create', [
                 'members' => $members,
                 'class_sessions' => $class_sessions,
@@ -87,7 +87,7 @@ class EnrolmentCourseController extends Controller
             return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
         }
     }
- 
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -97,15 +97,17 @@ class EnrolmentCourseController extends Controller
             'meeting_count' => 'required|numeric',
             'state' => 'required|in:on_progress,completed,cancelled',
             'state_member' => 'required|in:new,old',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
         ]);
 
 
         try {
-            $enromentAlready = EnrolmentCourse::where('member_id',$validated['member_id'])->where('state','on_progress')->first();
-            if($enromentAlready){
+            $enromentAlready = EnrolmentCourse::where('member_id', $validated['member_id'])->where('state', 'on_progress')->first();
+            if ($enromentAlready) {
                 return redirect('/management-enrolment')->with('error', 'Member sudah memiliki enrolment yang sedang berlangsung');
             }
-             DB::transaction(function () use ($validated) {
+            DB::transaction(function () use ($validated) {
                 $enrolmentCourse = EnrolmentCourse::create($validated);
 
                 $course = Course::findOrFail($validated['course_id']);
@@ -128,7 +130,7 @@ class EnrolmentCourseController extends Controller
         try {
             $enrolment = EnrolmentCourse::with(['member', 'class_session.coach', 'course', 'payment'])
                 ->findOrFail($id);
-            
+
             return Inertia::render('admin/enrolment/show', [
                 'enrolment' => $enrolment
             ]);
@@ -144,7 +146,7 @@ class EnrolmentCourseController extends Controller
             $members = Member::all(['id', 'name']);
             $class_sessions = ClassSession::get();
             $courses = Course::where('state', 'active')->get(['id', 'title', 'price']);
-            
+
             return Inertia::render('admin/enrolment/create', [
                 'enrolment' => $enrolment,
                 'members' => $members,
@@ -160,7 +162,7 @@ class EnrolmentCourseController extends Controller
     {
         try {
             $enrolment = EnrolmentCourse::findOrFail($id);
-            
+
             $validated = $request->validate([
                 'member_id' => 'required|exists:members,id',
                 'class_session_id' => 'required|exists:class_sessions,id',
@@ -168,13 +170,15 @@ class EnrolmentCourseController extends Controller
                 'course_id' => 'required|exists:courses,id',
                 'state' => 'required|in:on_progress,completed,cancelled',
                 'state_member' => 'required|in:new,old',
+                'start_date' => 'required|date',
+                'end_date' => 'required|date|after_or_equal:start_date',
             ]);
 
             $course = Course::findOrFail($validated['course_id']);
 
             $payment = Payment::where('enrolment_course_id', $id)->first();
-            if($payment){
-                 $payment->update([
+            if ($payment) {
+                $payment->update([
                     'amount' => $course->price,
                 ]);
             }
@@ -192,7 +196,7 @@ class EnrolmentCourseController extends Controller
         try {
             $enrolment = EnrolmentCourse::findOrFail($id);
             $payment = Payment::where('enrolment_course_id', $id)->first();
-            if($payment){
+            if ($payment) {
                 return redirect('/management-enrolment')->with('error', 'Enrolment tidak dapat dihapus karena ada pembayaran yang terkait');
             }
             $enrolment->delete();

@@ -41,6 +41,8 @@ interface Enrolment {
     meeting_count: number;
     state: string;
     state_member: string;
+    start_date?: string;
+    end_date?: string;
 }
 
 interface Props {
@@ -75,6 +77,13 @@ export default function CreateEnrolment({ enrolment, members, class_sessions = [
         },
     ];
 
+    const getLocalDateString = (daysOffset = 0) => {
+        const d = new Date();
+        d.setDate(d.getDate() + daysOffset);
+        d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+        return d.toISOString().split('T')[0];
+    };
+
     const { data, setData, post, put, processing, errors } = useForm({
         member_id: enrolment?.member_id || '',
         class_session_id: enrolment?.class_session_id || '',
@@ -82,6 +91,8 @@ export default function CreateEnrolment({ enrolment, members, class_sessions = [
         meeting_count: enrolment?.meeting_count || 0,
         state: enrolment?.state || 'on_progress',
         state_member: enrolment?.state_member || 'new',
+        start_date: enrolment?.start_date ? enrolment.start_date.split('T')[0] : getLocalDateString(0),
+        end_date: enrolment?.end_date ? enrolment.end_date.split('T')[0] : getLocalDateString(28),
     });
 
     // Filter members based on search
@@ -302,6 +313,53 @@ export default function CreateEnrolment({ enrolment, members, class_sessions = [
                                     />
                                     {errors.meeting_count && <p className="text-sm text-destructive">{errors.meeting_count}</p>}
                                 </div>
+
+                                {/* Start Date */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="start_date" className="text-sm">
+                                        Tanggal Mulai <span className="text-destructive">*</span>
+                                    </Label>
+                                    <input
+                                        type="date"
+                                        id="start_date"
+                                        className={`w-full h-10 sm:h-11 px-3 border rounded-md bg-background text-sm ${/* @ts-ignore */ errors.start_date ? 'border-destructive' : 'border-input'}`}
+                                        value={data.start_date}
+                                        onChange={(e) => {
+                                            const newStartDate = e.target.value;
+                                            const startDateObj = new Date(newStartDate);
+                                            // Validate if the parsed date is valid before calculating
+                                            if (!isNaN(startDateObj.getTime())) {
+                                                const calculatedEndDate = new Date(startDateObj.getTime() + 28 * 24 * 60 * 60 * 1000 - startDateObj.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+                                                setData((prevData: any) => ({
+                                                    ...prevData,
+                                                    start_date: newStartDate,
+                                                    end_date: calculatedEndDate,
+                                                }));
+                                            } else {
+                                                setData('start_date', newStartDate);
+                                            }
+                                        }}
+                                    />
+                                    {/* @ts-ignore */}
+                                    {errors.start_date && <p className="text-sm text-destructive">{errors.start_date}</p>}
+                                </div>
+
+                                {/* End Date */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="end_date" className="text-sm">
+                                        Tanggal Berakhir <span className="text-destructive">*</span>
+                                    </Label>
+                                    <input
+                                        type="date"
+                                        id="end_date"
+                                        className={`w-full h-10 sm:h-11 px-3 border rounded-md bg-background text-sm ${/* @ts-ignore */ errors.end_date ? 'border-destructive' : 'border-input'}`}
+                                        value={data.end_date}
+                                        onChange={(e) => setData('end_date', e.target.value)}
+                                    />
+                                    {/* @ts-ignore */}
+                                    {errors.end_date && <p className="text-sm text-destructive">{errors.end_date}</p>}
+                                </div>
+
                                 {/* State Member*/}
                                 <div className="space-y-2">
                                     <Label htmlFor="state_member" className="text-sm">

@@ -19,6 +19,13 @@ class EnrolmentCourse extends Model
         'state',
         'state_member',
         'report_member',
+        'start_date',
+        'end_date',
+    ];
+
+    protected $casts = [
+        'start_date' => 'date:Y-m-d',
+        'end_date' => 'date:Y-m-d',
     ];
 
     public function member(){

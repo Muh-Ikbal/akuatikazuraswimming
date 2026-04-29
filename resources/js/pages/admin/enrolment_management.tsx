@@ -62,6 +62,8 @@ interface Enrolment {
     };
     meeting_count: number;
     state_member: 'new' | 'old';
+    start_date?: string;
+    end_date?: string;
     created_at: string;
 }
 
@@ -326,6 +328,7 @@ export default function EnrolmentManagement(props: props) {
                                         <TableHead className="hidden md:table-cell">Kelas</TableHead>
                                         <TableHead className="hidden lg:table-cell">Kursus</TableHead>
                                         <TableHead>Pertemuan</TableHead>
+                                        <TableHead>Periode</TableHead>
                                         <TableHead>Status Member</TableHead>
                                         <TableHead>Status</TableHead>
                                         <TableHead className="text-right">Aksi</TableHead>
@@ -364,6 +367,16 @@ export default function EnrolmentManagement(props: props) {
                                                 </TableCell>
                                                 <TableCell>
                                                     <div>{enrolment.meeting_count}/{enrolment.course?.total_meeting}</div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    {enrolment.start_date && enrolment.end_date ? (
+                                                        <div className="text-sm">
+                                                            <div>{enrolment.start_date.split('T')[0]}</div>
+                                                            <div className="text-xs text-muted-foreground">s/d {enrolment.end_date.split('T')[0]}</div>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="text-muted-foreground text-xs">-</div>
+                                                    )}
                                                 </TableCell>
                                                 <TableCell>
                                                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${stateMemberDisplay.className}`}>
