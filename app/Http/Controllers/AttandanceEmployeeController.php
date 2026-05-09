@@ -14,21 +14,22 @@ class AttandanceEmployeeController extends Controller
     public function index()
     {
         try {
-            $missingSchedules = Schedule::with('coach.user')
+            Schedule::with('coach.user')
                 ->whereDoesntHave('attendanceEmployee')
                 ->where('status', 'completed')
-                ->get();
-
-            foreach ($missingSchedules as $schedule) {
-                if ($schedule->coach && $schedule->coach->user) {
-                    AttandanceEmployee::create([
-                        'user_id' => $schedule->coach->user->id,
-                        'schedule_id' => $schedule->id,
-                        'state' => 'alpha',
-                        'scan_time' => null,
-                    ]);
-                }
-            }
+                ->where('date', '>=', now()->subDays(30)->format('Y-m-d'))
+                ->chunk(100, function ($missingSchedules) {
+                    foreach ($missingSchedules as $schedule) {
+                        if ($schedule->coach && $schedule->coach->user) {
+                            AttandanceEmployee::create([
+                                'user_id' => $schedule->coach->user->id,
+                                'schedule_id' => $schedule->id,
+                                'state' => 'alpha',
+                                'scan_time' => null,
+                            ]);
+                        }
+                    }
+                });
             $attendanceToday = AttandanceEmployee::whereDate('scan_time', today())->count();
             
             return Inertia::render('operator/scan-qr-employee', [

@@ -28,21 +28,22 @@ class ScheduleController extends Controller
                     'status' => 'completed'
                 ]);
             
-            $missingSchedules = Schedule::with('coach.user')
+            Schedule::with('coach.user')
                 ->whereDoesntHave('attendanceEmployee')
                 ->where('status', 'completed')
-                ->get();
-
-            foreach ($missingSchedules as $schedule) {
-                if ($schedule->coach && $schedule->coach->user) {
-                    AttandanceEmployee::create([
-                        'user_id' => $schedule->coach->user->id,
-                        'schedule_id' => $schedule->id,
-                        'state' => 'alpha',
-                        'scan_time' => null,
-                    ]);
-                }
-            }
+                ->where('date', '>=', now()->subDays(30)->format('Y-m-d'))
+                ->chunk(100, function ($missingSchedules) {
+                    foreach ($missingSchedules as $schedule) {
+                        if ($schedule->coach && $schedule->coach->user) {
+                            AttandanceEmployee::create([
+                                'user_id' => $schedule->coach->user->id,
+                                'schedule_id' => $schedule->id,
+                                'state' => 'alpha',
+                                'scan_time' => null,
+                            ]);
+                        }
+                    }
+                });
             $query = Schedule::with('class_session','coach')->orderBy('date', 'desc')->orderBy('time', 'desc');
 
             if ($request->has('search') && $request->search != null) {
@@ -90,7 +91,7 @@ class ScheduleController extends Controller
 
     public function create(){
         try {
-            $class_sessions = ClassSession::all();
+            $class_sessions = ClassSession::select('id', 'title')->get();
             $coaches = Coach::all();
 
             return Inertia::render('admin/schedule/create',[
@@ -141,7 +142,7 @@ class ScheduleController extends Controller
     public function edit($id){
         try {
             $schedule = Schedule::findOrFail($id);
-            $class_sessions = ClassSession::all();
+            $class_sessions = ClassSession::select('id', 'title')->get();
             $coaches = Coach::all();
 
             return Inertia::render('admin/schedule/create',[

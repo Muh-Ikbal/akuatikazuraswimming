@@ -8,6 +8,7 @@ use Inertia\Inertia;
 use App\Models\Coach;
 use App\Models\ClassSession;
 use App\Models\Schedule;
+use App\Models\EnrolmentCourse;
 use App\Models\AttandanceEmployee;
 use Carbon\Carbon;
 
@@ -34,16 +35,47 @@ class CoachScheduleController extends Controller
             ];
             
             if ($coach) {
-                // Get all schedules for this coach (coach is now linked to schedules, not class_sessions)
+                // Filter schedules by selected month/year (with 1-week buffer for calendar edges)
+                $monthStart = Carbon::create($currentYear, $currentMonth, 1)->startOfMonth();
+                $monthEnd = $monthStart->copy()->endOfMonth();
+                $rangeStart = $monthStart->copy()->subWeek()->format('Y-m-d');
+                $rangeEnd = $monthEnd->copy()->addWeek()->format('Y-m-d');
+                
+                // Get schedules for this coach — filtered by date range
                 $coachSchedules = Schedule::where('coach_id', $coach->id)
-                    ->with(['class_session.enrolment'])
+                    ->whereBetween('date', [$rangeStart, $rangeEnd])
+                    ->with(['class_session:id,title,capacity'])
                     ->get();
                 
                 // Get unique class sessions from schedules
                 $classSessionIds = $coachSchedules->pluck('class_session_id')->unique()->filter();
+                
+                // Count enrolments per class session efficiently
+                $enrolmentCounts = [];
+                if ($classSessionIds->isNotEmpty()) {
+                    $enrolmentCounts = EnrolmentCourse::whereIn('class_session_id', $classSessionIds)
+                        ->selectRaw('class_session_id, COUNT(*) as count')
+                        ->groupBy('class_session_id')
+                        ->pluck('count', 'class_session_id')
+                        ->toArray();
+                }
+                
+                // Get course titles per class session (from first enrolment)
+                $coursePerClass = [];
+                if ($classSessionIds->isNotEmpty()) {
+                    $firstEnrolments = EnrolmentCourse::whereIn('class_session_id', $classSessionIds)
+                        ->with('course:id,title')
+                        ->get()
+                        ->groupBy('class_session_id')
+                        ->map(function ($group) {
+                            $first = $group->first();
+                            return $first && $first->course ? $first->course->title : '-';
+                        });
+                    $coursePerClass = $firstEnrolments->toArray();
+                }
+
                 $classSessions = ClassSession::whereIn('id', $classSessionIds)
-                    ->with(['enrolment'])
-                    ->get();
+                    ->get(['id', 'title', 'capacity']);
                 
                 $stats['total_classes'] = $classSessions->count();
                  
@@ -56,6 +88,7 @@ class CoachScheduleController extends Controller
                 foreach ($coachSchedules as $schedule) {
                     $classSession = $schedule->class_session;
                     $attendanceStatus = $this->getAttendanceStatus($schedule, $userAttendances);
+                    $studentCount = $enrolmentCounts[$schedule->class_session_id] ?? 0;
                     
                     $schedules->push([
                         'id' => $schedule->id,
@@ -68,7 +101,7 @@ class CoachScheduleController extends Controller
                             'id' => $classSession->id,
                             'title' => $classSession->title,
                         ] : null,
-                        'total_students' => $classSession ? $classSession->enrolment->count() : 0,
+                        'total_students' => $studentCount,
                         'attendance_status' => $attendanceStatus,
                     ]);
                     
@@ -93,7 +126,8 @@ class CoachScheduleController extends Controller
                     
                     $classesInfo[] = [
                         'class_title' => $classSession->title,
-                        'total_students' => $classSession->enrolment->count(),
+                        'course_title' => $coursePerClass[$classSession->id] ?? '-',
+                        'total_students' => $enrolmentCounts[$classSession->id] ?? 0,
                         'capacity' => $classSession->capacity,
                         'schedule_days' => $scheduleDays,
                         'schedule_time' => $scheduleTime,

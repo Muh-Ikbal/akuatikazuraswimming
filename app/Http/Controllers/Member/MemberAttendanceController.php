@@ -25,11 +25,32 @@ class MemberAttendanceController extends Controller
             
             $today = Carbon::today();
             
+            // Load enrolments with minimal columns
             $enrolments = EnrolmentCourse::where('member_id', $member->id)
-                ->with(['course', 'class_session.schedule'])
+                ->with(['course:id,title', 'class_session:id,title'])
                 ->get();
             
-            $userAttendances = Attendance::where('user_id', $user->id)->get();
+            // Get class session IDs from enrolments
+            $classSessionIds = $enrolments->pluck('class_session_id')->filter()->unique()->toArray();
+            
+            // Load schedules directly — limit to last 3 months for performance
+            $scheduleRangeStart = $today->copy()->subMonths(3)->format('Y-m-d');
+            $dbSchedules = collect();
+            if (!empty($classSessionIds)) {
+                $dbSchedules = Schedule::whereIn('class_session_id', $classSessionIds)
+                    ->where('date', '>=', $scheduleRangeStart)
+                    ->orderBy('date', 'desc')
+                    ->get(['id', 'class_session_id', 'date', 'time', 'location', 'status']);
+            }
+            
+            // Load attendance records only for the schedules we loaded
+            $scheduleIds = $dbSchedules->pluck('id')->toArray();
+            $userAttendances = collect();
+            if (!empty($scheduleIds)) {
+                $userAttendances = Attendance::where('user_id', $user->id)
+                    ->whereIn('schedule_id', $scheduleIds)
+                    ->get();
+            }
             
             // Build enrolment filter options & find default (active/on_progress)
             $enrolmentFilters = [];
@@ -55,19 +76,18 @@ class MemberAttendanceController extends Controller
             // Build schedules grouped by enrolment
             $allSchedules = collect();
             foreach ($enrolments as $enrolment) {
-                if ($enrolment->class_session && $enrolment->class_session->schedule) {
-                    foreach ($enrolment->class_session->schedule as $schedule) {
-                        $allSchedules->push([
-                            'id' => $schedule->id,
-                            'enrolment_id' => $enrolment->id,
-                            'date' => $schedule->date,
-                            'time' => $schedule->time,
-                            'location' => $schedule->location,
-                            'status' => $schedule->status,
-                            'class_session_id' => $enrolment->class_session->id,
-                            'course_title' => $enrolment->course->title ?? '-',
-                        ]);
-                    }
+                $enrolmentSchedules = $dbSchedules->where('class_session_id', $enrolment->class_session_id);
+                foreach ($enrolmentSchedules as $schedule) {
+                    $allSchedules->push([
+                        'id' => $schedule->id,
+                        'enrolment_id' => $enrolment->id,
+                        'date' => $schedule->date,
+                        'time' => $schedule->time,
+                        'location' => $schedule->location,
+                        'status' => $schedule->status,
+                        'class_session_id' => $enrolment->class_session_id,
+                        'course_title' => $enrolment->course->title ?? '-',
+                    ]);
                 }
             }
             

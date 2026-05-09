@@ -16,7 +16,7 @@ class ReportMemberController extends Controller
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
         $status = $request->input('status');
 
-        $query = EnrolmentCourse::with(['member', 'class_session', 'course', 'payments.promo', 'attendance'])
+        $query = EnrolmentCourse::with(['member:id,name,phone_number', 'class_session:id,title', 'course:id,title,total_meeting', 'payments.promo'])
             ->whereDate('created_at', '>=', $startDate)
             ->whereDate('created_at', '<=', $endDate);
 
@@ -24,7 +24,7 @@ class ReportMemberController extends Controller
             $query->where('state', $status);
         }
 
-        $enrolments = $query->latest()->get()->map(function ($enrolment) {
+        $enrolments = $query->latest()->limit(500)->get()->map(function ($enrolment) {
             $member = $enrolment->member;
             
             // Filter valid payments (not cancelled)

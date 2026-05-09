@@ -46,7 +46,7 @@ class LandingController extends Controller
             $coaches = Coach::with('certificate_coaches')->get();
 
             // Get galleries
-            $galleries = Gallery::latest()->get();
+            $galleries = Gallery::latest()->limit(12)->get();
             
             // Get stats
             $stats = [

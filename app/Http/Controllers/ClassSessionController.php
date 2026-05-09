@@ -14,7 +14,7 @@ class ClassSessionController extends Controller
     {
         try {
             $class_session = ClassSession::paginate(10);
-            $total_student = EnrolmentCourse::all();
+            $total_student = EnrolmentCourse::select('id', 'class_session_id')->get();
             $total_class = ClassSession::count();
             return Inertia::render('admin/class_session', [
                 'class_session' => $class_session,
@@ -102,12 +102,12 @@ class ClassSessionController extends Controller
     {
         try {
             $class_session = ClassSession::findOrFail($id);
-            $enrolments = EnrolmentCourse::where('class_session_id', $id)->get();
-            if($enrolments->count() > 0) {
+            $has_enrolments = EnrolmentCourse::where('class_session_id', $id)->exists();
+            if($has_enrolments) {
                 return redirect('/management-kelas')->with('error', 'Kelas tidak dapat dihapus karena ada yang terdaftar');
             }
-            $schedule = Schedule::where('class_session_id', $id)->get();
-            if($schedule->count() > 0) {
+            $has_schedule = Schedule::where('class_session_id', $id)->exists();
+            if($has_schedule) {
                 return redirect('/management-kelas')->with('error', 'Kelas tidak dapat dihapus karena ada jadwal yang terkait');
             }
             $class_session->delete();

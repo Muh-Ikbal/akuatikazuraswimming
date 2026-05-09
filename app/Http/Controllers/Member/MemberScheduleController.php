@@ -31,75 +31,88 @@ class MemberScheduleController extends Controller
             $userAttendances = collect();
             
             if ($member) {
-                // Only get enrolments that are currently on_progress
+                // Only get enrolments that are currently on_progress — minimal columns
                 $enrolments = EnrolmentCourse::where('member_id', $member->id)
                     ->where('state', 'on_progress')
-                    ->with(['class_session.schedule.coach', 'course'])
+                    ->with(['class_session:id,title', 'course:id,title,total_meeting'])
                     ->get();
                 
-                // Get enrolment IDs that are on_progress
+                $classSessionIds = $enrolments->pluck('class_session_id')->filter()->unique();
                 $onProgressEnrolmentIds = $enrolments->pluck('id')->toArray();
                 
-                // Get attendance records only for on_progress enrolments
-                $userAttendances = Attendance::where('user_id', $user->id)
-                    ->whereIn('enrolment_course_id', $onProgressEnrolmentIds)
-                    ->get();
-                
-                // Get all schedules from enrolled class sessions
-                foreach ($enrolments as $enrolment) {
-                    if ($enrolment->class_session) {
-                        $classSchedules = $enrolment->class_session->schedule;
-                        foreach ($classSchedules as $schedule) {
-                            $schedules->push([
-                                'id' => $schedule->id,
-                                'date' => $schedule->date,
-                                'time' => $schedule->time,
-                                'location' => $schedule->location,
-                                'status' => $schedule->status,
-                                'class_session' => $enrolment->class_session,
-                                'class_session_id' => $enrolment->class_session->id,
-                                'course' => $enrolment->course,
-                                'coach' => $schedule->coach,
-                                'enrolment_state' => $enrolment->state,
-                                // Real attendance status from database
-                                'attendance_status' => $this->getAttendanceStatus(
-                                    $schedule, 
-                                    $enrolment->class_session->id,
-                                    $userAttendances
-                                ),
-                            ]);
-                        }
+                if ($classSessionIds->isNotEmpty()) {
+                    // Query schedules directly — filtered by selected month/year
+                    $monthStart = Carbon::create($currentYear, $currentMonth, 1)->startOfMonth();
+                    $monthEnd = $monthStart->copy()->endOfMonth();
+                    
+                    // Also load 1 week before and after for calendar edge days
+                    $rangeStart = $monthStart->copy()->subWeek();
+                    $rangeEnd = $monthEnd->copy()->addWeek();
+                    
+                    $dbSchedules = Schedule::whereIn('class_session_id', $classSessionIds)
+                        ->whereBetween('date', [$rangeStart->format('Y-m-d'), $rangeEnd->format('Y-m-d')])
+                        ->with(['coach:id,name'])
+                        ->orderBy('date', 'asc')
+                        ->orderBy('time', 'asc')
+                        ->get();
+                    
+                    // Get attendance records only for on_progress enrolments within the date range
+                    $scheduleIds = $dbSchedules->pluck('id')->toArray();
+                    $userAttendances = Attendance::where('user_id', $user->id)
+                        ->whereIn('enrolment_course_id', $onProgressEnrolmentIds)
+                        ->whereIn('schedule_id', $scheduleIds)
+                        ->get();
+                    
+                    foreach ($dbSchedules as $schedule) {
+                        $enrolment = $enrolments->firstWhere('class_session_id', $schedule->class_session_id);
+                        if (!$enrolment) continue;
                         
-                        // Get first enrolled course info for sidebar (only on_progress)
-                        if (!$courseInfo && $enrolment->course && $enrolment->state === 'on_progress') {
-                            $course = $enrolment->course;
-                            $classSession = $enrolment->class_session;
-                            $firstSchedule = $classSession->schedule->first();
-                            $coach = $firstSchedule ? $firstSchedule->coach : null;
-                            
-                            // Get schedule days (e.g., "Selasa & Kamis")
-                            $scheduleDays = $this->getScheduleDays($classSession->schedule);
-                            $scheduleTime = $firstSchedule 
-                                ? Carbon::parse($firstSchedule->time)->format('H:i') . ' - ' . 
-                                  Carbon::parse($firstSchedule->time)->addHour()->format('H:i')
-                                : '-';
-                            
-                            $courseInfo = [
-                                'title' => $course->title,
-                                'state' => $enrolment->state,
-                                'coach_name' => $coach ? $coach->name : '-',
-                                'schedule_days' => $scheduleDays,
-                                'schedule_time' => $scheduleTime,
-                                'location' => $firstSchedule 
-                                    ? $firstSchedule->location 
-                                    : '-',
-                                'total_meeting' => $course->total_meeting,
-                                'class_title' => $classSession->title,
-                            ];
-                        }
+                        $schedules->push([
+                            'id' => $schedule->id,
+                            'date' => $schedule->date,
+                            'time' => $schedule->time,
+                            'location' => $schedule->location,
+                            'status' => $schedule->status,
+                            'class_session' => $enrolment->class_session ? ['id' => $enrolment->class_session->id, 'title' => $enrolment->class_session->title] : null,
+                            'class_session_id' => $schedule->class_session_id,
+                            'course' => $enrolment->course ? ['id' => $enrolment->course->id, 'title' => $enrolment->course->title] : null,
+                            'coach' => $schedule->coach ? ['id' => $schedule->coach->id, 'name' => $schedule->coach->name] : null,
+                            'enrolment_state' => $enrolment->state,
+                            'attendance_status' => $this->getAttendanceStatus(
+                                $schedule, 
+                                $schedule->class_session_id,
+                                $userAttendances
+                            ),
+                        ]);
+                    }
+                    
+                    // Build course info for sidebar from first enrolment
+                    $firstEnrolment = $enrolments->first(function($e) { return $e->course && $e->state === 'on_progress'; });
+                    if ($firstEnrolment && $firstEnrolment->class_session) {
+                        $course = $firstEnrolment->course;
+                        $classSession = $firstEnrolment->class_session;
+                        $firstSchedule = $dbSchedules->where('class_session_id', $classSession->id)->first();
+                        $coach = $firstSchedule ? $firstSchedule->coach : null;
+                        
+                        $classDaySchedules = $dbSchedules->where('class_session_id', $classSession->id);
+                        $scheduleDays = $this->getScheduleDays($classDaySchedules);
+                        $scheduleTime = $firstSchedule 
+                            ? Carbon::parse($firstSchedule->time)->format('H:i') . ' - ' . 
+                              Carbon::parse($firstSchedule->time)->addHour()->format('H:i')
+                            : '-';
+                        
+                        $courseInfo = [
+                            'title' => $course->title,
+                            'state' => $firstEnrolment->state,
+                            'coach_name' => $coach ? $coach->name : '-',
+                            'schedule_days' => $scheduleDays,
+                            'schedule_time' => $scheduleTime,
+                            'location' => $firstSchedule ? $firstSchedule->location : '-',
+                            'total_meeting' => $course->total_meeting,
+                            'class_title' => $classSession->title,
+                        ];
                     }
                 }
-                
                 
                 // Get upcoming schedules (from today onwards, exclude completed/cancelled)
                 $upcomingSchedules = $schedules

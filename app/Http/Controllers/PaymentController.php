@@ -55,10 +55,11 @@ class PaymentController extends Controller
     {
         try {
             
-            $enrolments = EnrolmentCourse::with(['member', 'course'])
+            $enrolments = EnrolmentCourse::with(['member:id,name', 'course:id,title,price'])
                 ->whereDoesntHave('payment', function($q) {
                     $q->whereIn('state', ['pending', 'paid', 'partial_paid']);
                 })
+                ->select('id', 'member_id', 'course_id')
                 ->get();
             
             $promos = Promo::where('state', 'active')->get();
@@ -159,7 +160,15 @@ class PaymentController extends Controller
     {
         try {
             $payment = Payment::with(['enrolment_course.member', 'enrolment_course.course'])->findOrFail($id);
-            $enrolments = EnrolmentCourse::with(['member', 'course'])->get();
+            $enrolments = EnrolmentCourse::with(['member:id,name', 'course:id,title,price'])
+                ->where(function($q) use ($payment) {
+                    $q->whereDoesntHave('payment', function($sub) {
+                        $sub->whereIn('state', ['pending', 'paid', 'partial_paid']);
+                    })
+                    ->orWhere('id', $payment->enrolment_course_id);
+                })
+                ->select('id', 'member_id', 'course_id')
+                ->get();
             $promos = Promo::where('state', 'active')
                 ->when($payment->promo_id, function ($query) use ($payment) {
                     $query->orWhere('id', $payment->promo_id);
